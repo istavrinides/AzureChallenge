@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>aspnet-AzureChallenge.UI-7CA5B91E-884C-4C4D-AD32-28F074AA62AB</UserSecretsId>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.1.2" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.8.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.2" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.1" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Folder Include="Areas\Administration\Data\" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\AzureChallenge.Interfaces\AzureChallenge.Interfaces.csproj" />
+    <ProjectReference Include="..\AzureChallenge.Models\AzureChallenge.Models.csproj" />
+    <ProjectReference Include="..\AzureChallenge.Providers\AzureChallenge.Providers.csproj" />
+  </ItemGroup>
+
+</Project>
