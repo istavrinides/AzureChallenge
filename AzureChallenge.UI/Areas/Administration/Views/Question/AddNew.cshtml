@@ -4,6 +4,14 @@
     ViewData["Title"] = "AddNew";
 }
 
+<style>
+    .form-border {
+        padding: 1rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px 4px 0 0;
+    }
+</style>
+
 <h1>Add New Question</h1>
 
 @using (Html.BeginForm())
@@ -11,17 +19,126 @@
     @Html.AntiForgeryToken()
 
     <div class="form-group">
+        <label asp-for="@Model.Name"></label>
+        <input class="form-control" asp-for="@Model.Name" />
+    </div>
+    <div class="form-group">
+        <label asp-for="@Model.Description"></label>
+        <input class="form-control" asp-for="@Model.Description" />
+    </div>
+    <div class="form-group">
         <label asp-for="@Model.Text"></label>
         <textarea asp-for="@Model.Text" class="form-control"></textarea>
         <small class="form-text text-muted">Please enter the question text. Placeholders that will be replaced from below parameters should be wrapped inside curly braces {}.</small>
     </div>
-    <div class="form-group">
-        <label for="exampleInputPassword1">Password</label>
-        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+    <div id="textParamsGroup" class="form-border form-group">
+        <div class="form-group row">
+            <div class="col">
+                <label asp-for="@Model.TextParameters"></label>
+            </div>
+            <div class="col">
+                <button type="button" class="btn btn-info float-right" id="btn-add-new-text-param">Add New</button>
+            </div>
+        </div>
+        <div id="textParamsInputGroup" class="form-group row">
+        </div>
     </div>
-    <div class="form-check">
-        <input type="checkbox" class="form-check-input" id="exampleCheck1">
-        <label class="form-check-label" for="exampleCheck1">Check me out</label>
+    <div class="form-group">
+        <label asp-for="@Model.Uri" class="col-2"></label>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend btn-group-toggle" data-toggle="buttons">
+                <label class="btn btn-secondary">
+                    <input type="radio" asp-for="@Model.CallType" value="GET" id="GET" autocomplete="off" checked> GET
+                </label>
+                <label class="btn btn-secondary">
+                    <input type="radio" asp-for="@Model.CallType" value="HEAD" id="HEAD" autocomplete="off"> HEAD
+                </label>
+            </div>
+            <input asp-for="@Model.Uri" class="form-control" />
+        </div>
+        <small class="form-text text-muted">Please enter the Uri for the API to call. Placeholders that will be replaced from below parameters should be wrapped inside curly braces {}.</small>
+    </div>
+    <div id="uriParamsGroup" class="form-border form-group">
+        <div class="form-group row">
+            <div class="col">
+                <label asp-for="@Model.UriParameters"></label>
+            </div>
+            <div class="col">
+                <button type="button" class="btn btn-info float-right" id="btn-add-new-uri-param">Add New</button>
+            </div>
+        </div>
+        <div id="uriParamsInputGroup" class="form-group row">
+        </div>
+    </div>
+    <div id="answersParamsGroup" class="form-border form-group">
+        <div class="form-group row">
+            <div class="col">
+                <label asp-for="@Model.Answers"></label>
+            </div>
+            <div class="col">
+                <button type="button" class="btn btn-info float-right" id="btn-add-new-answer-param">Add New</button>
+            </div>
+        </div>
+        <div id="answerParamsInputGroup" class="form-group row">
+        </div>
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
+}
+
+@section Scripts
+{
+    <script type="text/javascript">
+        // Need to generate some GUIDs to use for the indexing of our Dictionary
+        var textIndexer = 0;
+        var uriIndexer = 0;
+        var answerIndexer = 0;
+
+        $(document).ready(function () {
+            $("#btn-add-new-text-param").click(function () {
+                var container = $("#textParamsInputGroup");
+
+                container.append("<div class='form-group col-6'> \
+                                                        <label>Name</label> \
+                                                        <input class='form-control' name='TextParameters[" + textIndexer + "].Key' /></div>");
+                container.append("<div class='form-group col-6'> \
+                                                        <label>Value</label> \
+                                                        <input class='form-control' name='TextParameters[" + textIndexer + "].Value' /></div>");
+                container.append("<input type='hidden' name='TextParameters.Index' value='" + textIndexer + "' />");
+
+                textIndexer += 1;
+
+                return false;
+            });
+            $("#btn-add-new-uri-param").click(function () {
+                var container = $("#uriParamsInputGroup");
+
+                container.append("<div class='form-group col-6'> \
+                                                        <label>Name</label> \
+                                                        <input class='form-control' name='UriParameters[" + uriIndexer + "].Key' /></div>");
+                container.append("<div class='form-group col-6'> \
+                                                        <label>Value</label> \
+                                                        <input class='form-control' name='UriParameters[" + uriIndexer + "].Value' /></div>");
+                container.append("<input type='hidden' name='UriParameters.Index' value='" + uriIndexer + "' />");
+
+                uriIndexer += 1;
+
+                return false;
+            });
+            $("#btn-add-new-answer-param").click(function () {
+                var container = $("#answerParamsInputGroup");
+
+                container.append("<div class='form-group col-6'> \
+                                                        <label>Name</label> \
+                                                        <input class='form-control' name='Answers[" + uriIndexer + "].Key' /></div>");
+                container.append("<div class='form-group col-6'> \
+                                                        <label>Value</label> \
+                                                        <input class='form-control' name='Asnwers[" + uriIndexer + "].Value' /></div>");
+                container.append("<input type='hidden' name='Answers.Index' value='" + uriIndexer + "' />");
+
+                answerIndexer += 1;
+
+                return false;
+            });
+        });
+    </script>
 }

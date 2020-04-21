@@ -28,5 +28,11 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Questions
 
         [Required]
         public Dictionary<string, string> Answers { get; set; }
+
+        [Required]
+        public string CallType { get; set; }
+
+        [Required]
+        public string ResponseType { get; set; }
     }
 }

@@ -31,6 +31,12 @@ namespace AzureChallenge.Models.Questions
         [JsonProperty(PropertyName = "answers")]
         public Dictionary<string, string> Answers { get; set; }
 
+        [JsonProperty(PropertyName = "calltype")]
+        public string CallType { get; set; }
+
+        [JsonProperty(PropertyName = "responsetype")]
+        public string ResponseType { get; set; }
+
         public Question() : base("Question") { }
     }
 }

@@ -5,11 +5,11 @@ VisualStudioVersion = 16.0.29911.84
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureChallenge.UI", "AzureChallenge.UI\AzureChallenge.UI.csproj", "{E0C95262-097C-4DD6-857D-9DBAEB35FB65}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureChallenge.Interfaces", "AzureChallenge.Interfaces\AzureChallenge.Interfaces.csproj", "{8E6AAFF5-81D4-4FC8-8275-77E607AF1082}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureChallenge.Interfaces", "AzureChallenge.Interfaces\AzureChallenge.Interfaces.csproj", "{8E6AAFF5-81D4-4FC8-8275-77E607AF1082}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureChallenge.Providers", "AzureChallenge.Providers\AzureChallenge.Providers.csproj", "{EFD61EB7-14D7-44BA-ADBC-D44E66A8EB5D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureChallenge.Providers", "AzureChallenge.Providers\AzureChallenge.Providers.csproj", "{EFD61EB7-14D7-44BA-ADBC-D44E66A8EB5D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureChallenge.Models", "AzureChallenge.Models\AzureChallenge.Models.csproj", "{B9DC0FBB-0BDB-4A44-AF3D-1C8103450A5D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureChallenge.Models", "AzureChallenge.Models\AzureChallenge.Models.csproj", "{B9DC0FBB-0BDB-4A44-AF3D-1C8103450A5D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

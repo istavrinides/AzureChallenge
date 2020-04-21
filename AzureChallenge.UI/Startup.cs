@@ -21,6 +21,8 @@ using AzureChallenge.Models.Questions;
 using Microsoft.Azure.Cosmos.Fluent;
 using AzureChallenge.Interfaces.Providers.Questions;
 using AzureChallenge.Providers;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using AzureChallenge.UI.Services;
 
 namespace AzureChallenge.UI
 {
@@ -42,11 +44,34 @@ namespace AzureChallenge.UI
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddControllersWithViews();
+            services.AddAuthorization();
             services.AddRazorPages();
+
+            services.AddAuthentication().AddMicrosoftAccount(microsoftoptions =>
+            {
+                microsoftoptions.ClientId = Configuration["Authentication:Microsoft:ClientId"];
+                microsoftoptions.ClientSecret = Configuration["Authentication:Microsoft:ClientSecret"];
+            }).AddFacebook(facebookOptions =>
+            {
+                facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
+                facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecret"];
+            }).AddGoogle(options =>
+            {
+                IConfigurationSection googleAuthNSection =
+                    Configuration.GetSection("Authentication:Google");
+
+                options.ClientId = googleAuthNSection["ClientId"];
+                options.ClientSecret = googleAuthNSection["ClientSecret"];
+            });
+
+            services.AddTransient<IEmailSender, EmailSender>();
+            services.Configure<AuthMessageSenderOptions>(Configuration);
 
             services.AddAutoMapper(typeof(Startup));
 
-            services.AddSingleton<IDataProvider<AzureChallengeResult, Question>>(InitializeCosmosClientInstanceAsync(Configuration.GetSection("CosmosDb")).GetAwaiter().GetResult());
+            var cosmosDataProvider = InitializeCosmosClientInstanceAsync(Configuration.GetSection("CosmosDb")).GetAwaiter().GetResult();
+
+            services.AddSingleton<IDataProvider<AzureChallengeResult, Question>>(cosmosDataProvider);
             services.AddSingleton<IQuestionProvider<AzureChallengeResult, Question>, QuestionProvider>();
         }
 
