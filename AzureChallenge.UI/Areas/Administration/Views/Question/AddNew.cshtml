@@ -28,7 +28,7 @@
     </div>
     <div class="form-group">
         <label asp-for="@Model.Text"></label>
-        <textarea asp-for="@Model.Text" class="form-control"></textarea>
+        <textarea asp-for="@Model.Text" class="form-control" id=""></textarea>
         <small class="form-text text-muted">Please enter the question text. Placeholders that will be replaced from below parameters should be wrapped inside curly braces {}.</small>
     </div>
     <div id="textParamsGroup" class="form-border form-group">
@@ -87,58 +87,5 @@
 
 @section Scripts
 {
-    <script type="text/javascript">
-        // Need to generate some GUIDs to use for the indexing of our Dictionary
-        var textIndexer = 0;
-        var uriIndexer = 0;
-        var answerIndexer = 0;
-
-        $(document).ready(function () {
-            $("#btn-add-new-text-param").click(function () {
-                var container = $("#textParamsInputGroup");
-
-                container.append("<div class='form-group col-6'> \
-                                                        <label>Name</label> \
-                                                        <input class='form-control' name='TextParameters[" + textIndexer + "].Key' /></div>");
-                container.append("<div class='form-group col-6'> \
-                                                        <label>Value</label> \
-                                                        <input class='form-control' name='TextParameters[" + textIndexer + "].Value' /></div>");
-                container.append("<input type='hidden' name='TextParameters.Index' value='" + textIndexer + "' />");
-
-                textIndexer += 1;
-
-                return false;
-            });
-            $("#btn-add-new-uri-param").click(function () {
-                var container = $("#uriParamsInputGroup");
-
-                container.append("<div class='form-group col-6'> \
-                                                        <label>Name</label> \
-                                                        <input class='form-control' name='UriParameters[" + uriIndexer + "].Key' /></div>");
-                container.append("<div class='form-group col-6'> \
-                                                        <label>Value</label> \
-                                                        <input class='form-control' name='UriParameters[" + uriIndexer + "].Value' /></div>");
-                container.append("<input type='hidden' name='UriParameters.Index' value='" + uriIndexer + "' />");
-
-                uriIndexer += 1;
-
-                return false;
-            });
-            $("#btn-add-new-answer-param").click(function () {
-                var container = $("#answerParamsInputGroup");
-
-                container.append("<div class='form-group col-6'> \
-                                                        <label>Name</label> \
-                                                        <input class='form-control' name='Answers[" + uriIndexer + "].Key' /></div>");
-                container.append("<div class='form-group col-6'> \
-                                                        <label>Value</label> \
-                                                        <input class='form-control' name='Asnwers[" + uriIndexer + "].Value' /></div>");
-                container.append("<input type='hidden' name='Answers.Index' value='" + uriIndexer + "' />");
-
-                answerIndexer += 1;
-
-                return false;
-            });
-        });
-    </script>
+    <script src="~/js/azurechallenge.scripts.js" asp-append-version="true"></script>
 }
