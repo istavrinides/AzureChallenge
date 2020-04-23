@@ -21,22 +21,40 @@ namespace AzureChallenge.Models.Questions
 
         [JsonProperty(PropertyName = "textParameters")]
         public Dictionary<string, string>   TextParameters { get; set; }
+        
+        [JsonProperty(PropertyName = "urilist")]
+        public List<UriList> Uris { get; set; }
 
-        [JsonProperty(PropertyName = "uri")]
-        public string Uri { get; set; }
-
-        [JsonProperty(PropertyName = "uriParameters")]
-        public Dictionary<string, string> UriParameters { get; set; }
-
-        [JsonProperty(PropertyName = "answers")]
-        public Dictionary<string, string> Answers { get; set; }
-
-        [JsonProperty(PropertyName = "calltype")]
-        public string CallType { get; set; }
-
-        [JsonProperty(PropertyName = "responsetype")]
-        public string ResponseType { get; set; }
+        [JsonProperty(PropertyName = "answerlist")]
+        public List<AnswerList> Answers { get; set; }
 
         public Question() : base("Question") { }
+
+        public class UriList
+        {
+            [JsonProperty(PropertyName = "id")]
+            public int Id { get; set; }
+
+            [JsonProperty(PropertyName = "uri")]
+            public string Uri { get; set; }
+
+            [JsonProperty(PropertyName = "calltype")]
+            public string CallType { get; set; }
+
+            [JsonProperty(PropertyName = "responsetype")]
+            public string ResponseType { get; set; }
+
+            [JsonProperty(PropertyName = "uriParameters")]
+            public Dictionary<string, string> UriParameters { get; set; }
+        }
+
+        public class AnswerList
+        {
+            [JsonProperty(PropertyName = "associatedquestionid")]
+            public int AssociatedQuestionId { get; set; }
+
+            [JsonProperty(PropertyName = "answers")]
+            public Dictionary<string, string> AnswerParameters { get; set; }
+        }
     }
 }
