@@ -76,7 +76,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 var serviceListStr = await response.Content.ReadAsStringAsync();
                 var serviceList = JsonConvert.DeserializeObject<List<AzureServiceClass>>(serviceListStr);
                 var azureServices = serviceList.Where(p => p.name == "Azure").FirstOrDefault();
-                
+
                 if (azureServices != null)
                 {
                     foreach (var service in azureServices.services)
@@ -85,12 +85,28 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     }
                 }
             }
+            var uris = new List<AddNewQuestionViewModel.UriList>();
+            uris.Add(new AddNewQuestionViewModel.UriList()
+            {
+                CallType = "GET",
+                Id = 1,
+                Uri = "http://www.google.com",
+                UriParameters = new List<AddNewQuestionViewModel.KVPair>() { new AddNewQuestionViewModel.KVPair() { Key = "Key1", Value = "Val1" }, new AddNewQuestionViewModel.KVPair() { Key = "Key2", Value = "Val2" } }
+            });
+            var answers = new List<AddNewQuestionViewModel.AnswerList>();
+            answers.Add(new AddNewQuestionViewModel.AnswerList()
+            {
+                AnswerParameters = new List<AddNewQuestionViewModel.KVPair>() { new AddNewQuestionViewModel.KVPair() { Key = "AnsKey1", Value = "AnsVal1" } },
+                AssociatedQuestionId = 1,
+                ResponseType = "JSON"
+            });
 
             var model = new AddNewQuestionViewModel()
             {
-                Uris = new List<AddNewQuestionViewModel.UriList>(),
-                Answers = new List<AddNewQuestionViewModel.AnswerList>(),
-                AzureServicesList = azureServiceList
+                Uris = uris,
+                Answers = answers,
+                AzureServicesList = azureServiceList,
+                TextParameters = new List<AddNewQuestionViewModel.KVPair>()
             };
 
             return View(model);

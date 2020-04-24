@@ -1,10 +1,6 @@
 ﻿$(document).ready(function () {
-    var textIndexer = 0;
-    var uriIndexer = [];
+
     var answerIndexer = 0;
-
-    // Get the list of available Azure Services
-
 
     $("#Text").on('input', function () {
         var foundParameters = $(this).val().match(/\{([^}]+)\}/g);
@@ -39,7 +35,7 @@
 
             // Clear the container
             container.empty();
-            textIndexer = 0;
+            var index = 0;
 
             foundParameters.forEach(function (item) {
 
@@ -51,13 +47,12 @@
 
                 container.append("<div class='form-group col-6'> \
                                                         <label>Name</label> \
-                                                        <input class='form-control' name='TextParameters[" + textIndexer + "].Key' data-textparam='" + item + "' value='" + item + "' disabled  /></div>");
+                                                        <input class='form-control' name='TextParameters[" + index + "].Key' data-textparam='" + item + "' value='" + item + "' disabled  /></div>");
                 container.append("<div class='form-group col-6'> \
                                                         <label>Value</label> \
-                                                        <input class='form-control' name='TextParameters[" + textIndexer + "].Value' data-textparamval='" + item + "' value='" + oldValue + "' /></div>");
-                container.append("<input type='hidden' name='TextParameters.Index' value='" + textIndexer + "' />");
+                                                        <input class='form-control' name='TextParameters[" + index + "].Value' data-textparamval='" + item + "' value='" + oldValue + "' /></div>");
 
-                textIndexer += 1;
+                index += 1;
 
 
             });
@@ -73,8 +68,8 @@
         if (uriParameters.some(param => param.slice(1, -1).includes('{') || param.slice(1, -1).includes('}')))
             return;
 
-        var itemId = $(this).attr("id");
-        var itemIndex = itemId.substring(5, 6);
+        var itemId = $(this).attr('id');
+        var itemIndex = parseInt($(this).data('index'));
         var container = $("#" + itemId + "_params");
 
         // If the regex found parameters
@@ -82,13 +77,13 @@
 
             // Get the existing key-value pairs
             var originalDict = {};
-            if ($("input[data-uriparam" + itemIndex + "]")) {
+            if ($("#Uris_" + itemIndex + "__Uri_params input.uriParamInput")) {
                 // Get all the keys from the name input
-                $("input[data-uriparam" + itemIndex + "]").each(function () {
-                    originalDict[$(this).data('uriparam' + itemIndex)] = "";
+                $("#Uris_" + itemIndex + "__Uri_params input.uriParamInputKey").each(function () {
+                    originalDict[$(this).data('uriparam')] = "";
                 });
-                $("input[data-uriparamval" + itemIndex + "]").each(function (currentInput) {
-                    originalDict[$(this).data('uriparamval' + itemIndex)] = $(this).val();
+                $("#Uris_" + itemIndex + "__Uri_params input.uriParamInputVal").each(function (currentInput) {
+                    originalDict[$(this).data('uriparamval')] = $(this).val();
                 });
             }
 
@@ -96,13 +91,13 @@
             var dict = {};
             Object.keys(originalDict).forEach(function (key) {
                 // Need to append the curly braces since we didn't drop them from the regex output
-                if (foundParameters.includes('{' + key + '}'))
+                if (uriParameters.includes('{' + key + '}'))
                     dict[key] = originalDict[key];
             });
 
             // Clear the container
             container.empty();
-            uriIndexer[itemIndex] = 0;
+            var index = 0;
 
             uriParameters.forEach(function (item) {
 
@@ -114,15 +109,12 @@
 
                 container.append("<div class='form-group col-6'> \
                                                         <label>Name</label> \
-                                                        <input class='form-control uriParamInput' name='Uris["+ itemIndex + "].UriParameters[" + uriIndexer[itemIndex] + "].Key' id='Uris_" + itemIndex + "__UriParameters_" + uriIndexer[itemIndex] + "__Key' data-uriparam" + itemIndex + "='" + item + "' value='" + item + "' disabled  /></div>");
+                                                        <input class='form-control uriParamInput uriParamInputKey' name='Uris["+ itemIndex + "].UriParameters[" + index + "].Key' id='Uris_" + itemIndex + "__UriParameters_" + index + "__Key' data-uriparam='" + item + "' value='" + item + "' data-index='" + index + "' disabled  /></div>");
                 container.append("<div class='form-group col-6'> \
                                                         <label>Value</label> \
-                                                        <input class='form-control uriParamInput' name='Uris["+ itemIndex + "].UriParameters[" + uriIndexer[itemIndex] + "].Value' id='Uris_" + itemIndex + "__UriParameters_" + uriIndexer[itemIndex] + "__Value' data-textparamval" + itemIndex + "='" + item + "' value='" + oldValue + "' /></div>");
-                container.append("<input type='hidden' class='uriParamInput' name='Uris[" + itemIndex + "].UriParameters.Index' id='Uris_" + itemIndex + "__UriParameters_Index' value='" + uriIndexer[itemIndex] + "' />");
+                                                        <input class='form-control uriParamInput uriParamInputVal' name='Uris["+ itemIndex + "].UriParameters[" + index + "].Value' id='Uris_" + itemIndex + "__UriParameters_" + index + "__Value' data-uriparamval='" + item + "' value='" + oldValue + "' data-index='" + index + "' /></div>");
 
-                uriIndexer[itemIndex] += 1;
-
-
+                index += 1;
             });
         }
         else {
@@ -132,18 +124,17 @@
 
     $("#uriTabContent").on('click', '.btnRemoveUri', function () {
         // Get the Id
-        var itemId = $(this).attr("id");
-        var itemIndex = parseInt(itemId.substring(5, 6));
+        var itemIndex = parseInt($(this).data('index'));
 
         $("#uri-" + itemIndex + "-content").remove();
         $("#uri-" + itemIndex + "-tab").remove();
         $("#answer-" + itemIndex + "-tab").remove();
         $("#answer-" + itemIndex + "-content").remove();
 
-        // From this index until the max index, we need to renumber/reid all the controls (uri and answers)
+        // From this index until the max index, we need to renumber/re-id all the controls (uri and answers)
         var lastIndex = 0;
         $("#uriTab a.uriNavItem").each(function () {
-            var index = parseInt($(this).attr("id").substring(4, 5));
+            var index = parseInt($(this).data("index"));
             if (index > lastIndex)
                 lastIndex = index;
         });
@@ -159,25 +150,42 @@
             $("#Uris_" + i + "__Id").attr("id", "Uris_" + (i - 1) + "__Id");
             $("#Uris_" + i + "__Uri").attr("name", "Uris[" + (i - 1) + "].Uri");
             $("#Uris_" + i + "__Uri").attr("id", "Uris_" + (i - 1) + "__Uri");
+            $("#Uris_" + i + "__Uri_params .uriParamInputKey").each(function () {
+                var index = parseInt($(this).data('index'));
+                $(this).attr("name", "Uris[" + (i - 1) + "].UriParameters[" + index + "].Key");
+                $(this).attr("id", "Uris_" + (i - 1) + "__UriParameters_" + index + "__Key");
+            });
+            $("#Uris_" + i + "__Uri_params .uriParamInputVal").each(function () {
+                var index = parseInt($(this).data('index'));
+                $(this).attr("name", "Uris[" + (i - 1) + "].UriParameters[" + index + "].Value");
+                $(this).attr("id", "Uris_" + (i - 1) + "__UriParameters_" + index + "__Value");
+            });
             $("#Uris_" + i + "__Uri_params").attr("id", "Uris_" + (i - 1) + "__Uri_params");
             $("#Uris_" + i + "_Uri_remove").attr("id", "Uris_" + (i - 1) + "_Uri_remove");
-            $("#Uris_" + i + "__Uri_params .uriParamInput").each(function () {
-                $(this).attr("name", $(this).attr("name").slice(0, 5) + (i - 1) + $(this).attr("name").substring(6));
-                $(this).attr("id", $(this).attr("id").slice(0, 5) + (i - 1) + $(this).attr("id").substring(6));
-            });
             $("#answer-" + i + "-tab").attr("href", "#answer-" + (i - 1) + "-content");
             $("#answer-" + i + "-tab").attr("aria-controls", "answer-" + (i - 1) + "-content");
             $("#answer-" + i + "-tab").text("Answer for Uri #" + i);
             $("#answer-" + i + "-tab").attr("id", "answer-" + (i - 1) + "-tab");
-            $("#Answers_" + i + "__params .answerParamInput").each(function () {
-                $(this).attr("name", $(this).attr("name").slice(0, 8) + (i - 1) + $(this).attr("name").substring(9));
-                $(this).attr("id", $(this).attr("id").slice(0, 8) + (i - 1) + $(this).attr("id").substring(9));
+            $("#Answers_" + i + "__params .answerParamInputKey").each(function () {
+                var index = parseInt($(this).data('index'));
+                $(this).attr("name", "Answers[" + (i - 1) + "].AnswerParameters[" + index + "].Key");
+                $(this).attr("id", "Answers_" + (i - 1) + "__AnswerParameters_" + index + "__Key");
             });
+            $("#Answers_" + i + "__params .answerParamInputVal").each(function () {
+                var index = parseInt($(this).data('index'));
+                $(this).attr("name", "Answers[" + (i - 1) + "].AnswerParameters[" + index + "].Value");
+                $(this).attr("id", "Answers_" + (i - 1) + "__AnswerParameters_" + index + "__Value");
+            });
+            $("#Answers_" + i + "__AssociatedQuestionId").attr("name", "#Answers[" + (i - 1) + "].AssociatedQuestionId")
+            $("#Answers_" + i + "__AssociatedQuestionId").attr("id", "#Answers_" + (i - 1) + "__AssociatedQuestionId")
+            $("#Answers_" + i + "__params").attr("id", "Answers_" + (i - 1) + "__params");
             $("#answer-" + i + "-content input:radio").each(function () {
-                $(this).attr("name", $(this).attr("name").slice(0, 8) + (i - 1) + $(this).attr("name").substring(9));
+                $(this).attr("name", "Uris[" + (i - 1) + "].CallType");
+                $(this).attr("id", "Uris_" + (i - 1) + "__CallType");
             });
             $("#answer-" + i + "-content").attr("aria-labelledby", "answer" + (i - 1) + "-tab");
             $("#answer-" + i + "-content").attr("id", "answer-" + (i - 1) + "-content");
+            $("button[data-index='" + i + "']").attr("data-index", (i - 1));
         }
 
         var tabToShow = 0;
@@ -202,7 +210,7 @@
         var foundOne = false;
         $("#uriTab a.uriNavItem").each(function () {
             foundOne = true;
-            var index = parseInt($(this).attr("id").substring(4, 5));
+            var index = parseInt($(this).data("index"));
             if (index > lastIndex)
                 lastIndex = index;
         });
@@ -213,7 +221,7 @@
         // Add a new tab before this one (new tabs go to the end)
         $(this).parent().before(
             "<li class='nav-item'> \
-                <a class='nav-link uriNavItem' id='uri-"+ lastIndex + "-tab' data-toggle='tab' href='#uri-" + lastIndex + "-content' role='tab' aria-controls='uri-" + lastIndex + "-content' aria-selected='false'> Uri #" + (lastIndex + 1) + "</a> \
+                <a class='nav-link uriNavItem' id='uri-"+ lastIndex + "-tab' data-toggle='tab' href='#uri-" + lastIndex + "-content' role='tab' aria-controls='uri-" + lastIndex + "-content' aria-selected='false' data-index='" + lastIndex + "'> Uri #" + (lastIndex + 1) + "</a> \
             </li>");
         // Add the new tab content at then end
         $("#uriTabContent").append(
@@ -222,20 +230,20 @@
                 <div class='input-group mb-3'> \
                     <div class= 'input-group-prepend btn-group-toggle' data - toggle='buttons' > \
                         <label class='btn btn-secondary'> \
-                            <input type='radio' name='@Model.Uris["+ lastIndex + "].CallType' value='GET' id='GET' autocomplete='off' checked> GET \
+                            <input type='radio' name='Uris["+ lastIndex + "].CallType' id='Uris_" + lastIndex + "__CallType' value='GET' id='GET' autocomplete='off' checked> GET \
                         </label> \
                         <label class='btn btn-secondary'> \
-                            <input type='radio' name='@Model.Uris["+ lastIndex + "].CallType' value='HEAD' id='HEAD' autocomplete='off'> HEAD \
+                            <input type='radio' name='Uris["+ lastIndex + "].CallType' id='Uris_" + lastIndex + "__CallType' value='HEAD' id='HEAD' autocomplete='off'> HEAD \
                         </label> \
                     </div> \
-                    <input name='Uris["+ lastIndex + "].Uri' id='Uris_" + lastIndex + "__Uri' class='form-control uriinput' /> \
+                    <input name='Uris["+ lastIndex + "].Uri' id='Uris_" + lastIndex + "__Uri' data-index='" + lastIndex + "' class='form-control uriinput' /> \
                 </div > \
                 <small class='form-text text-muted'>Please enter the Uri for the API to call. Placeholders that will be replaced from below parameters should be wrapped inside curly braces {}.</small> \
                 <br /> \
                 <div id='Uris_"+ lastIndex + "__Uri_params' class='form-group row'> \
                 </div> \
                 <div class= 'text-right'> \
-                    <button type='button' class='btn btn-warning btnRemoveUri' id='Uris_" + lastIndex + "_Uri_remove'>Remove this Uri</button> \
+                    <button type='button' class='btn btn-warning btnRemoveUri' id='Uris_" + lastIndex + "_Uri_remove' data-index='" + lastIndex + "'>Remove this Uri</button> \
                 </div > \
             </div>"
         );
@@ -265,7 +273,7 @@
                         </div> \
                     </div> \
                     <div class='col-2 text-right pr-0'> \
-                        <button type='button' class='btn btn-info addAnswerParameter' id='" + lastIndex + "_addAnswerParamButton'>Add parameter</button> \
+                        <button type='button' class='btn btn-info addAnswerParameter' data-index='" + lastIndex + "'>Add parameter</button> \
                     </div> \
                 </div> \
                 <div id='Answers_" + lastIndex + "__params' class='form-group row'></div> \
@@ -282,19 +290,30 @@
     $("#answersParamsGroup").on('click', '.addAnswerParameter', function () {
 
         // Get the index from the Id
-        var itemId = parseInt($(this).attr("id").charAt(0));
+        var itemIndex = parseInt($(this).data("index"));
 
-        var container = $("#Answers_" + itemId + "__params");
+        var currentIndex = -1;
+        // Get the largest index under the current itemdId
+        $("#Answers_" + itemIndex + "__params input.answerParamInputKey").each(function () {
+            thisIndex = parseInt($(this).data('index'));
+            if (currentIndex < thisIndex)
+                currentIndex = thisIndex;
+        })
+
+        // If it's the first one
+        if (currentIndex === -1)
+            currentIndex = 0;
+        else
+            currentIndex += 1;
+
+        var container = $("#Answers_" + itemIndex + "__params");
 
         container.append("<div class='form-group col-6'> \
                             <label>Name</label> \
-                            <input class='form-control answerParamInput' name='Answers[" + itemId + "].AnswerParameters[" + answerIndexer + "].Key' id='Answers_" + itemId + "_AnswerParameters_" + answerIndexer + "__Key'' /></div>");
+                            <input class='form-control answerParamInput answerParamInputKey' name='Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].Key' id='Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__Key'' data-index='" + currentIndex + "' /></div>");
         container.append("<div class='form-group col-6'> \
                             <label>Value</label> \
-                            <input class='form-control answerParamInput' name='Answers[" + itemId + "].AnswerParameters[" + answerIndexer + "].Value' id='Answers_" + itemId + "_AnswerParameters_" + answerIndexer + "__Value' /></div>");
-        container.append("<input type='hidden' class='answerParamInput' name='Answers[" + itemId + "]AnswerParameters.Index' id='Answers_" + itemId + "_AnswerParameters_Index' value='" + answerIndexer + "' />");
-
-        answerIndexer += 1;
+                            <input class='form-control answerParamInput answerParamInputVal' name='Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].Value' id='Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__Value' data-index='" + currentIndex + "' /></div>");
 
         return false;
     });

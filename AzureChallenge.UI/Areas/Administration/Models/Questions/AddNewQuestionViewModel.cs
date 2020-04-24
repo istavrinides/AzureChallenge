@@ -29,7 +29,7 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Questions
         [Display(Name = "Question")]
         public string Text { get; set; }
 
-        public Dictionary<string, string> TextParameters { get; set; }
+        public List<KVPair> TextParameters { get; set; }
 
         [Display(Name = "Uri endpoints to call")]
         public List<UriList> Uris { get; set; }
@@ -44,16 +44,22 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Questions
 
             public string CallType { get; set; }
 
-            public Dictionary<string, string> UriParameters { get; set; }
+            public List<KVPair> UriParameters { get; set; }
         }
 
         public class AnswerList
         {
             public int AssociatedQuestionId { get; set; }
 
-            public Dictionary<string, string> AnswerParameters { get; set; }
+            public List<KVPair> AnswerParameters { get; set; }
 
             public string ResponseType { get; set; }
+        }
+
+        public class KVPair
+        {
+            public string Key { get; set; }
+            public string Value { get; set; }
         }
     }
 }
