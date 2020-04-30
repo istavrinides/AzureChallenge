@@ -13,6 +13,9 @@ namespace AzureChallenge.UI
         public AutoMapping()
         {
             CreateMap<ACModels.Questions.Question, ACAreaViewModels.Questions.AddNewQuestionViewModel>().ReverseMap();
+            CreateMap<ACModels.Questions.Question, ACAreaViewModels.Questions.IndexQuestionViewModel>().ReverseMap();
+
+            CreateMap<ACModels.Tournaments.TournamentDetails, ACAreaViewModels.Tournaments.IndexTournamentViewModel>().ReverseMap();           
         }
     }
 }

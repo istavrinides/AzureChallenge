@@ -23,6 +23,12 @@ using AzureChallenge.Interfaces.Providers.Questions;
 using AzureChallenge.Providers;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using AzureChallenge.UI.Services;
+using AzureChallenge.UI.Areas.Identity.Data;
+using AzureChallenge.Models.Tournaments;
+using AzureChallenge.Models.Parameters;
+using AzureChallenge.Interfaces.Providers.Tournaments;
+using AzureChallenge.Interfaces.Providers.Parameters;
+using System.Reflection.Metadata;
 
 namespace AzureChallenge.UI
 {
@@ -41,7 +47,7 @@ namespace AzureChallenge.UI
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            services.AddDefaultIdentity<AzureChallengeUIUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddControllersWithViews();
             services.AddAuthorization();
@@ -69,10 +75,19 @@ namespace AzureChallenge.UI
 
             services.AddAutoMapper(typeof(Startup));
 
-            var cosmosDataProvider = InitializeCosmosClientInstanceAsync(Configuration.GetSection("CosmosDb")).GetAwaiter().GetResult();
+            var cosmosQuestionDataProvider = InitializeCosmosQuestionClientInstanceAsync(Configuration.GetSection("CosmosDb")).GetAwaiter().GetResult();
+            var cosmosTournamentDataProvider = InitializeCosmosTournamentClientInstanceAsync(Configuration.GetSection("CosmosDb")).GetAwaiter().GetResult();
+            var cosmosParameterDataProvider = InitializeCosmosParameterClientInstanceAsync(Configuration.GetSection("CosmosDb")).GetAwaiter().GetResult();
+            var cosmosAssignedQuestionDataProvider = InitializeCosmosAssignedQuestionClientInstanceAsync(Configuration.GetSection("CosmosDb")).GetAwaiter().GetResult();
 
-            services.AddSingleton<IDataProvider<AzureChallengeResult, Question>>(cosmosDataProvider);
+            services.AddSingleton<IDataProvider<AzureChallengeResult, Question>>(cosmosQuestionDataProvider);
             services.AddSingleton<IQuestionProvider<AzureChallengeResult, Question>, QuestionProvider>();
+            services.AddSingleton<IDataProvider<AzureChallengeResult, TournamentDetails>>(cosmosTournamentDataProvider);
+            services.AddSingleton<ITournamentProvider<AzureChallengeResult, TournamentDetails>, TournamentProvider>();
+            services.AddSingleton<IDataProvider<AzureChallengeResult, GlobalParameters>>(cosmosParameterDataProvider);
+            services.AddSingleton<IParameterProvider<AzureChallengeResult, GlobalParameters>, ParameterProvider>();
+            services.AddSingleton<IDataProvider<AzureChallengeResult, AssignedQuestion>>(cosmosAssignedQuestionDataProvider);
+            services.AddSingleton<IAssignedQuestionProvider<AzureChallengeResult, AssignedQuestion>, AssignedQuestionProvider>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -109,7 +124,7 @@ namespace AzureChallenge.UI
             });
         }
 
-        private static async Task<CosmosDbDataProvider> InitializeCosmosClientInstanceAsync(IConfigurationSection configurationSection)
+        private static async Task<CosmosDbQuestionDataProvider> InitializeCosmosQuestionClientInstanceAsync(IConfigurationSection configurationSection)
         {
             string databaseName = configurationSection.GetSection("DatabaseName").Value;
             string containerName = configurationSection.GetSection("ContainerName").Value;
@@ -119,7 +134,58 @@ namespace AzureChallenge.UI
             CosmosClient client = clientBuilder
                                 .WithConnectionModeDirect()
                                 .Build();
-            CosmosDbDataProvider cosmosDbService = new CosmosDbDataProvider(client, databaseName, containerName);
+            CosmosDbQuestionDataProvider cosmosDbService = new CosmosDbQuestionDataProvider(client, databaseName, containerName);
+            DatabaseResponse database = await client.CreateDatabaseIfNotExistsAsync(databaseName);
+            await database.Database.CreateContainerIfNotExistsAsync(containerName, "/type");
+
+            return cosmosDbService;
+        }
+
+        private static async Task<CosmosDbTournamentDataProvider> InitializeCosmosTournamentClientInstanceAsync(IConfigurationSection configurationSection)
+        {
+            string databaseName = configurationSection.GetSection("DatabaseName").Value;
+            string containerName = configurationSection.GetSection("ContainerName").Value;
+            string account = configurationSection.GetSection("Account").Value;
+            string key = configurationSection.GetSection("Key").Value;
+            CosmosClientBuilder clientBuilder = new CosmosClientBuilder(account, key);
+            CosmosClient client = clientBuilder
+                                .WithConnectionModeDirect()
+                                .Build();
+            CosmosDbTournamentDataProvider cosmosDbService = new CosmosDbTournamentDataProvider(client, databaseName, containerName);
+            DatabaseResponse database = await client.CreateDatabaseIfNotExistsAsync(databaseName);
+            await database.Database.CreateContainerIfNotExistsAsync(containerName, "/type");
+
+            return cosmosDbService;
+        }
+
+        private static async Task<CosmosDbParameterDataProvider> InitializeCosmosParameterClientInstanceAsync(IConfigurationSection configurationSection)
+        {
+            string databaseName = configurationSection.GetSection("DatabaseName").Value;
+            string containerName = configurationSection.GetSection("ContainerName").Value;
+            string account = configurationSection.GetSection("Account").Value;
+            string key = configurationSection.GetSection("Key").Value;
+            CosmosClientBuilder clientBuilder = new CosmosClientBuilder(account, key);
+            CosmosClient client = clientBuilder
+                                .WithConnectionModeDirect()
+                                .Build();
+            CosmosDbParameterDataProvider cosmosDbService = new CosmosDbParameterDataProvider(client, databaseName, containerName);
+            DatabaseResponse database = await client.CreateDatabaseIfNotExistsAsync(databaseName);
+            await database.Database.CreateContainerIfNotExistsAsync(containerName, "/type");
+
+            return cosmosDbService;
+        }
+
+        private static async Task<CosmosDbAssignedQuestionDataProvider> InitializeCosmosAssignedQuestionClientInstanceAsync(IConfigurationSection configurationSection)
+        {
+            string databaseName = configurationSection.GetSection("DatabaseName").Value;
+            string containerName = configurationSection.GetSection("ContainerName").Value;
+            string account = configurationSection.GetSection("Account").Value;
+            string key = configurationSection.GetSection("Key").Value;
+            CosmosClientBuilder clientBuilder = new CosmosClientBuilder(account, key);
+            CosmosClient client = clientBuilder
+                                .WithConnectionModeDirect()
+                                .Build();
+            CosmosDbAssignedQuestionDataProvider cosmosDbService = new CosmosDbAssignedQuestionDataProvider(client, databaseName, containerName);
             DatabaseResponse database = await client.CreateDatabaseIfNotExistsAsync(databaseName);
             await database.Database.CreateContainerIfNotExistsAsync(containerName, "/type");
 

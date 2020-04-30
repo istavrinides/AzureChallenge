@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
 
 namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
 {
@@ -20,6 +21,8 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
 
         public static string TwoFactorAuthentication => "TwoFactorAuthentication";
 
+        public static string AzureConfig => "AzureConfig";
+
         public static string IndexNavClass(ViewContext viewContext) => PageNavClass(viewContext, Index);
 
         public static string EmailNavClass(ViewContext viewContext) => PageNavClass(viewContext, Email);
@@ -31,6 +34,8 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
         public static string PersonalDataNavClass(ViewContext viewContext) => PageNavClass(viewContext, PersonalData);
 
         public static string TwoFactorAuthenticationNavClass(ViewContext viewContext) => PageNavClass(viewContext, TwoFactorAuthentication);
+
+        public static string AzureConfigNavClass(ViewContext viewContext) => PageNavClass(viewContext, AzureConfig);
 
         private static string PageNavClass(ViewContext viewContext, string page)
         {

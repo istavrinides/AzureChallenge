@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AzureChallenge.UI.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<Areas.Identity.Data.AzureChallengeUIUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)

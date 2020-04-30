@@ -1,8 +1,8 @@
 ﻿@model AzureChallenge.UI.Areas.Administration.Models.Questions.AddNewQuestionViewModel
 
 @{
-    ViewData["Title"] = "AddNew";
-    var urisOrderd = Model.Uris.OrderBy(p => p.Id);
+    ViewData["Title"] = "Add New Question";
+    var urisOrderd = Model.Uris?.OrderBy(p => p.Id);
 }
 
 @section Styles{
@@ -17,7 +17,7 @@
     </style>
 }
 
-<h1>Add New Question</h1>
+<h1>@ViewData["Title"]</h1>
 
 @using (Html.BeginForm())
 {
@@ -25,7 +25,8 @@
 
     <div class="form-group">
         <label asp-for="@Model.Name"></label>
-        <input class="form-control" asp-for="@Model.Name" />
+        <input class="form-control" asp-for="@Model.Name" required />
+        <input type="hidden" asp-for="@Model.Id" />
     </div>
     <div class="form-group">
         <label asp-for="@Model.Description"></label>
@@ -63,19 +64,19 @@
             <label asp-for="@Model.Text"></label>
             <textarea asp-for="@Model.Text" class="form-control" id="Text" rows="4"></textarea>
             <small class="form-text text-muted">Please enter the question text. Placeholders that will be replaced from below parameters should be wrapped inside curly braces {}.</small>
+            <small class="form-text text-muted">Since each tournament has Global Parameters, please prepend your parameter with a Global. prefix to get the global values set on the tournament level.</small>
         </div>
-        <div id="textParamsInputGroup" class="form-group row">
-            @for (int i = 0; i < Model.TextParameters.Count; i++)
-            {
-                <div class='form-group col-6'>
-                    <label>Name</label>
-                    <input class='form-control uriParamInput' asp-for="@Model.TextParameters[i].Key" data-textparam='@Model.TextParameters[i].Key' data-index="@i" disabled />
-                </div>
-                <div class='form-group col-6'>
-                    <label>Values</label>
-                    <input class='form-control uriParamInput' asp-for="@Model.TextParameters[i].Value" data-textparamval='@Model.TextParameters[i].Value' data-index="@i" />
-                </div>
-            }
+        <div class="form-group">
+            <div class="col-md-12 pl-0">
+                <span>Discovered parameters:</span>
+            </div>
+            <div id="textParamsInputGroup" class="row col-md-12">
+                @for (int i = 0; i < Model.TextParameters.Count; i++)
+                {
+                    <input type="hidden" asp-for="@Model.TextParameters[i]" />
+                    <span class="btn btn-info m-1">@Model.TextParameters[i]</span>
+                }
+            </div>
         </div>
     </div>
     <div id="uriParamsGroup" class="form-border form-group">
@@ -104,90 +105,29 @@
                         <input type='hidden' asp-for='@Model.Uris[i].Id' />
                         <div class='input-group mb-3'>
                             <div class='input-group-prepend btn-group-toggle' data-toggle='buttons'>
-                                <label class='btn btn-secondary'>
-                                    <input type='radio' asp-for='@Model.Uris[i].CallType' value='GET' id='GET' autocomplete='off' checked> GET
-                                </label>
-                                <label class='btn btn-secondary'>
-                                    <input type='radio' asp-for='@Model.Uris[i].CallType' value='HEAD' id='HEAD' autocomplete='off'> HEAD
-                                </label>
+                                <select asp-for='@Model.Uris[i].CallType' class='selectpicker'>
+                                    <option selected>GET</option>
+                                    <option>HEAD</option>
+                                </select>
                             </div>
                             <input asp-for='@Model.Uris[i].Uri' data-index="@i" class='form-control uriinput' />
                         </div>
                         <small class='form-text text-muted'>Please enter the Uri for the API to call. Placeholders that will be replaced from below parameters should be wrapped inside curly braces {}.</small>
                         <br />
-                        <div id='Uris_@(i)__Uri_params' class='form-group row'>
-                            @for (int j = 0; j < Model.Uris[i].UriParameters.Count; j++)
-                            {
-                                <div class='form-group col-6'>
-                                    <label>Name</label>
-                                    <input class='form-control uriParamInput uriParamInputKey' asp-for="@Model.Uris[i].UriParameters[j].Key" data-uriparam="@Model.Uris[i].UriParameters[j].Key" data-index="@j" disabled />
-                                </div>
-                                <div class='form-group col-6'>
-                                    <label>Values</label>
-                                    <input class='form-control uriParamInput uriParamInputVal' asp-for="@Model.Uris[i].UriParameters[j].Value" data-uriparamval="@Model.Uris[i].UriParameters[j].Key" data-index="@j" />
-                                </div>
-                            }
+                        <div class='form-group'>
+                            <div class='col-md-12 pl-0'>
+                                <span>Discovered parameters:</span>
+                            </div>
+                            <div id='Uris_@(i)__Uri_params' class="row col-md-12">
+                                @for (int j = 0; j < Model.Uris[i].UriParameters.Count; j++)
+                                {
+                                    <input type="hidden" asp-for="@Model.Uris[i].UriParameters[j]" />
+                                    <span class='btn btn-info m-1'>@Model.Uris[i].UriParameters[j]</span>
+                                }
+                            </div>
                         </div>
                         <div class='text-right'>
                             <button type='button' class='btn btn-warning btnRemoveUri' id='Uris_@(i)_Uri_remove' data-index="@i">Remove this Uri</button>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-    <div id="answersParamsGroup" class="form-border form-group">
-        <div class="form-group">
-            <div class="col pl-o pr-0">
-                <label asp-for="@Model.Answers"></label>
-            </div>
-            <div class="col pl-0 pr-0">
-                <ul class="nav nav-tabs" id="answerTab" role="tablist">
-                    @for (int i = 0; i < Model.Answers.Count(); i++)
-                    {
-                        <li class='nav-item'>
-                            <a class='nav-link @(i == 0 ? "active" : "") answerNavItem' id='answer-@(i)-tab' data-toggle='tab' href='#answer-@(i)-content' role='tab' aria-controls='answer-@(i)-content' aria-selected='@(i == 0 ? "true" : "false")'>Answer for Uri #@(i+1)</a>
-                        </li>
-                    }
-                </ul>
-            </div>
-            <br />
-            <div class="col pl-0 pr-0 tab-content" id="answerTabContent">
-                @for (int i = 0; i < Model.Answers.Count(); i++)
-                {
-                    <div class='tab-pane fade @(i == 0 ? "show active" : "")' id='answer-@(i)-content' role='tabpanel' aria-labelledby='answer-@(i)-tab'>
-                        <input type="hidden" asp-for="@Model.Answers[i].AssociatedQuestionId" />
-                        <div class='form-group input-group mb-3'>
-                            <div class='col-3 pl-0'>
-                                <label class='pr-3'>Answer will be checked against:</label>
-                            </div>
-                            <div class='col-7'>
-                                <div class='custom-radio'>
-                                    <label class='pr-4'>
-                                        <input type='radio' name='Answers[@(i)].ResponseType' value='HEAD' id='respHEAD' autocomplete='off' checked> Headers
-                                    </label>
-                                    <label>
-                                        <input type='radio' name='Answers[@(i)].ResponseType' value='BODY' id='respBODY' autocomplete='off'> Body
-                                    </label>
-                                </div>
-                            </div>
-                            <div class='col-2 text-right pr-0'>
-                                <button type='button' class='btn btn-info addAnswerParameter' data-index="@i">Add parameter</button>
-                            </div>
-                        </div>
-                        <div id='Answers_@(i)__params' class='form-group row'>
-
-                            @for (int j = 0; j < Model.Answers[i].AnswerParameters.Count; j++)
-                            {
-                                <div class='form-group col-6'>
-                                    <label>Name</label>
-                                    <input class='form-control answerParamInput answerParamInputKey' asp-for="@Model.Answers[i].AnswerParameters[j].Key" />
-                                </div>
-                                <div class='form-group col-6'>
-                                    <label>Values</label>
-                                    <input class='form-control answerParamInput answerParamInputKeyVal' asp-for="@Model.Answers[i].AnswerParameters[j].Value" />
-                                </div>
-                            }
                         </div>
                     </div>
                 }
@@ -202,4 +142,5 @@
     <script src="~/js/azurechallenge.scripts.js" asp-append-version="true"></script>
     <script src="~/lib/bootstrap-slider/bootstrap-slider.js"></script>
     <script src="~/lib/bootstrap-select/js/bootstrap-select.js"></script>
+    <partial name="_ValidationScriptsPartial" />
 }

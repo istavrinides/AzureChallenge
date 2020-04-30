@@ -1,0 +1,56 @@
+﻿@model (AzureChallenge.Models.AzureChallengeResult, IList<AzureChallenge.UI.Areas.Administration.Models.Questions.IndexQuestionViewModel>)
+@{
+    ViewData["Title"] = "Question list";
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+
+@if (Model.Item1.Success)
+{
+    <div class="container">
+        <table class="table table-responsive-md table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th style="width:16.67%">
+                        @Html.DisplayNameFor(model => model.Item2[0].Name)
+                    </th>
+                    <th style="width:66.67%">
+                        @Html.DisplayNameFor(model => model.Item2[0].Description)
+                    </th>
+                    <th style="width:8.33%"></th>
+                    <th style="width:8.33%"></th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <td colspan="4">
+                        <a asp-action="AddNew" class="float-right">
+                            <button type="button" class="btn btn-info">Add new</button>
+                        </a>
+                    </td>
+                </tr>
+            </tfoot>
+            <tbody>
+                @foreach (var q in Model.Item2)
+                {
+                    <tr>
+                        <td>
+                            @q.Name
+                        </td>
+                        <td>
+                            @q.Description
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@q.Id">Details</a>
+                        </td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@q.Id">Edit</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+

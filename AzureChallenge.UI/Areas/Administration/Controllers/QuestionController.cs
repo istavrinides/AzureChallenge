@@ -19,6 +19,7 @@ using System.Configuration;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using AzureChallenge.Models;
 
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
@@ -58,13 +59,131 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             public string description { get; set; }
         }
 
-
-        public IActionResult Index()
+        [Route("Administration/Questions/Index")]
+        [Route("Administration/Questions")]
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var result = await questionProvider.GetAllItemsAsync();
+
+            (AzureChallengeResult, IList<IndexQuestionViewModel>) model = (result.Item1, mapper.Map<IList<IndexQuestionViewModel>>(result.Item2));
+
+            return View(model);
+        }
+
+        [Route("Administration/Questions/{id}/Details")]
+        public async Task<IActionResult> Details(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+
+            var result = await questionProvider.GetItemAsync(id);
+
+            if (result.Item1.Success)
+            {
+                var question = result.Item2;
+
+                var uriParams = new List<ViewQuestionModel.UriList>();
+
+                foreach (var u in question.Uris)
+                {
+                    uriParams.Add(new ViewQuestionModel.UriList()
+                    {
+                        UriParameters = u.UriParameters,
+                        CallType = u.CallType,
+                        Id = u.Id,
+                        Uri = u.Uri
+                    });
+                }
+
+                var model = new ViewQuestionModel()
+                {
+                    Description = question.Description,
+                    Difficulty = question.Difficulty,
+                    Id = question.Id,
+                    Name = question.Name,
+                    TargettedAzureService = question.TargettedAzureService,
+                    Text = question.Text,
+                    TextParameters = question.TextParameters,
+                    Uris = uriParams
+                };
+
+
+                return View(model);
+            }
+
+            return NotFound();
+        }
+
+        [Route("Administration/Questions/{id}/Edit")]
+        public async Task<IActionResult> Edit(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+
+            var result = await questionProvider.GetItemAsync(id);
+
+            if (result.Item1.Success)
+            {
+                var client = new HttpClient();
+                var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
+                var azureServiceList = new List<string>();
+
+                if (response != null)
+                {
+                    var serviceListStr = await response.Content.ReadAsStringAsync();
+                    var serviceList = JsonConvert.DeserializeObject<List<AzureServiceClass>>(serviceListStr);
+                    var azureServices = serviceList.Where(p => p.name == "Azure").FirstOrDefault();
+
+                    if (azureServices != null)
+                    {
+                        foreach (var service in azureServices.services)
+                        {
+                            azureServiceList.Add(service.name);
+                        }
+                    }
+                }
+
+                var question = result.Item2;
+
+                var uriParams = new List<EditQuestionViewModel.UriList>();
+
+                foreach (var u in question.Uris)
+                {
+                    uriParams.Add(new EditQuestionViewModel.UriList()
+                    {
+                        UriParameters = u.UriParameters,
+                        CallType = u.CallType,
+                        Id = u.Id,
+                        Uri = u.Uri
+                    });
+                }
+
+                var model = new EditQuestionViewModel()
+                {
+                    Description = question.Description,
+                    Difficulty = question.Difficulty,
+                    Id = question.Id,
+                    Name = question.Name,
+                    TargettedAzureService = question.TargettedAzureService,
+                    Text = question.Text,
+                    TextParameters = question.TextParameters,
+                    Uris = uriParams,
+                    AzureServicesList = azureServiceList
+                };
+
+
+                return View(model);
+            }
+
+            return NotFound();
         }
 
         [HttpGet]
+        [Route("Administration/Questions/AddNew")]
         public async Task<IActionResult> AddNew()
         {
             var client = new HttpClient();
@@ -85,28 +204,14 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     }
                 }
             }
-            var uris = new List<AddNewQuestionViewModel.UriList>();
-            uris.Add(new AddNewQuestionViewModel.UriList()
-            {
-                CallType = "GET",
-                Id = 1,
-                Uri = "http://www.google.com",
-                UriParameters = new List<AddNewQuestionViewModel.KVPair>() { new AddNewQuestionViewModel.KVPair() { Key = "Key1", Value = "Val1" }, new AddNewQuestionViewModel.KVPair() { Key = "Key2", Value = "Val2" } }
-            });
-            var answers = new List<AddNewQuestionViewModel.AnswerList>();
-            answers.Add(new AddNewQuestionViewModel.AnswerList()
-            {
-                AnswerParameters = new List<AddNewQuestionViewModel.KVPair>() { new AddNewQuestionViewModel.KVPair() { Key = "AnsKey1", Value = "AnsVal1" } },
-                AssociatedQuestionId = 1,
-                ResponseType = "JSON"
-            });
 
             var model = new AddNewQuestionViewModel()
             {
-                Uris = uris,
-                Answers = answers,
+                Id = Guid.NewGuid().ToString(),
                 AzureServicesList = azureServiceList,
-                TextParameters = new List<AddNewQuestionViewModel.KVPair>()
+                Difficulty = 1,
+                TextParameters = new List<string>(),
+                Uris = new List<AddNewQuestionViewModel.UriList>()
             };
 
             return View(model);
@@ -116,9 +221,65 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddNew(AddNewQuestionViewModel model)
         {
-            await questionProvider.AddItemAsync(mapper.Map<ACMQ.Question>(model));
+            var client = new HttpClient();
+            var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
+            var azureServiceList = new List<string>();
+
+            if (response != null)
+            {
+                var serviceListStr = await response.Content.ReadAsStringAsync();
+                var serviceList = JsonConvert.DeserializeObject<List<AzureServiceClass>>(serviceListStr);
+                var azureServices = serviceList.Where(p => p.name == "Azure").FirstOrDefault();
+
+                if (azureServices != null)
+                {
+                    foreach (var service in azureServices.services)
+                    {
+                        azureServiceList.Add(service.name);
+                    }
+                }
+            }
+            model.AzureServicesList = azureServiceList;
+
+            if (ModelState.IsValid)
+            {
+                var uriList = new List<ACMQ.Question.UriList>();
+
+                foreach (var u in model.Uris)
+                {
+                    uriList.Add(new ACMQ.Question.UriList
+                    {
+                        CallType = u.CallType,
+                        Id = u.Id,
+                        Uri = u.Uri,
+                        UriParameters = u.UriParameters
+                    });
+                }
+
+                var mapped = new ACMQ.Question()
+                {
+                    Description = model.Description,
+                    Difficulty = model.Difficulty,
+                    Id = model.Id,
+                    Name = model.Name,
+                    TargettedAzureService = model.TargettedAzureService,
+                    Text = model.Text,
+                    TextParameters = model.TextParameters,
+                    Uris = uriList
+                };
+
+                await questionProvider.AddItemAsync(mapped);
+            }
 
             return View(model);
+        }
+
+        [Route("Administration/Questions/{id}/Get")]
+        public async Task<IActionResult> GetQuestionByIdAsync(string id)
+        {
+            var result = await questionProvider.GetItemAsync(id);
+
+            return Ok(result.Item2);
         }
     }
 }

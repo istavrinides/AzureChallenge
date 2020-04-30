@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using AzureChallenge.UI.Areas.Identity.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -18,14 +19,14 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account
     [AllowAnonymous]
     public class EmailNotConfirmedModel : PageModel
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<AzureChallengeUIUser> _userManager;
+        private readonly SignInManager<AzureChallengeUIUser> _signInManager;
         private readonly ILogger<LoginModel> _logger;
         private readonly IEmailSender _emailSender;
 
-        public EmailNotConfirmedModel(SignInManager<IdentityUser> signInManager,
+        public EmailNotConfirmedModel(SignInManager<AzureChallengeUIUser> signInManager,
             ILogger<LoginModel> logger,
-            UserManager<IdentityUser> userManager,
+            UserManager<AzureChallengeUIUser> userManager,
             IEmailSender emailSender)
         {
             _userManager = userManager;
