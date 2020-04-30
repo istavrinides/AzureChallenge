@@ -1,0 +1,173 @@
+﻿@model AzureChallenge.UI.Areas.Administration.Models.Tournaments.EditTournamentViewModel
+@{
+    ViewData["Title"] = "Edit Tournament";
+}
+@section Styles{
+    <link href="~/lib/bootstrap-slider/css/bootstrap-slider.css" rel="stylesheet" type="text/css" />
+    <link href="~/lib/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" type="text/css" />
+    <style>
+        .form-border {
+            padding: 1rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px 4px 0 0;
+        }
+    </style>
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+<form method="post">
+    <div class="form-group">
+        <label asp-for="@Model.Name"></label>
+        <input class="form-control" value="@Model.Name" readonly />
+        <input type="hidden" asp-for="@Model.Id" />
+    </div>
+    <div class="form-group row">
+        <h4 class="pl-3">Associate questions with the tournament</h4>
+    </div>
+    <div id="saveAlert" class="alert alert-danger d-none" role="alert">You have made changes. Please click save or risk losing them!</div>
+    <div class="form-group row">
+        <div class="col-md-2">
+            <label asp-for="@Model.Questions"></label>
+        </div>
+        <div class="col-md-8">
+            <select class="selectpicker" data-live-search="true" title="Please select a question" data-width="100%" id="questionsSelector">
+                @foreach (var serviceGroup in Model.Questions.GroupBy(p => p.AzureService))
+                {
+                    <optgroup label="@serviceGroup.Key">
+                        @foreach (var s in serviceGroup)
+                        {
+                            @Html.Raw($"<option {(s.Selected ? "disabled" : "")} data-id='{s.Id}'>{s.Name}</option>")
+                        }
+                    </optgroup>
+                }
+            </select>
+        </div>
+        <div class="col-md-1">
+            <button class="btn btn-info" id="btnAddToList" type="button" data-toggle="modal" data-target="#questionModal">Add</button>
+        </div>
+        <div class="col-md-1">
+            <button class="btn btn-warning" id="btnSave" type="submit" disabled>Save</button>
+        </div>
+    </div>
+    <div class="form-group row">
+        <h4 class="pl-3">Associated questions</h4>
+    </div>
+    <div class="form-group row pl-3 pr-3">
+        <table class="table table-responsive-md table-hover" id="associatedQuestionsTable">
+            <thead class="thead-dark">
+                <tr>
+                    <th style="width:75.01%">
+                        @Html.DisplayNameFor(model => model.AssignedQuestions[0].Name)
+                    </th>
+                    <th style="width:8.33%"></th>
+                    <th style="width:8.33%"></th>
+                    <th style="width:8.33%"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.AssignedQuestions.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            @(Model.AssignedQuestions[i].Name + " - " + Model.AssignedQuestions[i].Description + "(Level: " + Model.AssignedQuestions[i].DifficultyString + ")")
+                        </td>
+                        <td>
+                            <a asp-action="Index" asp-controller="Parameter" asp-area="Administration" asp-route-tournamentId="@Model.AssignedQuestions[i].Id">Edit</a>
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@Model.AssignedQuestions[i].Id">Details</a>
+                        </td>
+                        <td>
+                            <button type='button' class='btn btn-danger deleteAssociatedQuestion' data-name='@Model.AssignedQuestions[i].Name'>Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</form>
+
+<div class="modal" id="questionModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Configure the question</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="questionForm">
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" id="modalTabs" role="tablist" style="border-bottom: none !important;">
+                        <li role="presentation" class="nav-item active">
+                            <a class="nav-link active" href="#modal-text" aria-controls="modal-text" role="tab" data-toggle="tab" aria-selected="true">Text Parameters</a>
+                        </li>
+                        <li role="presentation" class="nav-item">
+                            <a class="nav-link" href="#modal-uri" aria-controls="modal-uri" role="tab" data-toggle="tab" aria-selected="false">URI Parameters</a>
+                        </li>
+                        <li role="presentation" class="nav-item">
+                            <a class="nav-link" href="#modal-answer" aria-controls="modal-answer" role="tab" data-toggle="tab" aria-selected="false">Answers</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="modalTabsContent">
+                        <div class="tab-pane fade show active" id="modal-text" role="tabpanel" aria-labelledby="modal-text-tab">
+                            <div id="textParamsGroup" class="form-border form-group">
+                                <div class="form-group">
+                                    <textarea id="configureQuestionText" class="form-control" rows="4"></textarea>
+                                    <input type="hidden" id="AssociatedQuestionId" name="AssociatedQuestionId" />
+                                    <input type="hidden" id="Name" name="Name" />
+                                    <input type="hidden" id="TargettedAzureService" name="TargettedAzureService" />
+                                    <input type="hidden" id="Difficulty" name="Difficulty" />
+                                    <input type="hidden" id="Description" name="Description" />
+                                </div>
+                                <div id="textParamsInputGroup" class="form-group row">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="modal-uri" role="tabpanel" aria-labelledby="modal-uri-tab">
+                            <div id="uriParamsGroup" class="form-border form-group">
+                                <div class="form-group">
+                                    <div class="col pl-0 pr-0">
+                                        <ul class="nav nav-tabs" id="uriTab" role="tablist">
+                                        </ul>
+                                    </div>
+                                    <br />
+                                    <div class="col pl-0 pr-0 tab-content" id="uriTabContent">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="modal-answer" role="tabpanel" aria-labelledby="modal-answer-tab">
+                            <div id="answersParamsGroup" class="form-border form-group">
+                                <div class="form-group">
+                                    <div class="col pl-0 pr-0">
+                                        <ul class="nav nav-tabs" id="answerTab" role="tablist">
+                                        </ul>
+                                    </div>
+                                    <br />
+                                    <div class="col pl-0 pr-0 tab-content" id="answerTabContent">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts
+{
+    <script src="~/lib/bootstrap-slider/bootstrap-slider.js"></script>
+    <script src="~/lib/bootstrap-select/js/bootstrap-select.js"></script>
+    <script src="~/js/azurechallenge.edittournament.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+}

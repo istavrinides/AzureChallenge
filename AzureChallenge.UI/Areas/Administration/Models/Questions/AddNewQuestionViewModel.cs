@@ -29,37 +29,21 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Questions
         [Display(Name = "Question")]
         public string Text { get; set; }
 
-        public List<KVPair> TextParameters { get; set; }
+        public List<string> TextParameters { get; set; }
 
         [Display(Name = "Uri endpoints to call")]
         public List<UriList> Uris { get; set; }
-
-        public List<AnswerList> Answers { get; set; }
 
         public class UriList
         {
             public int Id { get; set; }
 
+            [Required]
             public string Uri { get; set; }
 
             public string CallType { get; set; }
 
-            public List<KVPair> UriParameters { get; set; }
-        }
-
-        public class AnswerList
-        {
-            public int AssociatedQuestionId { get; set; }
-
-            public List<KVPair> AnswerParameters { get; set; }
-
-            public string ResponseType { get; set; }
-        }
-
-        public class KVPair
-        {
-            public string Key { get; set; }
-            public string Value { get; set; }
+            public List<string> UriParameters { get; set; }
         }
     }
 }

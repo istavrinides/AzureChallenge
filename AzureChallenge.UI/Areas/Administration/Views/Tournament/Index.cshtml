@@ -1,0 +1,56 @@
+﻿@model IList<AzureChallenge.UI.Areas.Administration.Models.Tournaments.IndexTournamentViewModel>
+@{
+    ViewData["Title"] = "Tournament list";
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+
+<div class="container">
+    <table class="table table-responsive-md table-hover">
+        <thead class="thead-dark">
+            <tr>
+                <th style="width:16.67%">
+                    @Html.DisplayNameFor(model => model[0].Name)
+                </th>
+                <th style="width:58.34%">
+                    @Html.DisplayNameFor(model => model[0].Description)
+                </th>
+                <th style="width:8.33%"></th>
+                <th style="width:8.33%"></th>
+                <th style="width:8.33%"></th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <td colspan="5">
+                    <a asp-action="AddNew" class="float-right">
+                        <button type="button" class="btn btn-info">Add new</button>
+                    </a>
+                </td>
+            </tr>
+        </tfoot>
+        <tbody>
+            @foreach (var q in Model)
+            {
+                <tr>
+                    <td>
+                        @q.Name
+                    </td>
+                    <td>
+                        @q.Description
+                    </td>
+                    <td>
+                        <a asp-action="Index" asp-controller="Parameter" asp-area="Administration" asp-route-tournamentId="@q.Id">Parameters</a>
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@q.Id">Details</a>
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-controller="Tournament" asp-area="Administration" asp-route-tournamentId="@q.Id">Edit</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

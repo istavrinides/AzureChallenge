@@ -7,11 +7,21 @@ namespace AzureChallenge.Models.Questions
 {
     public class Question : AzureChallengeDocument
     {
+        public Question() : base("Question") { }
+
+
+
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
+        
+        [JsonProperty(PropertyName = "targettedazureservice")]
+        public string TargettedAzureService { get; set; }
+
+        [JsonProperty(PropertyName = "difficulty")]
+        public int Difficulty { get; set; }
 
         [JsonProperty(PropertyName = "description")]
         public string Description { get; set; }
@@ -20,15 +30,10 @@ namespace AzureChallenge.Models.Questions
         public string Text { get; set; }
 
         [JsonProperty(PropertyName = "textParameters")]
-        public Dictionary<string, string>   TextParameters { get; set; }
+        public List<string>   TextParameters { get; set; }
         
         [JsonProperty(PropertyName = "urilist")]
         public List<UriList> Uris { get; set; }
-
-        [JsonProperty(PropertyName = "answerlist")]
-        public List<AnswerList> Answers { get; set; }
-
-        public Question() : base("Question") { }
 
         public class UriList
         {
@@ -41,20 +46,10 @@ namespace AzureChallenge.Models.Questions
             [JsonProperty(PropertyName = "calltype")]
             public string CallType { get; set; }
 
-            [JsonProperty(PropertyName = "responsetype")]
-            public string ResponseType { get; set; }
-
             [JsonProperty(PropertyName = "uriParameters")]
-            public Dictionary<string, string> UriParameters { get; set; }
+            public List<string> UriParameters { get; set; }
         }
 
-        public class AnswerList
-        {
-            [JsonProperty(PropertyName = "associatedquestionid")]
-            public int AssociatedQuestionId { get; set; }
-
-            [JsonProperty(PropertyName = "answers")]
-            public Dictionary<string, string> AnswerParameters { get; set; }
-        }
+        public string DifficultyString => this.Difficulty == 1 ? "Easy" : this.Difficulty == 2 ? "Medium" : this.Difficulty == 3 ? "Hard" : "Expert";
     }
 }

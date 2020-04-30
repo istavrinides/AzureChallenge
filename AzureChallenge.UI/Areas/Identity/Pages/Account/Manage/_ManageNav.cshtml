@@ -1,4 +1,5 @@
-﻿@inject SignInManager<IdentityUser> SignInManager
+﻿@using AzureChallenge.UI.Areas.Identity.Data;
+@inject SignInManager<AzureChallengeUIUser> SignInManager
 @{
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
 }
@@ -12,4 +13,5 @@
     }
     <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">Two-factor authentication</a></li>
     <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">Personal data</a></li>
+    <li class="nav-item"><a class="nav-link @ManageNavPages.AzureConfigNavClass(ViewContext)" id="azure-config" asp-page="./AzureConfig">Azure Configuration</a></li>
 </ul>
