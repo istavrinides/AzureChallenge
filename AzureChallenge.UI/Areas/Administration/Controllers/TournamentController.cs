@@ -12,6 +12,7 @@ using ACM = AzureChallenge.Models;
 using ACMT = AzureChallenge.Models.Tournaments;
 using ACMQ = AzureChallenge.Models.Questions;
 using Microsoft.CodeAnalysis.Differencing;
+using AzureChallenge.UI.Areas.Administration.Models.Tournaments;
 
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
@@ -105,104 +106,90 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             return View(model);
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> AddNew()
-        //{
-        //    var client = new HttpClient();
-        //    var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
-        //    var azureServiceList = new List<string>();
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddAssignedQuestion(EditTournamentViewModel inputModel)
+        {
+            if (ModelState.IsValid)
+            {
+                // Translate the view model to our backed model
+                var assignedQuestion = new ACMQ.AssignedQuestion
+                {
+                    Answers = inputModel.QuestionToAdd.Answers
+                                        .Select(p => new ACMQ.AssignedQuestion.AnswerList
+                                        {
+                                            AnswerParameters = p.AnswerParameters.ToDictionary(q => q.Key, q => q.Value),
+                                            AssociatedQuestionId = p.AssociatedQuestionId,
+                                            ResponseType = p.ResponseType
+                                        }
+                                        ).ToList(),
+                    AssociatedQuestionId = inputModel.QuestionToAdd.AssociatedQuestionId,
+                    Description = inputModel.QuestionToAdd.Description,
+                    Difficulty = inputModel.QuestionToAdd.Difficulty,
+                    Name = inputModel.QuestionToAdd.Name,
+                    QuestionId = Guid.NewGuid().ToString(),
+                    TargettedAzureService = inputModel.QuestionToAdd.TargettedAzureService,
+                    Text = inputModel.QuestionToAdd.Text,
+                    TextParameters = inputModel.QuestionToAdd.TextParameters.ToDictionary(p => p.Key, p => p.Value),
+                    TournamentId = inputModel.QuestionToAdd.TournamentId,
+                    Uris = inputModel.QuestionToAdd.Uris
+                                    .Select(p => new ACMQ.AssignedQuestion.UriList
+                                    {
+                                        CallType = p.CallType,
+                                        Id = p.Id,
+                                        Uri = p.Uri,
+                                        UriParameters = p.UriParameters.ToDictionary(q => q.Key, q => q.Value)
+                                    }
+                                    ).ToList(),
+                };
 
-        //    if (response != null)
-        //    {
-        //        var serviceListStr = await response.Content.ReadAsStringAsync();
-        //        var serviceList = JsonConvert.DeserializeObject<List<AzureServiceClass>>(serviceListStr);
-        //        var azureServices = serviceList.Where(p => p.name == "Azure").FirstOrDefault();
+                await assignedQuestionProvider.AddItemAsync(assignedQuestion);
+            }
 
-        //        if (azureServices != null)
-        //        {
-        //            foreach (var service in azureServices.services)
-        //            {
-        //                azureServiceList.Add(service.name);
-        //            }
-        //        }
-        //    }
+            return RedirectToAction("Edit", new { tournamentId = inputModel.QuestionToAdd.TournamentId });
+        }
 
-        //    var model = new AddNewQuestionViewModel()
-        //    {
-        //        Id = Guid.NewGuid().ToString(),
-        //        AzureServicesList = azureServiceList,
-        //        Difficulty = 1
-        //    };
+        [Route("Administration/Tournament/{tournamentId}/AssignedQuestion/{assignedQuestionId}")]
+        public async Task<IActionResult> GetAssignedQuestionAsync(string tournamentId, string assignedQuestionId)
+        {
+            var result = await assignedQuestionProvider.GetItemAsync(assignedQuestionId);
 
-        //    return View(model);
-        //}
+            if (result.Item1.Success)
+            {
+                var question = new VM.AssignedQuestion()
+                {
+                    Answers = result.Item2.Answers
+                                        .Select(p => new VM.AssignedQuestion.AnswerList()
+                                        {
+                                            AnswerParameters = p.AnswerParameters.Select(q => new VM.AssignedQuestion.KVPair() { Key = q.Key, Value = q.Value }).ToList(),
+                                            AssociatedQuestionId = p.AssociatedQuestionId,
+                                            ResponseType = p.ResponseType
+                                        }).ToList(),
+                    AssociatedQuestionId = result.Item2.AssociatedQuestionId,
+                    Description = result.Item2.Description,
+                    Difficulty = result.Item2.Difficulty,
+                    Id = result.Item2.QuestionId,
+                    Name = result.Item2.Name,
+                    TargettedAzureService = result.Item2.TargettedAzureService,
+                    Text = result.Item2.Text,
+                    TextParameters = result.Item2.TextParameters.Select(p => new VM.AssignedQuestion.KVPair { Key = p.Key, Value = p.Value }).ToList(),
+                    TournamentId = result.Item2.TournamentId,
+                    Uris = result.Item2.Uris
+                             .Select(p => new VM.AssignedQuestion.UriList
+                             {
+                                 CallType = p.CallType,
+                                 Id = p.Id,
+                                 Uri = p.Uri,
+                                 UriParameters = p.UriParameters.Select(q => new VM.AssignedQuestion.KVPair { Key = q.Key, Value = q.Value }).ToList()
+                             }).ToList()
+                };
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> AddNew(AddNewQuestionViewModel model)
-        //{
-        //    var client = new HttpClient();
-        //    var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
-        //    var azureServiceList = new List<string>();
-
-        //    if (response != null)
-        //    {
-        //        var serviceListStr = await response.Content.ReadAsStringAsync();
-        //        var serviceList = JsonConvert.DeserializeObject<List<AzureServiceClass>>(serviceListStr);
-        //        var azureServices = serviceList.Where(p => p.name == "Azure").FirstOrDefault();
-
-        //        if (azureServices != null)
-        //        {
-        //            foreach (var service in azureServices.services)
-        //            {
-        //                azureServiceList.Add(service.name);
-        //            }
-        //        }
-        //    }
-        //    model.AzureServicesList = azureServiceList;
-
-        //    if (ModelState.IsValid)
-        //    {
-        //        var answerList = new List<ACMQ.Question.AnswerList>();
-        //        var uriList = new List<ACMQ.Question.UriList>();
-
-        //        foreach (var a in model.Answers)
-        //        {
-        //            answerList.Add(new ACMQ.Question.AnswerList
-        //            {
-        //                AnswerParameters = a.AnswerParameters.ToDictionary(x => x.Key, x => x.Value),
-        //                AssociatedQuestionId = a.AssociatedQuestionId,
-        //                ResponseType = a.ResponseType
-        //            });
-        //        }
-        //        foreach (var u in model.Uris)
-        //        {
-        //            uriList.Add(new ACMQ.Question.UriList
-        //            {
-        //                CallType = u.CallType,
-        //                Id = u.Id,
-        //                Uri = u.Uri,
-        //                UriParameters = u.UriParameters.ToDictionary(x => x.Key, x => x.Value)
-        //            });
-        //        }
-
-        //        var mapped = new ACMQ.Question()
-        //        {
-        //            Answers = answerList,
-        //            Description = model.Description,
-        //            Difficulty = model.Difficulty,
-        //            Id = model.Id,
-        //            Name = model.Name,
-        //            TargettedAzureService = model.TargettedAzureService,
-        //            Text = model.Text,
-        //            TextParameters = model.TextParameters.ToDictionary(x => x.Key, x => x.Value),
-        //            Uris = uriList
-        //        };
-
-        //        await questionProvider.AddItemAsync(mapped);
-        //    }
-
-        //    return View(model);
-        //}
+                return Ok(question);
+            }
+            else
+            {
+                return StatusCode(500);
+            }
+        }
     }
 }

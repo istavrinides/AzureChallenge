@@ -16,7 +16,8 @@
 
 <h1>@ViewData["Title"]</h1>
 <hr />
-<form method="post">
+<form asp-controller="Tournament" asp-action="AddAssignedQuestion" method="post">
+    @Html.AntiForgeryToken()
     <div class="form-group">
         <label asp-for="@Model.Name"></label>
         <input class="form-control" value="@Model.Name" readonly />
@@ -70,13 +71,13 @@
                 {
                     <tr>
                         <td>
-                            @(Model.AssignedQuestions[i].Name + " - " + Model.AssignedQuestions[i].Description + "(Level: " + Model.AssignedQuestions[i].DifficultyString + ")")
+                            @(Model.AssignedQuestions[i].Name + " - " + Model.AssignedQuestions[i].Description + " (Level: " + Model.AssignedQuestions[i].DifficultyString + ")")
                         </td>
                         <td>
-                            <a asp-action="Index" asp-controller="Parameter" asp-area="Administration" asp-route-tournamentId="@Model.AssignedQuestions[i].Id">Edit</a>
+                            <a href="#" class="tableLinkEdit" data-toggle="modal" data-target="#questionModal" data-questionId="@Model.AssignedQuestions[i].Id">Edit</a>
                         </td>
                         <td>
-                            <a asp-action="Details" asp-route-id="@Model.AssignedQuestions[i].Id">Details</a>
+                            <a href="#" class="tableLinkDetails" data-toggle="modal" data-target="#questionModal" data-questionId="@Model.AssignedQuestions[i].Id">Details</a>
                         </td>
                         <td>
                             <button type='button' class='btn btn-danger deleteAssociatedQuestion' data-name='@Model.AssignedQuestions[i].Name'>Delete</button>
@@ -86,83 +87,103 @@
             </tbody>
         </table>
     </div>
-</form>
 
-<div class="modal" id="questionModal">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Configure the question</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <form id="questionForm">
+    <div class="modal" id="questionModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Configure the question</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
                 <div class="modal-body">
-                    <ul class="nav nav-tabs" id="modalTabs" role="tablist" style="border-bottom: none !important;">
-                        <li role="presentation" class="nav-item active">
-                            <a class="nav-link active" href="#modal-text" aria-controls="modal-text" role="tab" data-toggle="tab" aria-selected="true">Text Parameters</a>
-                        </li>
-                        <li role="presentation" class="nav-item">
-                            <a class="nav-link" href="#modal-uri" aria-controls="modal-uri" role="tab" data-toggle="tab" aria-selected="false">URI Parameters</a>
-                        </li>
-                        <li role="presentation" class="nav-item">
-                            <a class="nav-link" href="#modal-answer" aria-controls="modal-answer" role="tab" data-toggle="tab" aria-selected="false">Answers</a>
-                        </li>
-                    </ul>
-                    <div class="tab-content" id="modalTabsContent">
-                        <div class="tab-pane fade show active" id="modal-text" role="tabpanel" aria-labelledby="modal-text-tab">
-                            <div id="textParamsGroup" class="form-border form-group">
-                                <div class="form-group">
-                                    <textarea id="configureQuestionText" class="form-control" rows="4"></textarea>
-                                    <input type="hidden" id="AssociatedQuestionId" name="AssociatedQuestionId" />
-                                    <input type="hidden" id="Name" name="Name" />
-                                    <input type="hidden" id="TargettedAzureService" name="TargettedAzureService" />
-                                    <input type="hidden" id="Difficulty" name="Difficulty" />
-                                    <input type="hidden" id="Description" name="Description" />
-                                </div>
-                                <div id="textParamsInputGroup" class="form-group row">
+                    <div id="modalWaiting" class="text-center">
+                        <div>
+                            Getting the question template...
+                        </div>
+                        <div>
+                            <img src="/images/wait.gif">
+                        </div>
+                    </div>
+                    <div class="d-none" id="modalContent">
+                        <ul class="nav nav-tabs" id="modalTabs" role="tablist" style="border-bottom: none !important;">
+                            <li role="presentation" class="nav-item active">
+                                <a class="nav-link active" href="#modal-text" aria-controls="modal-text" role="tab" data-toggle="tab" aria-selected="true">
+                                    Text Parameters&nbsp;
+                                    <span class="badge badge-danger" data-toggle="tooltip" data-placement="top" title="Number of empty required fields" id="requiredInputsText"></span>
+                                </a>
+                            </li>
+                            <li role="presentation" class="nav-item">
+                                <a class="nav-link" href="#modal-uri" aria-controls="modal-uri" role="tab" data-toggle="tab" aria-selected="false">
+                                    URI Parameters&nbsp;
+                                    <span class="badge badge-danger" data-toggle="tooltip" data-placement="top" title="Number of empty required fields" id="requiredInputsUri"></span>
+                                </a>
+                            </li>
+                            <li role="presentation" class="nav-item">
+                                <a class="nav-link" href="#modal-answer" aria-controls="modal-answer" role="tab" data-toggle="tab" aria-selected="false">
+                                    Answers&nbsp;
+                                    <span class="badge badge-danger" data-toggle="tooltip" data-placement="top" title="Number of empty required fields" id="requiredInputsAnswer"></span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="modalTabsContent">
+                            <div class="tab-pane fade show active tab-pane-upper" id="modal-text" role="tabpanel" aria-labelledby="modal-text-tab">
+                                <div id="textParamsGroup" class="form-border form-group">
+                                    <div class="form-group">
+                                        <textarea id="QuestionToAdd_Text" name="QuestionToAdd.Text" class="form-control" rows="4" readonly></textarea>
+                                        <input type="hidden" id="QuestionToAdd_AssociatedQuestionId" name="QuestionToAdd.AssociatedQuestionId" />
+                                        <input type="hidden" id="QuestionToAdd_Name" name="QuestionToAdd.Name" />
+                                        <input type="hidden" id="QuestionToAdd_TargettedAzureService" name="QuestionToAdd.TargettedAzureService" />
+                                        <input type="hidden" id="QuestionToAdd_Difficulty" name="QuestionToAdd.Difficulty" />
+                                        <input type="hidden" id="QuestionToAdd_Description" name="QuestionToAdd.Description" />
+                                        <input type="hidden" id="QuestionToAdd_TournamentId" name="QuestionToAdd.TournamentId" />
+                                    </div>
+                                    <div id="textParamsInputGroup" class="form-group row">
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="tab-pane fade" id="modal-uri" role="tabpanel" aria-labelledby="modal-uri-tab">
-                            <div id="uriParamsGroup" class="form-border form-group">
-                                <div class="form-group">
-                                    <div class="col pl-0 pr-0">
-                                        <ul class="nav nav-tabs" id="uriTab" role="tablist">
-                                        </ul>
-                                    </div>
-                                    <br />
-                                    <div class="col pl-0 pr-0 tab-content" id="uriTabContent">
+                            <div class="tab-pane fade tab-pane-upper" id="modal-uri" role="tabpanel" aria-labelledby="modal-uri-tab">
+                                <div id="uriParamsGroup" class="form-border form-group">
+                                    <div class="form-group">
+                                        <div class="col pl-0 pr-0">
+                                            <ul class="nav nav-tabs" id="uriTab" role="tablist">
+                                            </ul>
+                                        </div>
+                                        <br />
+                                        <div class="col pl-0 pr-0 tab-content" id="uriTabContent">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="tab-pane fade" id="modal-answer" role="tabpanel" aria-labelledby="modal-answer-tab">
-                            <div id="answersParamsGroup" class="form-border form-group">
-                                <div class="form-group">
-                                    <div class="col pl-0 pr-0">
-                                        <ul class="nav nav-tabs" id="answerTab" role="tablist">
-                                        </ul>
-                                    </div>
-                                    <br />
-                                    <div class="col pl-0 pr-0 tab-content" id="answerTabContent">
+                            <div class="tab-pane fade tab-pane-upper" id="modal-answer" role="tabpanel" aria-labelledby="modal-answer-tab">
+                                <div id="answersParamsGroup" class="form-border form-group">
+                                    <div class="form-group">
+                                        <div class="col pl-0 pr-0">
+                                            <ul class="nav nav-tabs" id="answerTab" role="tablist">
+                                            </ul>
+                                        </div>
+                                        <br />
+                                        <div class="col pl-0 pr-0 tab-content" id="answerTabContent">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
+                    <div class="d-none" id="modalError">
+                        Something happened on our end. Please try again later (sorry...).
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save changes</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <div class="modal-footer d-none">
+                    <button type="submit" id="btnModalSave" class="btn btn-primary">Save changes</button>
+                    <button type="button" id="btnModalClose" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
-</div>
 
+</form>
 
 @section Scripts
 {
@@ -170,4 +191,5 @@
     <script src="~/lib/bootstrap-select/js/bootstrap-select.js"></script>
     <script src="~/js/azurechallenge.edittournament.js"></script>
     <partial name="_ValidationScriptsPartial" />
+
 }

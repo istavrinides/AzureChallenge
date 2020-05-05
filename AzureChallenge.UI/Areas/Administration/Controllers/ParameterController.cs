@@ -70,5 +70,18 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
             return RedirectToAction("Index", new { tournamentId = inputModel.TournamentId });
         }
+
+        [Route("Administration/Tournament/{tournamentId}/GlobalParameters/Get")]
+        public async Task<IActionResult> GetQuestionByIdAsync(string tournamentId)
+        {
+            var result = await parametersProvider.GetItemAsync(tournamentId);
+
+            if (result.Item1.Success)
+            {
+                return Ok(result.Item2);
+            }
+
+            return StatusCode(500);
+        }
     }
 }
