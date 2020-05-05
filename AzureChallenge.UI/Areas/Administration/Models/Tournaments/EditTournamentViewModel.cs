@@ -18,6 +18,8 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Tournaments
 
         [Display(Name = "Available Questions")]
         public List<Question> Questions { get; set; }
+
+        public AssignedQuestion QuestionToAdd { get; set; }
     }
 
     public class AssignedQuestion
