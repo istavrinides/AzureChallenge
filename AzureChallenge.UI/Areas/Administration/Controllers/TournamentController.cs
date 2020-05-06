@@ -13,29 +13,34 @@ using ACMT = AzureChallenge.Models.Tournaments;
 using ACMQ = AzureChallenge.Models.Questions;
 using Microsoft.CodeAnalysis.Differencing;
 using AzureChallenge.UI.Areas.Administration.Models.Tournaments;
+using Microsoft.AspNetCore.Identity;
+using AzureChallenge.UI.Areas.Identity.Data;
 
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
     [Area("Administration")]
     public class TournamentController : Controller
     {
-        private ITournamentProvider<ACM.AzureChallengeResult, ACMT.TournamentDetails> tournamentProvider;
-        private IAssignedQuestionProvider<ACM.AzureChallengeResult, ACMQ.AssignedQuestion> assignedQuestionProvider;
-        private IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider;
-        private IMapper mapper;
-        private IConfiguration configuration;
+        private readonly ITournamentProvider<ACM.AzureChallengeResult, ACMT.TournamentDetails> tournamentProvider;
+        private readonly IAssignedQuestionProvider<ACM.AzureChallengeResult, ACMQ.AssignedQuestion> assignedQuestionProvider;
+        private readonly IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider;
+        private readonly IMapper mapper;
+        private readonly IConfiguration configuration;
+        private readonly UserManager<AzureChallengeUIUser> userManager;
 
         public TournamentController(ITournamentProvider<ACM.AzureChallengeResult, ACMT.TournamentDetails> tournamentProvider,
                                     IAssignedQuestionProvider<ACM.AzureChallengeResult, ACMQ.AssignedQuestion> assignedQuestionProvider,
                                     IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider,
                                     IMapper mapper,
-                                    IConfiguration configuration)
+                                    IConfiguration configuration,
+                                    UserManager<AzureChallengeUIUser> userManager)
         {
             this.tournamentProvider = tournamentProvider;
             this.assignedQuestionProvider = assignedQuestionProvider;
             this.questionProvider = questionProvider;
             this.mapper = mapper;
             this.configuration = configuration;
+            this.userManager = userManager;
         }
 
         [Route("Administration/Tournament/Index")]
@@ -190,6 +195,16 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             {
                 return StatusCode(500);
             }
+        }
+
+
+        public async Task<IActionResult> ValidateQuestion(string questionId)
+        {
+            var user = await userManager.GetUserAsync(User);
+
+            var results = await assignedQuestionProvider.ValidateQuestion(questionId, mapper.Map<AzureChallenge.Models.Profile.UserProfile>(user));
+
+            return Ok(results);
         }
     }
 }
