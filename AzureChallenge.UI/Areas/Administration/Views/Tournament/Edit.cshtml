@@ -58,12 +58,13 @@
         <table class="table table-responsive-md table-hover" id="associatedQuestionsTable">
             <thead class="thead-dark">
                 <tr>
-                    <th style="width:75.01%">
+                    <th style="width:66.68%">
                         @Html.DisplayNameFor(model => model.AssignedQuestions[0].Name)
                     </th>
-                    <th style="width:8.33%"></th>
-                    <th style="width:8.33%"></th>
-                    <th style="width:8.33%"></th>
+                    <th style="width:8.33%" class="text-center">Edit</th>
+                    <th style="width:8.33%" class="text-center">Details</th>
+                    <th style="width:8.33%" class="text-center">Check</th>
+                    <th style="width:8.33%" class="text-center">Delete</th>
                 </tr>
             </thead>
             <tbody>
@@ -73,14 +74,25 @@
                         <td>
                             @(Model.AssignedQuestions[i].Name + " - " + Model.AssignedQuestions[i].Description + " (Level: " + Model.AssignedQuestions[i].DifficultyString + ")")
                         </td>
-                        <td>
-                            <a href="#" class="tableLinkEdit" data-toggle="modal" data-target="#questionModal" data-questionId="@Model.AssignedQuestions[i].Id">Edit</a>
+                        <td class="text-center">
+                            <a href="#" class="tableLinkEdit" data-toggle="modal" data-target="#questionModal" data-questionId="@Model.AssignedQuestions[i].Id">
+                                <img src="~/images/edit.svg" />
+                            </a>
                         </td>
-                        <td>
-                            <a href="#" class="tableLinkDetails" data-toggle="modal" data-target="#questionModal" data-questionId="@Model.AssignedQuestions[i].Id">Details</a>
+                        <td class="text-center">
+                            <a href="#" class="tableLinkDetails" data-toggle="modal" data-target="#questionModal" data-questionId="@Model.AssignedQuestions[i].Id">
+                                <img src="~/images/eye.svg" />
+                            </a>
                         </td>
-                        <td>
-                            <button type='button' class='btn btn-danger deleteAssociatedQuestion' data-name='@Model.AssignedQuestions[i].Name'>Delete</button>
+                        <td class="text-center">
+                            <a href="#" class="tableLinkCheck" data-toggle="modal" data-target="#checkModal" data-questionId="@Model.AssignedQuestions[i].Id">
+                                <img src="~/images/check-square.svg" />
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <a href="#" class="deleteAssociatedQuestion" data-name="@Model.AssignedQuestions[i].Name">
+                                <img src="~/images/trash-2.svg" />
+                            </a>
                         </td>
                     </tr>
                 }
@@ -178,6 +190,36 @@
                 <div class="modal-footer d-none">
                     <button type="submit" id="btnModalSave" class="btn btn-primary">Save changes</button>
                     <button type="button" id="btnModalClose" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="checkModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Question Validity Check</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="checkModalWaiting" class="text-center">
+                        <div>
+                            Checking the question against your subscritpion...
+                        </div>
+                        <div>
+                            <img src="/images/wait.gif">
+                        </div>
+                    </div>
+                    <div class="d-none" id="checkModalContent">
+                        <div class="row" id="checkModalContentDiv">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

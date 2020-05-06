@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using AzureChallenge.Interfaces.Providers.REST;
 using AzureChallenge.UI.Areas.Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -14,13 +15,16 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<AzureChallengeUIUser> _userManager;
         private readonly SignInManager<AzureChallengeUIUser> _signInManager;
+        private readonly IRESTProvider restProvider;
 
         public AzureConfigModel(
             UserManager<AzureChallengeUIUser> userManager,
-            SignInManager<AzureChallengeUIUser> signInManager)
+            SignInManager<AzureChallengeUIUser> signInManager,
+            IRESTProvider restProvider)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            this.restProvider = restProvider;
         }
 
         [BindProperty]
@@ -97,10 +101,11 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
             }
 
             user.SubscriptionId = Input.SubscriptionId;
-            //user.SubscriptionName 
             user.ClientId = Input.ClientId;
             user.ClientSecret = Input.ClientSecret;
             user.TenantId = Input.TenantId;
+
+            // Test the credentials. We should get 
 
             await _userManager.UpdateAsync(user);
             await _signInManager.RefreshSignInAsync(user);

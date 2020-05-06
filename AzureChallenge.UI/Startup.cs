@@ -29,6 +29,8 @@ using AzureChallenge.Models.Parameters;
 using AzureChallenge.Interfaces.Providers.Tournaments;
 using AzureChallenge.Interfaces.Providers.Parameters;
 using System.Reflection.Metadata;
+using AzureChallenge.Interfaces.Providers.REST;
+using AzureChallenge.Providers.RESTProviders;
 
 namespace AzureChallenge.UI
 {
@@ -88,6 +90,8 @@ namespace AzureChallenge.UI
             services.AddSingleton<IParameterProvider<AzureChallengeResult, GlobalParameters>, ParameterProvider>();
             services.AddSingleton<IDataProvider<AzureChallengeResult, AssignedQuestion>>(cosmosAssignedQuestionDataProvider);
             services.AddSingleton<IAssignedQuestionProvider<AzureChallengeResult, AssignedQuestion>, AssignedQuestionProvider>();
+            services.AddSingleton<IRESTProvider, RESTProvider>();
+            services.AddSingleton<IAzureAuthProvider, AzureAuthProvider>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
