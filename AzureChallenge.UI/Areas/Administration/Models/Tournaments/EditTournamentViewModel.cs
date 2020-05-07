@@ -13,13 +13,26 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Tournaments
         [Display(Name = "Tournament Name")]
         public string Name { get; set; }
 
-        [Display(Name = "Associated Questions")]
-        public List<AssignedQuestion> AssignedQuestions { get; set; }
+        public string Description { get; set; }
+        public List<TournamentQuestion> TournamentQuestions { get; set; }
 
         [Display(Name = "Available Questions")]
         public List<Question> Questions { get; set; }
 
         public AssignedQuestion QuestionToAdd { get; set; }
+    }
+
+    public class TournamentQuestion
+    {
+        public string Id { get; set; }
+        public string AssociatedQuestionId { get; set; }
+        public string Name { get; set; }
+        public int Difficulty { get; set; }
+        public string Description { get; set; }
+        public int Index { get; set; }
+        public string NextQuestionId { get; set; }
+
+        public string DifficultyString => this.Difficulty == 1 ? "Easy" : this.Difficulty == 2 ? "Medium" : this.Difficulty == 3 ? "Hard" : "Expert";
     }
 
     public class AssignedQuestion

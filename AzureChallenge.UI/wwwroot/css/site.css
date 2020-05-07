@@ -119,3 +119,7 @@ body {
 #tooltip[data-popper-placement^='right'] > #arrow {
     left: -4px;
 }
+
+.svg-filter-danger {
+    filter: invert(18%) sepia(88%) saturate(7402%) hue-rotate(358deg) brightness(109%) contrast(116%);
+}

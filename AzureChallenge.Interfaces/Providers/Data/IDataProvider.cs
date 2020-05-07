@@ -12,6 +12,6 @@ namespace AzureChallenge.Interfaces.Providers.Data
         Task<(T, Q)> GetItemAsync(string id, string type);
         Task<T> AddItemAsync(Q item);
         Task<T> UpdateItemAsync(string id, Q item);
-        Task<T> DeleteItemAsync(string id);
+        Task<T> DeleteItemAsync(string id, string type);
     }
 }

@@ -14,6 +14,8 @@ namespace AzureChallenge.Interfaces.Providers.Questions
 
         public Task<T> AddItemAsync(Q item);
 
+        public Task<T> DeleteItemAsync(string id);
+
         public Task<List<KeyValuePair<string, bool>>> ValidateQuestion(string id, UserProfile profile);
     }
 }

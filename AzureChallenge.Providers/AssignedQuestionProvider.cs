@@ -48,8 +48,12 @@ namespace AzureChallenge.Providers
 
         public async Task<AzureChallengeResult> AddItemAsync(AssignedQuestion item)
         {
-            item.QuestionId = Guid.NewGuid().ToString();
             return await dataProvider.AddItemAsync(item);
+        }
+
+        public async Task<AzureChallengeResult> DeleteItemAsync(string id)
+        {
+            return await dataProvider.DeleteItemAsync(id, "AssignedQuestion");
         }
 
         public async Task<List<KeyValuePair<string, bool>>> ValidateQuestion(string id, UserProfile profile)
@@ -143,5 +147,6 @@ namespace AzureChallenge.Providers
 
             return false;
         }
+
     }
 }

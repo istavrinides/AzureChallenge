@@ -18,9 +18,9 @@ namespace AzureChallenge.Providers
             this.dataProvider = dataProvider;
         }
 
-        public Task<AzureChallengeResult> AddItemAsync(TournamentDetails item)
+        public async Task<AzureChallengeResult> AddItemAsync(TournamentDetails item)
         {
-            throw new NotImplementedException();
+            return await dataProvider.AddItemAsync(item);
         }
 
         public async Task<(AzureChallengeResult, IList<TournamentDetails>)> GetAllItemsAsync()
