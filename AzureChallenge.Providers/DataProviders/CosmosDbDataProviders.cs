@@ -107,7 +107,7 @@ namespace AzureChallenge.Providers.DataProviders
 
             try
             {
-                await container.CreateItemAsync<Question>(item, new PartitionKey(item.Type));
+                await container.UpsertItemAsync<Question>(item, new PartitionKey(item.Type));
                 retVal.Success = true;
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
@@ -124,7 +124,7 @@ namespace AzureChallenge.Providers.DataProviders
             throw new NotImplementedException();
         }
 
-        public async Task<AzureChallengeResult> DeleteItemAsync(string id)
+        public async Task<AzureChallengeResult> DeleteItemAsync(string id, string type)
         {
             throw new NotImplementedException();
         }
@@ -220,7 +220,7 @@ namespace AzureChallenge.Providers.DataProviders
 
             try
             {
-                await container.CreateItemAsync<TournamentDetails>(item, new PartitionKey(item.Type));
+                await container.UpsertItemAsync<TournamentDetails>(item, new PartitionKey(item.Type));
                 retVal.Success = true;
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
@@ -237,7 +237,7 @@ namespace AzureChallenge.Providers.DataProviders
             throw new NotImplementedException();
         }
 
-        public async Task<AzureChallengeResult> DeleteItemAsync(string id)
+        public async Task<AzureChallengeResult> DeleteItemAsync(string id, string type)
         {
             throw new NotImplementedException();
         }
@@ -350,9 +350,24 @@ namespace AzureChallenge.Providers.DataProviders
             throw new NotImplementedException();
         }
 
-        public async Task<AzureChallengeResult> DeleteItemAsync(string id)
+        public async Task<AzureChallengeResult> DeleteItemAsync(string id, string type)
         {
-            throw new NotImplementedException();
+            var retVal = new AzureChallengeResult();
+            var database = client.GetDatabase(databaseId);
+            var container = database.GetContainer(containerId);
+
+            try
+            {
+                ItemResponse<GlobalParameters> response = await container.DeleteItemAsync<GlobalParameters>(id: id, partitionKey: new PartitionKey(type));
+                retVal.Success = response.StatusCode == HttpStatusCode.NoContent;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                retVal.Success = false;
+                retVal.Message = "Failed to insert question into database. A document with the same Id already exists";
+            }
+
+            return retVal;
         }
     }
 
@@ -464,9 +479,24 @@ namespace AzureChallenge.Providers.DataProviders
             throw new NotImplementedException();
         }
 
-        public async Task<AzureChallengeResult> DeleteItemAsync(string id)
+        public async Task<AzureChallengeResult> DeleteItemAsync(string id, string type)
         {
-            throw new NotImplementedException();
+            var retVal = new AzureChallengeResult();
+            var database = client.GetDatabase(databaseId);
+            var container = database.GetContainer(containerId);
+
+            try
+            {
+                ItemResponse<AssignedQuestion> response = await container.DeleteItemAsync<AssignedQuestion>(id: id, partitionKey: new PartitionKey(type));
+                retVal.Success = response.StatusCode == HttpStatusCode.NoContent;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                retVal.Success = false;
+                retVal.Message = "Failed to insert question into database. A document with the same Id already exists";
+            }
+
+            return retVal;
         }
     }
 }

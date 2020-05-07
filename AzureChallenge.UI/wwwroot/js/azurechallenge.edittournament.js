@@ -1,6 +1,12 @@
-﻿$(document).ready(function () {
+﻿var previousSelectedValue = -1;
+
+$(document).ready(function () {
     $.validator.setDefaults({ ignore: '' });
-    $('[data-toggle="tooltip"]').tooltip()
+    $('[data-toggle="tooltip"]').tooltip();
+
+    $('#questionsSelector').on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
+        $("#btnAddToList").removeAttr('disabled');
+    });
 
     $("#btnAddToList").on('click', function () {
 
@@ -143,10 +149,10 @@
                                             <div class='col-4'> \
                                                 <div class='custom-radio'> \
                                                     <label class='pr-4'> \
-                                                        <input type='radio' name='QuestionToAdd.Answers[" + i + "].ResponseType' id='QuestionToAdd_Answers_" + i + "__ResponseType' value='HEAD' id='respHEAD' autocomplete='off' checked> Headers \
+                                                        <input type='radio' name='QuestionToAdd.Answers[" + i + "].ResponseType' id='QuestionToAdd_Answers_" + i + "__ResponseType' value='BODY' id='respBODY' autocomplete='off' checked> Body \
                                                     </label> \
                                                     <label> \
-                                                        <input type='radio' name='QuestionToAdd.Answers[" + i + "].ResponseType' id='QuestionToAdd_Answers_" + i + "__ResponseType' value='BODY' id='respBODY' autocomplete='off'> Body \
+                                                        <input type='radio' name='QuestionToAdd.Answers[" + i + "].ResponseType' id='QuestionToAdd_Answers_" + i + "__ResponseType' value='HEAD' id='respHEAD' autocomplete='off' > Headers \
                                                     </label> \
                                                 </div> \
                                             </div> \
@@ -188,6 +194,102 @@
             });
     });
 
+    $("#btnSave").on('click', function () {
+        $.post("/Administration/Tournament/UpdateTournament", $('form').serialize())
+            .done(function () {
+                $("#updateModal").hide();
+                $('body').removeClass('modal-open');
+                $('.modal-backdrop').remove();
+                $("#btnSave").prop('disabled', 'disabled');
+                $("#saveAlert").addClass("d-none");
+            })
+            .fail(function () {
+                window.alert("Could not update the tournament, an internal error occured. Please try again later.");
+                location.reload();
+            });
+    })
+
+    $("#associatedQuestionsTable .indexSelector").on('focus', function () {
+        previousSelectedValue = parseInt($(this).val());
+    }).change(function () {
+
+        if (previousSelectedValue >= 0) {
+            // Enable the save button
+            $("#btnSave").removeAttr('disabled');
+            $("#saveAlert").removeClass("d-none");
+
+            // Get the value
+            var index = parseInt($(this).val());
+
+            // Find the select control that has this (new) value and is not this control
+            var selectToChange = $(".indexSelector option[value='" + index + "']:selected").parent().not(this);
+            $(selectToChange).val(previousSelectedValue);
+
+            // Swap the rows. First will be the one with the smallest original index
+            var firstRow, secondRow;
+            if (previousSelectedValue < index) {
+                firstRow = $(this).closest('tr');
+                secondRow = $(selectToChange).closest('tr');
+            }
+            else {
+                firstRow = $(selectToChange).closest('tr');
+                secondRow = $(this).closest('tr');
+            }
+
+
+            var firstRowNQId = $(firstRow).find(".nextQuestionId").val();
+            var secondRowNQId = $(secondRow).find(".nextQuestionId").val();
+
+
+            // Check if they are adjacent.
+            if ($(firstRow).next('tr').is($(secondRow))) {
+                // Swap the rows
+                $(firstRow).insertAfter($(secondRow));
+
+                // Fix the NextQuestionIds
+                $(firstRow).find(".nextQuestionId").val(secondRowNQId);
+                $(secondRow).find(".nextQuestionId").val($(firstRow).find(".questionId").val());
+
+            }
+            // Check if the first row is the top most row
+            else if ($(firstRow).prev('tr').length === 0) {
+                // Get the row below the first one (none above)
+                var belowFirst = $(firstRow).prev('tr');
+                // Get the row above and below the second one
+                var aboveSecond = $(secondRow).prev('tr');
+                var belowSecond = $(secondRow).next('tr');
+
+                // Second row goes above the first
+                $(secondRow).insertBefore($(firstRow));
+                // First row goes below the aboveSecond
+                $(firstRow).insertAfter($(aboveSecond));
+
+                // Fix the NextQuestionIds
+                $(secondRow).find(".nextQuestionId").val(firstRowNQId);
+                $(aboveSecond).find(".nextQuestionId").val($(firstRow).find(".questionId").val());
+                $(firstRow).find(".nextQuestionId").val(secondRowNQId);
+            }
+            else {
+                // Get the row above the first and second row
+                var aboveFirst = $(firstRow).prev('tr');
+                var aboveSecond = $(secondRow).prev('tr');
+
+                // Second row goes above the aboveFirst
+                $(secondRow).insertAfter($(aboveFirst));
+                // First row goes below the aboveSecond
+                $(firstRow).insertAfter($(aboveSecond));
+
+                // Fix the NextQuestionIds
+                $(secondRow).find(".nextQuestionId").val(firstRowNQId);
+                $(aboveSecond).find(".nextQuestionId").val($(firstRow).find(".questionId").val());
+                $(firstRow).find(".nextQuestionId").val(secondRowNQId);
+                $(aboveFirst).find(".nextQuestionId").val($(secondRow).find(".questionId").val());
+            }
+
+            previousSelectedValue = -1;
+        }
+    });
+
     $("#associatedQuestionsTable .tableLinkEdit").on('click', function () {
         var selectedQuestionId = $(this).attr('data-questionId');
         var tournamentId = $("#Id").val();
@@ -215,8 +317,21 @@
                 $("#checkModalContent").removeClass('d-none');
 
                 data.forEach(function (item) {
-                    $("#checkModalContentDiv").append("<div class='col-md-6'>" + item.Key + "</div><div class='col-md-6'>" + (item.Value ? "<span class='text-success'>Success</span>" : "<span class='text-danger'>Failure</span>")+"</div>");
+                    $("#checkModalContentDiv").append("<div class='col-md-6'>" + item.Key + "</div><div class='col-md-6'>" + (item.Value ? "<span class='text-success'>Success</span>" : "<span class='text-danger'>Failure</span>") + "</div>");
                 });
+            });
+    })
+
+    $("#associatedQuestionsTable .deleteAssociatedQuestion").on('click', function () {
+        var questionId = $(this).attr('data-questionId');
+        var tournamentId = $("#Id").val();
+
+        $.get("/Administration/Tournament/RemoveQuestion?questionId=" + questionId + "&tournamentId=" + tournamentId)
+            .done(function (data) {
+                location.reload();
+            })
+            .fail(function () {
+                window.alert("Could not delete the question, an internal error occured. Please try again later.");
             });
     })
 
@@ -247,6 +362,12 @@
         container.append("<div class='form-group col-6'> \
                             <label>Value to check</label> \
                             <input class='form-control answerParamInput answerParamInputVal' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].Value' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__Value' data-index='" + currentIndex + "' required /></div>");
+
+        var numberOfRequiredInputs = 0;
+        if (parseInt($("#requiredInputsAnswer").text()))
+            numberOfRequiredInputs = parseInt($("#requiredInputsAnswer").text());
+
+        $("#requiredInputsAnswer").text(numberOfRequiredInputs + 2);
 
         return false;
     });
@@ -421,10 +542,10 @@ var populateModal = function (selectedQuestionId, tournamentId, readOnly = false
                                     <div class='col-4'> \
                                         <div class='custom-radio'> \
                                             <label class='pr-4'> \
-                                                <input type='radio' name='QuestionToAdd.Answers[" + i + "].ResponseType' id='QuestionToAdd_Answers_" + i + "__ResponseType' value='HEAD' id='respHEAD' autocomplete='off' " + (data.answers[i].responseType === "HEAD" ? "checked" : "") + " " + (readOnly ? "disabled" : "") + "> Headers \
+                                                <input type='radio' name='QuestionToAdd.Answers[" + i + "].ResponseType' id='QuestionToAdd_Answers_" + i + "__ResponseType' value='BODY' id='respBODY' autocomplete='off' " + (data.answers[i].responseType === "BODY" ? "checked" : "") + " " + (readOnly ? "disabled" : "") + "> Body \
                                             </label> \
                                             <label> \
-                                                <input type='radio' name='QuestionToAdd.Answers[" + i + "].ResponseType' id='QuestionToAdd_Answers_" + i + "__ResponseType' value='BODY' id='respBODY' autocomplete='off' " + (data.answers[i].responseType === "BODY" ? "checked" : "") + " " + (readOnly ? "disabled" : "") + "> Body \
+                                                <input type='radio' name='QuestionToAdd.Answers[" + i + "].ResponseType' id='QuestionToAdd_Answers_" + i + "__ResponseType' value='HEAD' id='respHEAD' autocomplete='off' " + (data.answers[i].responseType === "HEAD" ? "checked" : "") + " " + (readOnly ? "disabled" : "") + "> Headers \
                                             </label> \
                                         </div> \
                                     </div> \

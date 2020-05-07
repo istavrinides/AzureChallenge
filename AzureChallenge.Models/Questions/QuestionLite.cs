@@ -2,16 +2,17 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace AzureChallenge.Models.Questions
 {
-    public class QuestionLite : AzureChallengeDocument
+    public class QuestionLite
     {
-        public QuestionLite() : base("Question") { }
-
-
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
+
+        [JsonProperty(PropertyName = "associatedQuestionId")]
+        public string AssociatedQuestionId { get; set; }
 
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
@@ -22,7 +23,10 @@ namespace AzureChallenge.Models.Questions
         [JsonProperty(PropertyName = "description")]
         public string Description { get; set; }
 
-        [JsonProperty(PropertyName = "text")]
-        public string Text { get; set; }
+        [JsonProperty(PropertyName = "index")]
+        public int Index { get; set; }
+
+        [JsonProperty(PropertyName = "nextQuestionId")]
+        public string NextQuestionId { get; set; }
     }
 }
