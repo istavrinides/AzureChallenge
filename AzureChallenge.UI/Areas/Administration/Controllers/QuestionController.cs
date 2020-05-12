@@ -20,10 +20,13 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using AzureChallenge.Models;
+using Microsoft.AspNetCore.Authorization;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
     [Area("Administration")]
+    [Authorize(Roles = "Administrator")]
     public class QuestionController : Controller
     {
         private IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider;
@@ -219,6 +222,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Administration/Questions/AddNew")]
         public async Task<IActionResult> AddNew(AddNewQuestionViewModel model)
         {
             var client = new HttpClient();
@@ -268,7 +272,13 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Uris = uriList
                 };
 
-                await questionProvider.AddItemAsync(mapped);
+                var responseAdd = await questionProvider.AddItemAsync(mapped);
+
+                if (responseAdd.Success)
+                {
+                    return RedirectToAction("Index");
+                }
+
             }
 
             return View(model);

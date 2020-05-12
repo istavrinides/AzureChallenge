@@ -76,7 +76,7 @@ namespace AzureChallenge.Providers
             var globalParameters = await parametersProvider.GetItemAsync(question.TournamentId);
             // Global parameters don't have the Global. prefix, so create a new dictionary with that as the key name
             var parameters = new Dictionary<string, string>();
-            foreach (KeyValuePair<string, string> gp in globalParameters.Item2.Parameters)
+            foreach (var gp in globalParameters.Item2.Parameters)
             {
                 parameters.Add($"Global_{gp.Key}", gp.Value);
             }

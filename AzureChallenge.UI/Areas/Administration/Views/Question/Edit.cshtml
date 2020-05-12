@@ -107,9 +107,6 @@
                                 <label class='btn btn-secondary'>
                                     <input type='radio' asp-for='@Model.Uris[i].CallType' value='GET' id='GET' autocomplete='off' checked> GET
                                 </label>
-                                <label class='btn btn-secondary'>
-                                    <input type='radio' asp-for='@Model.Uris[i].CallType' value='HEAD' id='HEAD' autocomplete='off'> HEAD
-                                </label>
                             </div>
                             <input asp-for='@Model.Uris[i].Uri' data-index="@i" class='form-control uriinput' />
                         </div>

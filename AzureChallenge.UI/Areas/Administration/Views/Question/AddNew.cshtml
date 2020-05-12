@@ -19,8 +19,7 @@
 
 <h1>@ViewData["Title"]</h1>
 
-@using (Html.BeginForm())
-{
+<form asp-controller="Question" asp-area="Administration" asp-action="AddNew" method="post">
     @Html.AntiForgeryToken()
 
     <div class="form-group">
@@ -107,7 +106,6 @@
                             <div class='input-group-prepend btn-group-toggle' data-toggle='buttons'>
                                 <select asp-for='@Model.Uris[i].CallType' class='selectpicker'>
                                     <option selected>GET</option>
-                                    <option>HEAD</option>
                                 </select>
                             </div>
                             <input asp-for='@Model.Uris[i].Uri' data-index="@i" class='form-control uriinput' />
@@ -134,12 +132,32 @@
             </div>
         </div>
     </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-}
+    <button type="submit" class="btn btn-primary" data-toggle="modal" data-target="#waitModal">Submit</button>
+
+    <div class="modal" id="waitModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Adding the question</h5>
+                </div>
+                <div class="modal-body">
+                    <div id="checkModalWaiting" class="text-center">
+                        <div>
+                            Please wait while the question is added...
+                        </div>
+                        <div>
+                            <img src="/images/wait.gif">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
 
 @section Scripts
 {
-    <script src="~/js/azurechallenge.scripts.js" asp-append-version="true"></script>
+    <script src="~/js/azurechallenge.addquestion.js" asp-append-version="true"></script>
     <script src="~/lib/bootstrap-slider/bootstrap-slider.js"></script>
     <script src="~/lib/bootstrap-select/js/bootstrap-select.js"></script>
     <partial name="_ValidationScriptsPartial" />

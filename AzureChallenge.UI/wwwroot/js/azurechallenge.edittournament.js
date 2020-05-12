@@ -43,6 +43,8 @@ $(document).ready(function () {
                         var numOfEmptyInputsText = 0;
                         var numOfEmptyInputsUri = 0;
                         var numOfEmptyInputsAnswers = 0;
+                        var exists = false;
+                        var paramValue = '';
 
                         if (globalParams) {
                             $("#modalContent").removeClass('d-none');
@@ -59,8 +61,15 @@ $(document).ready(function () {
                                                   </div>");
 
                                 // Check if this is a global parameters
-                                if (globalParams.parameters[data.textParameters[i].replace('Global.', '')]) {
-                                    container.append("<div class='form-group col-6'> " + globalParams.parameters[data.textParameters[i].replace('Global.', '')] + " \
+                                globalParams.parameters.forEach(function (item) {
+                                    if (item.key === data.textParameters[i].replace('Global.', '')) {
+                                        exists = true;
+                                        paramValue = item.value;
+                                        return;
+                                    }
+                                });
+                                if (exists) {
+                                    container.append("<div class='form-group col-6'> " + paramValue + " \
                                                     </div>");
                                 }
                                 else {
@@ -73,7 +82,10 @@ $(document).ready(function () {
                                         numOfEmptyInputsText += 1;
                                     }
                                 }
+                                exists = false;
+                                paramValue = '';
                             }
+
 
                             if (numOfEmptyInputsText > 0)
                                 $("#requiredInputsText").text(numOfEmptyInputsText);
@@ -109,8 +121,15 @@ $(document).ready(function () {
                                                  </div>";
 
                                     // Check if this is a global parameters
-                                    if (globalParams.parameters[data.uris[i].uriParameters[j].replace('Global.', '')]) {
-                                        toAppend += "<div class='form-group col-6'> " + globalParams.parameters[data.uris[i].uriParameters[j].replace('Global.', '')] + " \
+                                    globalParams.parameters.forEach(function (item) {
+                                        if (item.key === data.uris[i].uriParameters[j].replace('Global.', '')) {
+                                            exists = true;
+                                            paramValue = item.value;
+                                            return;
+                                        }
+                                    });
+                                    if (exists) {
+                                        toAppend += "<div class='form-group col-6'> " + paramValue + " \
                                                      </div>";
                                     }
                                     else {
@@ -124,7 +143,8 @@ $(document).ready(function () {
                                         }
                                     }
 
-
+                                    exists = false;
+                                    paramValue = '';
                                 }
                                 toAppend += "       </div> \
                                                 </div>";
@@ -150,9 +170,6 @@ $(document).ready(function () {
                                                 <div class='custom-radio'> \
                                                     <label class='pr-4'> \
                                                         <input type='radio' name='QuestionToAdd.Answers[" + i + "].ResponseType' id='QuestionToAdd_Answers_" + i + "__ResponseType' value='BODY' id='respBODY' autocomplete='off' checked> Body \
-                                                    </label> \
-                                                    <label> \
-                                                        <input type='radio' name='QuestionToAdd.Answers[" + i + "].ResponseType' id='QuestionToAdd_Answers_" + i + "__ResponseType' value='HEAD' id='respHEAD' autocomplete='off' > Headers \
                                                     </label> \
                                                 </div> \
                                             </div> \
@@ -499,7 +516,7 @@ var populateModal = function (selectedQuestionId, tournamentId, readOnly = false
                             }
                             else {
                                 if (data.uris[i].uriParameters[j].key.startsWith('Profile.'))
-                                    toAppend += "<div class='form-group col-6'>Will be filled from profile data</div>";
+                                    toAppend += "<div class='form-group col-6'>Will be filled from 1 data</div>";
                                 else
                                     toAppend += "<div class='form-group col-6'> \
                                                             <input class='form-control' name='QuestionToAdd.Uris[" + i + "].UriParameters[" + j + "].Value' id='QuestionToAdd_Uris_" + i + "__UriParameters_" + j + "__Value' required /> \
@@ -543,9 +560,6 @@ var populateModal = function (selectedQuestionId, tournamentId, readOnly = false
                                         <div class='custom-radio'> \
                                             <label class='pr-4'> \
                                                 <input type='radio' name='QuestionToAdd.Answers[" + i + "].ResponseType' id='QuestionToAdd_Answers_" + i + "__ResponseType' value='BODY' id='respBODY' autocomplete='off' " + (data.answers[i].responseType === "BODY" ? "checked" : "") + " " + (readOnly ? "disabled" : "") + "> Body \
-                                            </label> \
-                                            <label> \
-                                                <input type='radio' name='QuestionToAdd.Answers[" + i + "].ResponseType' id='QuestionToAdd_Answers_" + i + "__ResponseType' value='HEAD' id='respHEAD' autocomplete='off' " + (data.answers[i].responseType === "HEAD" ? "checked" : "") + " " + (readOnly ? "disabled" : "") + "> Headers \
                                             </label> \
                                         </div> \
                                     </div> \

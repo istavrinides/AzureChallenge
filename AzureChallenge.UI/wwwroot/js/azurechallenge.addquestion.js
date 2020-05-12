@@ -1,6 +1,8 @@
 ﻿$(document).ready(function () {
 
     var answerIndexer = 0;
+    var profileParams = ["Profile.UserNameHashed", "Profile.SubscriptionId", "Profile.TenantId"];
+    $('[data-toggle="tooltip"]').tooltip();
 
     $("#Text").on('input', function () {
         var foundParameters = $(this).val().match(/\{([^}]+)\}/g);
@@ -9,6 +11,7 @@
             return;
 
         var container = $("#textParamsInputGroup");
+        var addedParameters = [];
 
         // If the regex found parameters
         if (foundParameters) {
@@ -21,11 +24,26 @@
 
                 item = item.slice(1, -1);
 
-                container.append("<input type='hidden' name='TextParameters[" + index + "]' id='TextParameters_" + index + "_' value='" + item + "' />");
-                container.append("<span class='btn btn-info m-1'>" + item + "</span>");
+                // If we haven't already added it
+                if (!addedParameters.includes(item)) {
+                    addedParameters.push(item);
 
-                index += 1;
+                    if (item.startsWith('Profile.')) {
+                        if (!profileParams.includes(item)) {
+                            container.append("<span class='btn btn-danger m-1' data-toggle='tooltip' data-placement='top' title='The profile parameter " + item + " is not a valid Profile parameter and will not be included - please correct. Available values: " + profileParams.join() + "'>" + item + "</span>");
+                        }
+                        else {
+                            container.append("<input type='hidden' name='TextParameters[" + index + "]' id='TextParameters_" + index + "_' value='" + item + "' />");
+                            container.append("<span class='btn btn-info m-1'>" + item + "</span>");
+                        }
+                    }
+                    else {
+                        container.append("<input type='hidden' name='TextParameters[" + index + "]' id='TextParameters_" + index + "_' value='" + item + "' />");
+                        container.append("<span class='btn btn-info m-1'>" + item + "</span>");
+                    }
 
+                    index += 1;
+                }
 
             });
         }
@@ -43,6 +61,7 @@
         var itemId = $(this).attr('id');
         var itemIndex = parseInt($(this).data('index'));
         var container = $("#" + itemId + "_params");
+        var addedParameters = [];
 
         // If the regex found parameters
         if (uriParameters) {
@@ -55,10 +74,26 @@
 
                 item = item.slice(1, -1);
 
-                container.append("<input type='hidden' name='Uris[" + itemIndex + "].UriParameters[" + index + "]' id='Uris_" + itemIndex + "__UriParameters_" + index + "_' data-index='" + index + "' value='" + item + "' />");
-                container.append("<span class='btn btn-info m-1'>" + item + "</span>");
+                // If we haven't already added it
+                if (!addedParameters.includes(item)) {
+                    addedParameters.push(item);
 
-                index += 1;
+                    if (item.startsWith('Profile.')) {
+                        if (!profileParams.includes(item)) {
+                            container.append("<span class='btn btn-danger m-1' data-toggle='tooltip' data-placement='top' title='The profile parameter " + item + " is not a valid Profile parameter and will not be included - please correct. Available values: " + profileParams.join() + "'>" + item + "</span>");
+                        }
+                        else {
+                            container.append("<input type='hidden' name='Uris[" + itemIndex + "].UriParameters[" + index + "]' id='Uris_" + itemIndex + "__UriParameters_" + index + "_' data-index='" + index + "' value='" + item + "' />");
+                            container.append("<span class='btn btn-info m-1'>" + item + "</span>");
+                        }
+                    }
+                    else {
+                        container.append("<input type='hidden' name='Uris[" + itemIndex + "].UriParameters[" + index + "]' id='Uris_" + itemIndex + "__UriParameters_" + index + "_' data-index='" + index + "' value='" + item + "' />");
+                        container.append("<span class='btn btn-info m-1'>" + item + "</span>");
+                    }
+
+                    index += 1;
+                }
             });
         }
         else {
@@ -149,7 +184,6 @@
                 <div class='input-group mb-3'> \
                     <select class='selectpicker' name='Uris["+ lastIndex + "].CallType' id='Uris_" + lastIndex + "__CallType'> \
                         <option selected>GET</option> \
-                        <option>HEAD</option> \
                     </select > \
                     <input name='Uris["+ lastIndex + "].Uri' id='Uris_" + lastIndex + "__Uri' data-index='" + lastIndex + "' class='form-control uriinput' /> \
                 </div > \
