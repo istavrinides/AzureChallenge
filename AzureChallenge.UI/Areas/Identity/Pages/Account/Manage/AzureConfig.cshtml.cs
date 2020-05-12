@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using AzureChallenge.Interfaces.Providers.REST;
 using AzureChallenge.UI.Areas.Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Newtonsoft.Json.Linq;
 
 namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
 {
@@ -16,15 +18,21 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
         private readonly UserManager<AzureChallengeUIUser> _userManager;
         private readonly SignInManager<AzureChallengeUIUser> _signInManager;
         private readonly IRESTProvider restProvider;
+        private readonly IAzureAuthProvider azureAuthProvider;
+        private readonly IMapper mapper;
 
         public AzureConfigModel(
             UserManager<AzureChallengeUIUser> userManager,
             SignInManager<AzureChallengeUIUser> signInManager,
-            IRESTProvider restProvider)
+            IRESTProvider restProvider,
+            IAzureAuthProvider azureAuthProvider,
+            IMapper mapper)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             this.restProvider = restProvider;
+            this.azureAuthProvider = azureAuthProvider;
+            this.mapper = mapper;
         }
 
         [BindProperty]
@@ -105,7 +113,15 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
             user.ClientSecret = Input.ClientSecret;
             user.TenantId = Input.TenantId;
 
-            // Test the credentials. We should get 
+            // Test the credentials. We should get the subscription name
+            var profile = mapper.Map<AzureChallenge.Models.Profile.UserProfile>(user);
+            var token = await azureAuthProvider.AuthorizeAsync(profile.GetSecretsForAuth());
+            var result = await restProvider.GetAsync($"https://management.azure.com/subscriptions/{user.SubscriptionId}?api-version=2020-01-01", token);
+
+            JObject o = JObject.Parse(result);
+            string subscriptionName = (string)o.SelectToken("displayName");
+
+            user.SubscriptionName = subscriptionName;
 
             await _userManager.UpdateAsync(user);
             await _signInManager.RefreshSignInAsync(user);

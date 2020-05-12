@@ -6,51 +6,86 @@
 <h1>@ViewData["Title"]</h1>
 <hr />
 
-<div class="container">
-    <table class="table table-responsive-md table-hover">
-        <thead class="thead-dark">
-            <tr>
-                <th style="width:16.67%">
-                    @Html.DisplayNameFor(model => model[0].Name)
-                </th>
-                <th style="width:58.34%">
-                    @Html.DisplayNameFor(model => model[0].Description)
-                </th>
-                <th style="width:8.33%"></th>
-                <th style="width:8.33%"></th>
-                <th style="width:8.33%"></th>
-            </tr>
-        </thead>
-        <tfoot>
-            <tr>
-                <td colspan="5">
-                    <a asp-action="AddNew" class="float-right">
-                        <button type="button" class="btn btn-info">Add new</button>
-                    </a>
-                </td>
-            </tr>
-        </tfoot>
-        <tbody>
-            @foreach (var q in Model)
-            {
+<form>
+    <div class="container">
+        <table class="table table-responsive-md table-hover">
+            <thead class="thead-dark">
                 <tr>
-                    <td>
-                        @q.Name
-                    </td>
-                    <td>
-                        @q.Description
-                    </td>
-                    <td>
-                        <a asp-action="Index" asp-controller="Parameter" asp-area="Administration" asp-route-tournamentId="@q.Id">Parameters</a>
-                    </td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@q.Id">Details</a>
-                    </td>
-                    <td>
-                        <a asp-action="Edit" asp-controller="Tournament" asp-area="Administration" asp-route-tournamentId="@q.Id">Edit</a>
+                    <th style="width:16.67%">
+                        @Html.DisplayNameFor(model => model[0].Name)
+                    </th>
+                    <th style="width:58.34%">
+                        @Html.DisplayNameFor(model => model[0].Description)
+                    </th>
+                    <th style="width:8.33%"></th>
+                    <th style="width:8.33%"></th>
+                    <th style="width:8.33%"></th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <td colspan="5">
+                        <button type="button" id="btnAddNew" class="btn btn-info float-right">Add new</button>
                     </td>
                 </tr>
-            }
-        </tbody>
-    </table>
-</div>
+            </tfoot>
+            <tbody>
+                @foreach (var q in Model)
+                {
+                    <tr>
+                        <td>
+                            @q.Name
+                        </td>
+                        <td>
+                            @q.Description
+                        </td>
+                        <td>
+                            <a asp-action="Index" asp-controller="Parameter" asp-area="Administration" asp-route-tournamentId="@q.Id">Parameters</a>
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@q.Id">Details</a>
+                        </td>
+                        <td>
+                            <a asp-action="Edit" asp-controller="Tournament" asp-area="Administration" asp-route-tournamentId="@q.Id">Edit</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal" id="addNewModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add new tournament</h5>
+                </div>
+                <div class="modal-body">
+                    <div id="checkModalWaiting" class="text-center">
+                        <div class="row text-left">
+                            <div class="col-md-6">
+                                <label asp-for="@Model[0].Name"></label>
+                                <input name="Name" id="Name" required data-val="true" data-val-required="The Name field is required." class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="@Model[0].Description"></label>
+                                <input name="Description" id="Description" required data-val="true" data-val-required="The Description field is required." class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" id="btnModalAdd" class="btn btn-primary">Add</button>
+                    <button type="button" id="btnModalClose" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts
+{
+    <script src="~/js/azurechallenge.indextournament.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+
+}

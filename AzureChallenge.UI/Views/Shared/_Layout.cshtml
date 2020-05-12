@@ -1,9 +1,14 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using AzureChallenge.UI.Areas.Identity.Data;
+@inject SignInManager<AzureChallengeUIUser> SignInManager
+@inject UserManager<AzureChallengeUIUser> UserManager
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - AzureChallenge.UI</title>
+    <title>@ViewData["Title"] - Azure Challenge</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     @RenderSection("Styles", false)
@@ -12,7 +17,7 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">AzureChallenge.UI</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Azure Challenge</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -26,9 +31,21 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="Administration" asp-controller="Question" asp-action="AddNew">Add question</a>
-                        </li>
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            if (User.IsInRole("Administrator"))
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Administration
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                        <a class="nav-link text-dark" asp-area="Administration" asp-controller="Tournament" asp-action="Index">Tournaments</a>
+                                        <a class="nav-link text-dark" asp-area="Administration" asp-controller="Question" asp-action="Index">Question Templates</a>
+                                    </div>
+                                </li>
+                            }
+                        }
                     </ul>
                 </div>
             </div>
@@ -36,13 +53,32 @@
     </header>
     <div class="container">
         <main role="main" class="pb-3">
+            @if (SignInManager.IsSignedIn(User))
+            {
+                var user = await UserManager.GetUserAsync(User);
+                if (string.IsNullOrWhiteSpace(user.SubscriptionId))
+                {
+                    <div id="saveAlert" class="alert alert-warning text-center" role="alert">
+                        You have not setup your Azure Subscription details. Please click <a asp-area="Identity" asp-page="/Account/Manage/AzureConfig">here</a> to configure.
+                        <br />
+                        @if (User.IsInRole("Administrator"))
+                        {
+                            <span>If you do not do so, you cannot validate any questions or participate in any Tournament</span>
+                        }
+                        else
+                        {
+                            <span>If you do not do so, you cannot participate in any Tournament</span>
+                        }
+                    </div>
+                }
+            }
             @RenderBody()
         </main>
     </div>
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2020 - Cosmic Challenge - Created by Ioannis Stavrinides as a tool for learning Cosmos Db using a challenge approach - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2020 - Cosmic Challenge - Created by Ioannis Stavrinides as a tool for learning Azure using a challenge approach - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

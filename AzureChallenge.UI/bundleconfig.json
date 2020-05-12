@@ -17,9 +17,31 @@
 		"sourceMap": false
 	},
 	{
-		"outputFileName": "wwwroot/js/azurechallenge.scripts.min.js",
+		"outputFileName": "wwwroot/js/azurechallenge.addquestion.min.js",
 		"inputFiles": [
-			"wwwroot/js/azurechallenge.scripts.js"
+			"wwwroot/js/azurechallenge.addquestion.js"
+		],
+		"minify": {
+			"enabled": true,
+			"renameLocals": true
+		},
+		"sourceMap": false
+	},
+	{
+		"outputFileName": "wwwroot/js/azurechallenge.edittournament.min.js",
+		"inputFiles": [
+			"wwwroot/js/azurechallenge.edittournament.js"
+		],
+		"minify": {
+			"enabled": true,
+			"renameLocals": true
+		},
+		"sourceMap": false
+	},
+	{
+		"outputFileName": "wwwroot/js/azurechallenge.parameterlist.min.js",
+		"inputFiles": [
+			"wwwroot/js/azurechallenge.parameterlist.js"
 		],
 		"minify": {
 			"enabled": true,

@@ -10,11 +10,12 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Tournaments
     {
         public string TournamentId { get; set; }
         public List<ParameterItem> ParameterList { get; set; }
-    }
 
-    public class ParameterItem
-    {
-        public string Name { get; set; }
-        public string Value { get; set; }
+        public class ParameterItem
+        {
+            public string Name { get; set; }
+            public string Value { get; set; }
+            public int AssignedToQuestion { get; set; }
+        }
     }
 }

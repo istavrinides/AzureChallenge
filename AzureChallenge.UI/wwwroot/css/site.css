@@ -123,3 +123,7 @@ body {
 .svg-filter-danger {
     filter: invert(18%) sepia(88%) saturate(7402%) hue-rotate(358deg) brightness(109%) contrast(116%);
 }
+
+.popover-body {
+    color: red !important; 
+}
