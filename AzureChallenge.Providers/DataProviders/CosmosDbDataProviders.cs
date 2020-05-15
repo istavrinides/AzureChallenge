@@ -243,13 +243,141 @@ namespace AzureChallenge.Providers.DataProviders
         }
     }
 
-    public class CosmosDbParameterDataProvider : IDataProvider<AzureChallengeResult, GlobalParameters>
+    public class CosmosDbParameterDataProvider : IDataProvider<AzureChallengeResult, GlobalTournamentParameters>
     {
         private CosmosClient client;
         private readonly string databaseId;
         private readonly string containerId;
 
         public CosmosDbParameterDataProvider(CosmosClient client, string databaseId, string containerId)
+        {
+            this.client = client;
+            this.databaseId = databaseId;
+            this.containerId = containerId;
+        }
+
+        public Task<(AzureChallengeResult, IEnumerable<GlobalTournamentParameters>)> GetItemsAsync(string query)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<(AzureChallengeResult, IList<GlobalTournamentParameters>)> GetAllItemsAsync(string type)
+        {
+            var database = client.GetDatabase(databaseId);
+            var container = database.GetContainer(containerId);
+            var result = new AzureChallengeResult();
+            QueryDefinition query = new QueryDefinition(
+                "SELECT * FROM Tournaments t WHERE t.type = @Type")
+                .WithParameter("@Type", type);
+
+            FeedIterator<GlobalTournamentParameters> resultSet = container.GetItemQueryIterator<GlobalTournamentParameters>(
+                query,
+                requestOptions: new QueryRequestOptions()
+                {
+                    PartitionKey = new PartitionKey(type),
+                    MaxItemCount = 10
+                });
+
+            List<GlobalTournamentParameters> allQuestions = new List<GlobalTournamentParameters>();
+            try
+            {
+                while (resultSet.HasMoreResults)
+                {
+                    FeedResponse<GlobalTournamentParameters> response = await resultSet.ReadNextAsync();
+
+                    foreach (var r in response)
+                    {
+                        allQuestions.Add(r);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = "Error while calling Cosmos Db";
+            }
+
+            result.Success = true;
+
+            return (result, allQuestions);
+        }
+
+        public async Task<(AzureChallengeResult, GlobalTournamentParameters)> GetItemAsync(string id, string type)
+        {
+            var database = client.GetDatabase(databaseId);
+            var container = database.GetContainer(containerId);
+            var result = new AzureChallengeResult();
+            GlobalTournamentParameters doc = null;
+
+            try
+            {
+                ItemResponse<GlobalTournamentParameters> response = await container.ReadItemAsync<GlobalTournamentParameters>(id, new PartitionKey(type));
+
+                doc = response.Resource;
+                result.Success = true;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                result.Success = false;
+                result.Message = $"Failed to get question. No such document with id {id} found.";
+            }
+
+            return (result, doc);
+        }
+
+        public async Task<AzureChallengeResult> AddItemAsync(GlobalTournamentParameters item)
+        {
+            var retVal = new AzureChallengeResult();
+            var database = client.GetDatabase(databaseId);
+            var container = database.GetContainer(containerId);
+
+            try
+            {
+                await container.UpsertItemAsync<GlobalTournamentParameters>(item, new PartitionKey(item.Type));
+                retVal.Success = true;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                retVal.Success = false;
+                retVal.Message = "Failed to insert question into database. A document with the same Id already exists";
+            }
+
+            return retVal;
+        }
+
+        public async Task<AzureChallengeResult> UpdateItemAsync(string id, GlobalTournamentParameters item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<AzureChallengeResult> DeleteItemAsync(string id, string type)
+        {
+            var retVal = new AzureChallengeResult();
+            var database = client.GetDatabase(databaseId);
+            var container = database.GetContainer(containerId);
+
+            try
+            {
+                ItemResponse<GlobalTournamentParameters> response = await container.DeleteItemAsync<GlobalTournamentParameters>(id: id, partitionKey: new PartitionKey(type));
+                retVal.Success = response.StatusCode == HttpStatusCode.NoContent;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                retVal.Success = false;
+                retVal.Message = "Failed to insert question into database. A document with the same Id already exists";
+            }
+
+            return retVal;
+        }
+    }
+
+    public class CosmosDbGlobalParameterDataProvider : IDataProvider<AzureChallengeResult, GlobalParameters>
+    {
+        private CosmosClient client;
+        private readonly string databaseId;
+        private readonly string containerId;
+
+        public CosmosDbGlobalParameterDataProvider(CosmosClient client, string databaseId, string containerId)
         {
             this.client = client;
             this.databaseId = databaseId;
@@ -267,7 +395,7 @@ namespace AzureChallenge.Providers.DataProviders
             var container = database.GetContainer(containerId);
             var result = new AzureChallengeResult();
             QueryDefinition query = new QueryDefinition(
-                "SELECT * FROM Tournaments t WHERE q.type = @Type")
+                "SELECT * FROM Tournaments t WHERE t.type = @Type")
                 .WithParameter("@Type", type);
 
             FeedIterator<GlobalParameters> resultSet = container.GetItemQueryIterator<GlobalParameters>(
@@ -462,7 +590,7 @@ namespace AzureChallenge.Providers.DataProviders
 
             try
             {
-                await container.CreateItemAsync<AssignedQuestion>(item, new PartitionKey(item.Type));
+                await container.UpsertItemAsync<AssignedQuestion>(item, new PartitionKey(item.Type));
                 retVal.Success = true;
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)

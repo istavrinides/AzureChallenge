@@ -8,6 +8,7 @@
 @section Styles{
     <link href="~/lib/bootstrap-slider/css/bootstrap-slider.css" rel="stylesheet" type="text/css" />
     <link href="~/lib/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" type="text/css" />
+    <link href="~/lib/tributejs/tribute.css" rel="stylesheet" />
     <style>
         .form-border {
             padding: 1rem;
@@ -21,6 +22,13 @@
 
 <form asp-controller="Question" asp-area="Administration" asp-action="AddNew" method="post">
     @Html.AntiForgeryToken()
+
+    <datalist id="paramDataList">
+        @foreach (var p in Model.AvailableParameters)
+        {
+            <option>@p</option>
+        }
+    </datalist>
 
     <div class="form-group">
         <label asp-for="@Model.Name"></label>
@@ -61,9 +69,10 @@
     <div id="textParamsGroup" class="form-border form-group">
         <div class="form-group">
             <label asp-for="@Model.Text"></label>
-            <textarea asp-for="@Model.Text" class="form-control" id="Text" rows="4"></textarea>
-            <small class="form-text text-muted">Please enter the question text. Placeholders that will be replaced from below parameters should be wrapped inside curly braces {}.</small>
-            <small class="form-text text-muted">Since each tournament has Global Parameters, please prepend your parameter with a Global. prefix to get the global values set on the tournament level.</small>
+            <textarea asp-for="@Model.Text" class="form-control autocomplete" id="Text" rows="4"></textarea>
+            <small class="form-text text-muted">Please enter the question text. Placeholders should be wrapped in curly braces {} and will appear in the Discovered Parameters section below.</small>
+            <small class="form-text text-muted">Since each tournament has Global Parameters, please prepend your common parameters with a Global. prefix to get the global values set on the tournament level.</small>
+            <small class="form-text text-muted">For personalization, some parameters from the user profile are available (Profile.UserNameHased - used for unique identifier, Profile.SubscriptionId and Profile.TenantId).</small>
         </div>
         <div class="form-group">
             <div class="col-md-12 pl-0">
@@ -74,6 +83,42 @@
                 {
                     <input type="hidden" asp-for="@Model.TextParameters[i]" />
                     <span class="btn btn-info m-1">@Model.TextParameters[i]</span>
+                }
+            </div>
+        </div>
+    </div>
+    <div id="justficationGroup" class="form-border form-group">
+        <div class="form-group">
+            <div class="col pl-0 pr-0">
+                <label asp-for="@Model.Justification"></label>
+            </div>
+            <div class="col pl-0 pr-0">
+                <textarea asp-for="@Model.Justification" class="form-control" rows="2"></textarea>
+            </div>
+        </div>
+    </div>
+    <div id="justficationGroup" class="form-border form-group">
+        <div class="form-group">
+            <div class="col pl-0 pr-0">
+                <div class="form-group row">
+                    <div class="col-md-11">
+                        <label asp-for="@Model.UsefulLinks"></label>
+                        <input class="form-control" id="inputNewLink" data-toggle="popover" data-content="A value is required" data-placement="bottom" data-trigger="focus" data-val="true" />
+                    </div>
+                    <div class="col-md-1">
+                        <label>&nbsp;</label>
+                        <button type="button" id="addLink" class="btn btn-info">Add</button>
+                    </div>
+                </div>
+            </div>
+            <div id="linksInputGroup" class="row col-md-12">
+                @for (int i = 0; i < Model.UsefulLinks.Count; i++)
+                {
+                    <input type='hidden' asp-for="@Model.UsefulLinks[i]" data-index="@i" />
+                    <span class='border border-info rounded p-1 bg-info' data-index='@i'>
+                        <a href='@Model.UsefulLinks[i]' style='color:#fff !important'>@Model.UsefulLinks[i]</a>&nbsp;
+                        <span class='badge badge-danger deleteLink' style='cursor:pointer' data-index='@i'>&times</span>
+                    </span>
                 }
             </div>
         </div>
@@ -157,8 +202,9 @@
 
 @section Scripts
 {
-    <script src="~/js/azurechallenge.addquestion.js" asp-append-version="true"></script>
     <script src="~/lib/bootstrap-slider/bootstrap-slider.js"></script>
     <script src="~/lib/bootstrap-select/js/bootstrap-select.js"></script>
+    <script src="~/lib/tributejs/tribute.js"></script>
+    <script src="~/js/azurechallenge.addquestion.js" asp-append-version="true"></script>
     <partial name="_ValidationScriptsPartial" />
 }

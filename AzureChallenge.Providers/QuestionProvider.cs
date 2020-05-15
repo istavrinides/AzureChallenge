@@ -29,7 +29,6 @@ namespace AzureChallenge.Providers
 
         public async Task<AzureChallengeResult> AddItemAsync(Question item)
         {
-            item.Id = Guid.NewGuid().ToString();
             return await dataProvider.AddItemAsync(item);
         }
     }

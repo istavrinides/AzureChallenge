@@ -34,6 +34,14 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Questions
         [Display(Name = "Uri endpoints to call")]
         public List<UriList> Uris { get; set; }
 
+        public List<string> GlobalParameters { get; set; }
+        
+        [Display(Name="Justification - Show after successful completion of question")]
+        public string Justification { get; set; }
+
+        [Display(Name="Useful Links")]
+        public List<string> UsefulLinks { get; set; }
+
         public class UriList
         {
             public int Id { get; set; }
@@ -45,5 +53,7 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Questions
 
             public List<string> UriParameters { get; set; }
         }
+
+        public List<string> AvailableParameters { get; set; }
     }
 }

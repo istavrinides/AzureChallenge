@@ -6,6 +6,7 @@ using AutoMapper;
 using AzureChallenge.Interfaces.Providers.Data;
 using ACM = AzureChallenge.Models;
 using ACMQ = AzureChallenge.Models.Questions;
+using ACMP = AzureChallenge.Models.Parameters;
 using AzureChallenge.UI.Areas.Administration.Models.Questions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -22,6 +23,10 @@ using Newtonsoft.Json.Linq;
 using AzureChallenge.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Runtime.InteropServices.WindowsRuntime;
+using AzureChallenge.Interfaces.Providers.Parameters;
+using Microsoft.Azure.Cosmos.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using SmartFormat.Utilities;
 
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
@@ -30,15 +35,17 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
     public class QuestionController : Controller
     {
         private IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider;
+        private IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalParameters> globalParameterProvider;
         private IMapper mapper;
         private IConfiguration configuration;
 
-        public QuestionController(IQuestionProvider<ACM.AzureChallengeResult,
-                                    ACMQ.Question> questionProvider,
+        public QuestionController(IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider,
+                                    IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalParameters> globalParameterProvider,
                                     IMapper mapper,
                                     IConfiguration configuration)
         {
             this.questionProvider = questionProvider;
+            this.globalParameterProvider = globalParameterProvider;
             this.mapper = mapper;
             this.configuration = configuration;
         }
@@ -109,7 +116,9 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     TargettedAzureService = question.TargettedAzureService,
                     Text = question.Text,
                     TextParameters = question.TextParameters,
-                    Uris = uriParams
+                    Uris = uriParams,
+                    Justification = question.Justification,
+                    UsefulLinks = question.UsefulLinks ?? new List<string>()
                 };
 
 
@@ -175,14 +184,79 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Text = question.Text,
                     TextParameters = question.TextParameters,
                     Uris = uriParams,
-                    AzureServicesList = azureServiceList
+                    AzureServicesList = azureServiceList,
+                    AvailableParameters = new List<string>(),
+                    Justification = question.Justification,
+                    UsefulLinks = question.UsefulLinks ?? new List<string>()
                 };
+
+                // Get the list of global parameters (if exist)
+                var globalParams = await globalParameterProvider.GetAllItemsAsync();
+
+                if (globalParams.Item1.Success)
+                {
+                    if (globalParams.Item2.Count > 0)
+                    {
+                        // There is only one
+                        model.AvailableParameters.AddRange(globalParams.Item2[0].Parameters);
+                    }
+                }
 
 
                 return View(model);
             }
 
             return NotFound();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Route("Administration/Questions/{id}/Edit")]
+        public async Task<IActionResult> Edit(string id, AddNewQuestionViewModel model)
+        {
+            var client = new HttpClient();
+            var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
+            var azureServiceList = new List<string>();
+
+            if (response != null)
+            {
+                var serviceListStr = await response.Content.ReadAsStringAsync();
+                var serviceList = JsonConvert.DeserializeObject<List<AzureServiceClass>>(serviceListStr);
+                var azureServices = serviceList.Where(p => p.name == "Azure").FirstOrDefault();
+
+                if (azureServices != null)
+                {
+                    foreach (var service in azureServices.services)
+                    {
+                        azureServiceList.Add(service.name);
+                    }
+                }
+            }
+            model.AzureServicesList = azureServiceList;
+            model.AvailableParameters = new List<string>();
+
+            // Get the list of global parameters (if exist)
+            var globalParams = await globalParameterProvider.GetAllItemsAsync();
+
+            if (globalParams.Item1.Success)
+            {
+                if (globalParams.Item2.Count > 0)
+                {
+                    // There is only one
+                    model.AvailableParameters.AddRange(globalParams.Item2[0].Parameters);
+                }
+            }
+
+            if (ModelState.IsValid)
+            {
+                var success = await AddUpdateQuestionAsync(model);
+
+                if (success)
+                    return RedirectToAction("Index");
+
+            }
+
+            return View(model);
         }
 
         [HttpGet]
@@ -214,8 +288,22 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 AzureServicesList = azureServiceList,
                 Difficulty = 1,
                 TextParameters = new List<string>(),
-                Uris = new List<AddNewQuestionViewModel.UriList>()
+                Uris = new List<AddNewQuestionViewModel.UriList>(),
+                AvailableParameters = new List<string>(),
+                UsefulLinks = new List<string>()
             };
+
+            // Get the list of global parameters (if exist)
+            var globalParams = await globalParameterProvider.GetAllItemsAsync();
+
+            if (globalParams.Item1.Success)
+            {
+                if (globalParams.Item2.Count > 0)
+                {
+                    // There is only one
+                    model.AvailableParameters.AddRange(globalParams.Item2[0].Parameters);
+                }
+            }
 
             return View(model);
         }
@@ -244,40 +332,26 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 }
             }
             model.AzureServicesList = azureServiceList;
+            model.AvailableParameters = new List<string>();
+
+            // Get the list of global parameters (if exist)
+            var globalParams = await globalParameterProvider.GetAllItemsAsync();
+
+            if (globalParams.Item1.Success)
+            {
+                if (globalParams.Item2.Count > 0)
+                {
+                    // There is only one
+                    model.AvailableParameters.AddRange(globalParams.Item2[0].Parameters);
+                }
+            }
 
             if (ModelState.IsValid)
             {
-                var uriList = new List<ACMQ.Question.UriList>();
+                var success = await AddUpdateQuestionAsync(model);
 
-                foreach (var u in model.Uris)
-                {
-                    uriList.Add(new ACMQ.Question.UriList
-                    {
-                        CallType = u.CallType,
-                        Id = u.Id,
-                        Uri = u.Uri,
-                        UriParameters = u.UriParameters
-                    });
-                }
-
-                var mapped = new ACMQ.Question()
-                {
-                    Description = model.Description,
-                    Difficulty = model.Difficulty,
-                    Id = model.Id,
-                    Name = model.Name,
-                    TargettedAzureService = model.TargettedAzureService,
-                    Text = model.Text,
-                    TextParameters = model.TextParameters,
-                    Uris = uriList
-                };
-
-                var responseAdd = await questionProvider.AddItemAsync(mapped);
-
-                if (responseAdd.Success)
-                {
+                if (success)
                     return RedirectToAction("Index");
-                }
 
             }
 
@@ -290,6 +364,93 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             var result = await questionProvider.GetItemAsync(id);
 
             return Ok(result.Item2);
+        }
+
+
+        private async Task<bool> AddUpdateQuestionAsync(AddNewQuestionViewModel model)
+        {
+            var client = new HttpClient();
+            var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
+            var azureServiceList = new List<string>();
+
+            if (response != null)
+            {
+                var serviceListStr = await response.Content.ReadAsStringAsync();
+                var serviceList = JsonConvert.DeserializeObject<List<AzureServiceClass>>(serviceListStr);
+                var azureServices = serviceList.Where(p => p.name == "Azure").FirstOrDefault();
+
+                if (azureServices != null)
+                {
+                    foreach (var service in azureServices.services)
+                    {
+                        azureServiceList.Add(service.name);
+                    }
+                }
+            }
+            model.AzureServicesList = azureServiceList;
+
+            var uriList = new List<ACMQ.Question.UriList>();
+            var paramList = new List<string>();
+
+            foreach (var u in model.Uris)
+            {
+                uriList.Add(new ACMQ.Question.UriList
+                {
+                    CallType = u.CallType,
+                    Id = u.Id,
+                    Uri = u.Uri,
+                    UriParameters = u.UriParameters
+                });
+
+                paramList.AddRange(u.UriParameters);
+            }
+
+            var mapped = new ACMQ.Question()
+            {
+                Description = model.Description,
+                Difficulty = model.Difficulty,
+                Id = model.Id,
+                Name = model.Name,
+                TargettedAzureService = model.TargettedAzureService,
+                Text = model.Text,
+                TextParameters = model.TextParameters,
+                Uris = uriList,
+                Justification = model.Justification,
+                UsefulLinks = model.UsefulLinks
+            };
+
+            paramList.AddRange(model.TextParameters);
+
+            // Get the global parameter list
+            var globalParamsExisting = await globalParameterProvider.GetAllItemsAsync();
+            var globalParamToAdd = new ACMP.GlobalParameters { Parameters = new List<string>() };
+
+            if (globalParamsExisting.Item1.Success)
+            {
+                // if not exists, create
+                if (globalParamsExisting.Item2.Count == 0)
+                {
+                    globalParamToAdd.Id = Guid.NewGuid().ToString();
+
+                    // Add everything we found
+                    globalParamToAdd.Parameters.AddRange(paramList.Where(p => p.StartsWith("Global.")).Distinct());
+                }
+                else
+                {
+                    // It's only one
+                    globalParamToAdd.Id = globalParamsExisting.Item2[0].Id;
+                    globalParamToAdd.Parameters.AddRange(globalParamsExisting.Item2[0].Parameters);
+
+                    // Add eveything we found that doesn't exist already
+                    globalParamToAdd.Parameters.AddRange(paramList.Where(p => p.StartsWith("Global.")).Distinct().Where(p => !globalParamToAdd.Parameters.Any(g => g == p)));
+                }
+
+                await globalParameterProvider.AddItemAsync(globalParamToAdd);
+            }
+
+            var responseAdd = await questionProvider.AddItemAsync(mapped);
+
+            return responseAdd.Success;
         }
     }
 }

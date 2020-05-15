@@ -73,6 +73,28 @@
         </div>
     </div>
 </div>
+<div id="justficationGroup" class="form-border form-group">
+    <div class="form-group">
+        <div class="col pl-0 pr-0">
+            <label asp-for="@Model.Justification"></label>
+        </div>
+        <div class="col pl-0 pr-0">
+            <textarea asp-for="@Model.Justification" class="form-control" rows="2"></textarea>
+        </div>
+    </div>
+</div>
+<div id="justficationGroup" class="form-border form-group">
+    <div class="form-group">
+        <div id="linksInputGroup" class="row col-md-12">
+            @for (int i = 0; i < Model.UsefulLinks.Count; i++)
+            {
+                <span class='border border-info rounded p-1 bg-info' data-index='@i'>
+                    <a href='@Model.UsefulLinks[i]' style='color:#fff !important'>@Model.UsefulLinks[i]</a>&nbsp;
+                </span>
+            }
+        </div>
+    </div>
+</div>
 <div id="uriParamsGroup" class="form-border form-group">
     <div class="form-group">
         <div class="col pl-0 pr-0">

@@ -35,6 +35,12 @@ namespace AzureChallenge.Models.Questions
         [JsonProperty(PropertyName = "urilist")]
         public List<UriList> Uris { get; set; }
 
+        [JsonProperty(PropertyName = "justification")]
+        public string Justification { get; set; }
+
+        [JsonProperty(PropertyName = "usefulLinks")]
+        public List<string> UsefulLinks { get; set; }
+
         public class UriList
         {
             [JsonProperty(PropertyName = "id")]
