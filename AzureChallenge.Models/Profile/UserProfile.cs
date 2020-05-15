@@ -30,7 +30,7 @@ namespace AzureChallenge.Models.Profile
             using (var md5Hasher = MD5.Create())
             {
                 var data = md5Hasher.ComputeHash(Encoding.Default.GetBytes(Email));
-                pairs.Add("Profile.UserNameHashed",BitConverter.ToString(data).Replace("-", "").Substring(0, 16));
+                pairs.Add("Profile_UserNameHashed", "a" + BitConverter.ToString(data).Replace("-", "").Substring(0, 16).ToLower());
             }
 
             return pairs;

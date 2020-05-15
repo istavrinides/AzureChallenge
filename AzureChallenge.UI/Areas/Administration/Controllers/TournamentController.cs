@@ -20,6 +20,7 @@ using AzureChallenge.UI.Areas.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Azure.Cosmos.Linq;
 
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
@@ -31,7 +32,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         private readonly ITournamentProvider<ACM.AzureChallengeResult, ACMT.TournamentDetails> tournamentProvider;
         private readonly IAssignedQuestionProvider<ACM.AzureChallengeResult, ACMQ.AssignedQuestion> assignedQuestionProvider;
         private readonly IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider;
-        private readonly IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalParameters> globalParameterProvider;
+        private readonly IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalTournamentParameters> globalParameterProvider;
         private readonly IMapper mapper;
         private readonly IConfiguration configuration;
         private readonly UserManager<AzureChallengeUIUser> userManager;
@@ -39,7 +40,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         public TournamentController(ITournamentProvider<ACM.AzureChallengeResult, ACMT.TournamentDetails> tournamentProvider,
                                     IAssignedQuestionProvider<ACM.AzureChallengeResult, ACMQ.AssignedQuestion> assignedQuestionProvider,
                                     IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider,
-                                    IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalParameters> globalParameterProvider,
+                                    IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalTournamentParameters> globalParameterProvider,
                                     IMapper mapper,
                                     IConfiguration configuration,
                                     UserManager<AzureChallengeUIUser> userManager)
@@ -73,6 +74,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             // Get the list of available questions
             var questions = await questionProvider.GetAllItemsAsync();
 
+            var userProfile = await userManager.GetUserAsync(User);
+
             var model = new VM.EditTournamentViewModel()
             {
                 Questions = new List<VM.Question>(),
@@ -89,7 +92,13 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                                 Name = p.Name,
                                                 NextQuestionId = p.NextQuestionId,
                                                 AssociatedQuestionId = p.AssociatedQuestionId
-                                            }).ToList()
+                                            }).ToList(),
+                CurrentUserProfile = new EditTournamentViewModel.UserProfile
+                {
+                    SubscriptionId = userProfile.SubscriptionId,
+                    TenantId = userProfile.TenantId,
+                    UserNameHashed = userProfile.UserNameHashed()
+                }
             };
 
             foreach (var q in questions.Item2)
@@ -115,13 +124,13 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Translate the view model to our backed model
+                // Translate the view model to our backend model
                 var assignedQuestion = new ACMQ.AssignedQuestion
                 {
                     Answers = inputModel.QuestionToAdd.Answers
                                         .Select(p => new ACMQ.AssignedQuestion.AnswerList
                                         {
-                                            AnswerParameters = p.AnswerParameters.ToDictionary(q => q.Key, q => q.Value),
+                                            AnswerParameters = p.AnswerParameters?.Select(a => new ACMQ.AssignedQuestion.AnswerParameterItem() { ErrorMessage = a.ErrorMessage, Key = a.Key, Value = a.Value }).ToList(),
                                             AssociatedQuestionId = p.AssociatedQuestionId,
                                             ResponseType = p.ResponseType
                                         }
@@ -130,7 +139,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Description = inputModel.QuestionToAdd.Description,
                     Difficulty = inputModel.QuestionToAdd.Difficulty,
                     Name = inputModel.QuestionToAdd.Name,
-                    QuestionId = Guid.NewGuid().ToString(),
+                    QuestionId = string.IsNullOrWhiteSpace(inputModel.QuestionToAdd.Id) ? Guid.NewGuid().ToString() : inputModel.QuestionToAdd.Id,
                     TargettedAzureService = inputModel.QuestionToAdd.TargettedAzureService,
                     Text = inputModel.QuestionToAdd.Text,
                     TextParameters = inputModel.QuestionToAdd.TextParameters.ToDictionary(p => p.Key, p => p.Value),
@@ -144,6 +153,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                         UriParameters = p.UriParameters.ToDictionary(q => q.Key, q => q.Value)
                                     }
                                     ).ToList(),
+                    Justification = inputModel.QuestionToAdd.Justification,
+                    UsefulLinks = inputModel.QuestionToAdd.UsefulLinks
                 };
 
                 List<ACMQ.QuestionLite> tournamentQuestions = null;
@@ -171,62 +182,78 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Questions = tournamentQuestions
                 };
 
-                // Create a new Tournament Question
-                var newTournamentQuestion = new ACMQ.QuestionLite
+                // Check if this is an update to an existing tournament question
+                if (tournament.Questions.Exists(p => p.Id == assignedQuestion.QuestionId))
                 {
-                    Name = assignedQuestion.Name,
-                    Description = assignedQuestion.Description,
-                    Difficulty = assignedQuestion.Difficulty,
-                    Id = assignedQuestion.QuestionId,
-                    AssociatedQuestionId = assignedQuestion.AssociatedQuestionId,
-                    Index = tournament.Questions.Count()
-                };
-                // Assign the next question value of the last question in the tournament to this one
-                if (tournament.Questions.Count > 0)
-                {
-                    tournament.Questions[tournament.Questions.Count - 1].NextQuestionId = assignedQuestion.QuestionId;
-                }
-                tournament.Questions.Add(newTournamentQuestion);
-
-                // Get the global parameters for the tournament
-                var globalParamsResponse = await globalParameterProvider.GetItemAsync(assignedQuestion.TournamentId);
-                var globalParams = globalParamsResponse.Item2;
-
-                // Check if the parameter is global and it exists in the global parameters list
-                // If yes, increment the count. If no, add it
-                foreach (var parameter in assignedQuestion.TextParameters.ToList())
-                {
-                    if (parameter.Key.StartsWith("Global."))
+                    // We only need to update the assigned question, not the tournament
+                    var updateQuestionResult = await assignedQuestionProvider.AddItemAsync(assignedQuestion);
+                    if (!updateQuestionResult.Success)
                     {
-                        var globalParameter = globalParams.Parameters.Where(p => p.Key == parameter.Key.Replace("Global.", "")).FirstOrDefault();
-
-                        if (globalParameter == null)
-                        {
-                            globalParams.Parameters.Add(new ACMP.GlobalParameters.ParameterDefinition
-                            {
-                                Key = parameter.Key.Replace("Global.", ""),
-                                Value = parameter.Value,
-                                AssignedToQuestion = 1
-                            });
-                        }
-                        else
-                        {
-                            globalParameter.AssignedToQuestion += 1;
-                        }
+                        return StatusCode(500);
                     }
                 }
-
-                await globalParameterProvider.AddItemAsync(globalParams);
-
-                var addQuestionResult = await assignedQuestionProvider.AddItemAsync(assignedQuestion);
-                if (addQuestionResult.Success)
+                else
                 {
-                    var updateTournamentResult = await tournamentProvider.AddItemAsync(tournament);
-
-                    if (!updateTournamentResult.Success)
+                    // Create a new Tournament Question
+                    var newTournamentQuestion = new ACMQ.QuestionLite
                     {
-                        await assignedQuestionProvider.DeleteItemAsync(assignedQuestion.QuestionId);
-                        return StatusCode(500);
+                        Name = assignedQuestion.Name,
+                        Description = assignedQuestion.Description,
+                        Difficulty = assignedQuestion.Difficulty,
+                        Id = assignedQuestion.QuestionId,
+                        AssociatedQuestionId = assignedQuestion.AssociatedQuestionId,
+                        Index = tournament.Questions.Count()
+                    };
+                    // Assign the next question value of the last question in the tournament to this one
+                    if (tournament.Questions.Count > 0)
+                    {
+                        tournament.Questions[tournament.Questions.Count - 1].NextQuestionId = assignedQuestion.QuestionId;
+                    }
+                    tournament.Questions.Add(newTournamentQuestion);
+
+                    // Get the global parameters for the tournament
+                    var globalParamsResponse = await globalParameterProvider.GetItemAsync(assignedQuestion.TournamentId);
+                    var globalParams = globalParamsResponse.Item2;
+
+                    // Check if the parameter is global and it exists in the global parameters list
+                    // If yes, increment the count. If no, add it
+                    foreach (var parameter in assignedQuestion.TextParameters.ToList())
+                    {
+                        if (parameter.Key.StartsWith("Global."))
+                        {
+                            var globalParameter = globalParams.Parameters?.Where(p => p.Key == parameter.Key.Replace("Global.", "")).FirstOrDefault();
+
+                            if (globalParameter == null)
+                            {
+                                if (globalParams.Parameters == null)
+                                    globalParams.Parameters = new List<ACMP.GlobalTournamentParameters.ParameterDefinition>();
+
+                                globalParams.Parameters.Add(new ACMP.GlobalTournamentParameters.ParameterDefinition
+                                {
+                                    Key = parameter.Key.Replace("Global.", ""),
+                                    Value = parameter.Value,
+                                    AssignedToQuestion = 1
+                                });
+                            }
+                            else
+                            {
+                                globalParameter.AssignedToQuestion += 1;
+                            }
+                        }
+                    }
+
+                    await globalParameterProvider.AddItemAsync(globalParams);
+
+                    var addQuestionResult = await assignedQuestionProvider.AddItemAsync(assignedQuestion);
+                    if (addQuestionResult.Success)
+                    {
+                        var updateTournamentResult = await tournamentProvider.AddItemAsync(tournament);
+
+                        if (!updateTournamentResult.Success)
+                        {
+                            await assignedQuestionProvider.DeleteItemAsync(assignedQuestion.QuestionId);
+                            return StatusCode(500);
+                        }
                     }
                 }
             }
@@ -249,7 +276,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Answers = result.Item2.Answers
                                         .Select(p => new VM.AssignedQuestion.AnswerList()
                                         {
-                                            AnswerParameters = p.AnswerParameters.Select(q => new VM.AssignedQuestion.KVPair() { Key = q.Key, Value = q.Value }).ToList(),
+                                            AnswerParameters = p.AnswerParameters == null ? new List<VM.AssignedQuestion.KVPair>() : p.AnswerParameters.Select(q => new VM.AssignedQuestion.KVPair() { Key = q.Key, Value = q.Value, ErrorMessage = q.ErrorMessage }).ToList(),
                                             AssociatedQuestionId = p.AssociatedQuestionId,
                                             ResponseType = p.ResponseType
                                         }).ToList(),
@@ -269,7 +296,9 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                  Id = p.Id,
                                  Uri = p.Uri,
                                  UriParameters = p.UriParameters.Select(q => new VM.AssignedQuestion.KVPair { Key = q.Key, Value = q.Value }).ToList()
-                             }).ToList()
+                             }).ToList(),
+                    Justification = result.Item2.Justification,
+                    UsefulLinks = result.Item2.UsefulLinks ?? new List<string>()
                 };
 
                 return Ok(question);
@@ -431,7 +460,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             if (response.Success)
             {
                 // Add a new global parameter object for the Tournament
-                await globalParameterProvider.AddItemAsync(new ACMP.GlobalParameters() { TournamentId = tournament.Id });
+                await globalParameterProvider.AddItemAsync(new ACMP.GlobalTournamentParameters() { TournamentId = tournament.Id });
                 return Ok();
             }
 

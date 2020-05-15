@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -27,6 +28,14 @@ namespace AzureChallenge.Providers.RESTProviders
                     Method = HttpMethod.Get,
                     RequestUri = new Uri(uri)
                 };
+
+                // All Cosmos Db calls expect the current UTC time in RFC1123 format and the API version in the header variables
+                if (uri.Contains("documents.azure.com"))
+                {
+                    request.Headers.Add("x-ms-date", DateTime.UtcNow.ToString("R"));
+                    request.Headers.Add("x-ms-version", "2018-12-31");
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationHeader);
+                }
 
                 var response = await httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();

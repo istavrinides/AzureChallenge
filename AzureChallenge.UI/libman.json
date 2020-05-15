@@ -2,41 +2,28 @@
   "version": "1.0",
   "defaultProvider": "cdnjs",
   "libraries": [
+
     {
       "library": "bootstrap-slider@10.6.2",
       "destination": "wwwroot/lib/bootstrap-slider/"
     },
     {
-      "library": "bootstrap-select@1.13.15",
+      "library": "bootstrap-select@1.13.17",
       "destination": "wwwroot/lib/bootstrap-select/"
     },
     {
-      "provider": "unpkg",
       "library": "jquery@3.3.1",
-      "destination": "wwwroot/lib/jquery/",
-      "files": [
-        "dist/jquery.js",
-        "dist/jquery.min.js",
-        "dist/jquery.min.map"
-      ]
+      "destination": "wwwroot/lib/jquery/"
     },
     {
-      "provider": "unpkg",
+      "provider": "jsdelivr",
       "library": "jquery-validation@1.18.0",
       "destination": "wwwroot/lib/jquery-validation/",
       "files": [
         "dist/additional-methods.js",
-        "dist/jquery.validate.min.js",
-        "dist/jquery.validate.js"
-      ]
-    },
-    {
-      "provider": "unpkg",
-      "library": "jquery-validation-unobtrusive@3.2.11",
-      "destination": "wwwroot/lib/jquery-validation-unobtrusive/",
-      "files": [
-        "dist/jquery.validate.unobtrusive.js",
-        "dist/jquery.validate.unobtrusive.min.js"
+        "dist/additional-methods.min.js",
+        "dist/jquery.validate.js",
+        "dist/jquery.validate.min.js"
       ]
     },
     {
@@ -48,36 +35,55 @@
       ]
     },
     {
-      "provider": "unpkg",
+      "provider": "jsdelivr",
       "library": "bootstrap@4.3.1",
       "destination": "wwwroot/lib/bootstrap/",
       "files": [
-        "dist/js/bootstrap.bundle.js",
-        "dist/js/bootstrap.bundle.min.js",
-        "dist/js/bootstrap.bundle.min.js.map",
+        "LICENSE",
+        "dist/css/bootstrap-grid.min.css",
+        "dist/css/bootstrap-grid.css.map",
+        "dist/css/bootstrap-grid.css",
+        "dist/css/bootstrap-grid.min.css.map",
+        "dist/css/bootstrap-reboot.css",
+        "dist/css/bootstrap-reboot.css.map",
+        "dist/css/bootstrap-reboot.min.css",
+        "dist/css/bootstrap-reboot.min.css.map",
         "dist/css/bootstrap.css",
+        "dist/css/bootstrap.css.map",
         "dist/css/bootstrap.min.css",
         "dist/css/bootstrap.min.css.map",
-        "dist/css/bootstrap.css.map"
+        "dist/js/bootstrap.bundle.js",
+        "dist/js/bootstrap.bundle.js.map",
+        "dist/js/bootstrap.bundle.min.js",
+        "dist/js/bootstrap.bundle.min.js.map",
+        "dist/js/bootstrap.js",
+        "dist/js/bootstrap.js.map",
+        "dist/js/bootstrap.min.js",
+        "dist/js/bootstrap.min.js.map"
       ]
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "jquery-validation-bootstrap-tooltip@0.10.3",
+      "destination": "wwwroot/lib/jquery-validation-bootstrap-tooltip/",
+      "files": [ "jquery-validate.bootstrap-tooltip.min.js" ]
+    },
+    {
+      "library": "jquery-validation-unobtrusive@3.2.11",
+      "destination": "wwwroot/lib/jquery-validation-unobtrusive/"
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "jquery-validation-unobtrusive-bootstrap@2.2.0",
+      "destination": "wwwroot/lib/jquery-validation-unobtrusive-bootstrap/",
+      "files": [
+        "dist/unobtrusive-bootstrap.js",
+        "dist/unobtrusive-bootstrap.min.js"
+      ]
+    },
+    {
+      "library": "tributejs@5.1.3",
+      "destination": "wwwroot/lib/tributejs/"
     }
-  ,
-{
-  "provider": "unpkg",
-  "library": "jquery-validation-unobtrusive-bootstrap@2.2.0",
-  "destination": "wwwroot/lib/jquery-validation-unobtrusive-bootstrap/",
-  "files": [
-    "dist/unobtrusive-bootstrap.js"
   ]
-}
-,
-{
-  "provider": "unpkg",
-  "library": "jquery-validation-bootstrap-tooltip@0.10.3",
-  "destination": "wwwroot/lib/jquery-validation-bootstrap-tooltip/",
-  "files": [
-    "jquery-validate.bootstrap-tooltip.min.js"
-  ]
-}
-]
 }

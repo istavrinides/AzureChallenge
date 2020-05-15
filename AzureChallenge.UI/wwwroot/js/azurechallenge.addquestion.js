@@ -2,12 +2,40 @@
 
     var answerIndexer = 0;
     var profileParams = ["Profile.UserNameHashed", "Profile.SubscriptionId", "Profile.TenantId"];
+    var allParams = [];
+    var suggestionList = [];
     $('[data-toggle="tooltip"]').tooltip();
+
+
+    profileParams.forEach(function (item) {
+        allParams.push(item);
+    });
+    $("#paramDataList option").each(function () {
+        allParams.push($(this).val());
+    });
+    allParams.forEach(function (item) {
+        suggestionList.push({
+            key: item,
+            value: '{' + item + '}'
+        });
+    });
+
+    var tribute = new Tribute({
+        values: suggestionList,
+        selectTemplate: function (item) {
+            return item.original.value;
+        },
+        trigger: "{",
+        requireLeadingSpace: false,
+        noMatchTemplate: null
+    });
+
+    tribute.attach(document.getElementById("Text"));
 
     $("#Text").on('input', function () {
         var foundParameters = $(this).val().match(/\{([^}]+)\}/g);
 
-        if (foundParameters.some(param => param.slice(1, -1).includes('{') || param.slice(1, -1).includes('}')))
+        if (!foundParameters || foundParameters.some(param => param.slice(1, -1).includes('{') || param.slice(1, -1).includes('}')))
             return;
 
         var container = $("#textParamsInputGroup");
@@ -23,6 +51,13 @@
             foundParameters.forEach(function (item) {
 
                 item = item.slice(1, -1);
+
+                if (!allParams.includes(item)) {
+                    allParams.push(item);
+                    tribute.appendCurrent([
+                        { key: item, value: "{" + item + "}" }
+                    ]);
+                }
 
                 // If we haven't already added it
                 if (!addedParameters.includes(item)) {
@@ -55,13 +90,16 @@
     $("#uriTabContent").on('input', '.uriinput', function () {
         var uriParameters = $(this).val().match(/\{([^}]+)\}/g);
 
-        if (uriParameters.some(param => param.slice(1, -1).includes('{') || param.slice(1, -1).includes('}')))
+        if (!uriParameters || uriParameters.some(param => param.slice(1, -1).includes('{') || param.slice(1, -1).includes('}')))
             return;
 
         var itemId = $(this).attr('id');
         var itemIndex = parseInt($(this).data('index'));
         var container = $("#" + itemId + "_params");
         var addedParameters = [];
+
+        // If the uri is for Cosmos Db, we need to add a compulsory ResourceGroupName parameter
+        uriParameters.push("{ResourceGroupName}");
 
         // If the regex found parameters
         if (uriParameters) {
@@ -73,6 +111,13 @@
             uriParameters.forEach(function (item) {
 
                 item = item.slice(1, -1);
+
+                if (!allParams.includes(item)) {
+                    allParams.push(item);
+                    tribute.appendCurrent([
+                        { key: item, value: "{" + item + "}" }
+                    ]);
+                }
 
                 // If we haven't already added it
                 if (!addedParameters.includes(item)) {
@@ -185,7 +230,7 @@
                     <select class='selectpicker' name='Uris["+ lastIndex + "].CallType' id='Uris_" + lastIndex + "__CallType'> \
                         <option selected>GET</option> \
                     </select > \
-                    <input name='Uris["+ lastIndex + "].Uri' id='Uris_" + lastIndex + "__Uri' data-index='" + lastIndex + "' class='form-control uriinput' /> \
+                    <input name='Uris["+ lastIndex + "].Uri' id='Uris_" + lastIndex + "__Uri' data-index='" + lastIndex + "' class='form-control uriinput autocomplete' /> \
                 </div > \
                 <small class='form-text text-muted'>Please enter the Uri for the API to call. Placeholders that will be replaced from below parameters should be wrapped inside curly braces {}.</small> \
                 <br /> \
@@ -203,9 +248,57 @@
 
         $("#Uris_" + lastIndex + "__CallType").selectpicker();
 
+        tribute.attach(document.getElementById('Uris_' + lastIndex + '__Uri'));
+
         // If it's the first, focus on it
         if (!foundOne) {
             $("#uri-0-tab").trigger('click');
         }
+    });
+
+    $("#addLink").on('click', function () {
+
+        var newLink = $("#inputNewLink").val();
+
+        if (!newLink) {
+            $("#inputNewLink").popover('show');
+            return;
+        }
+
+        // Get the next index
+        var newIndex = $("#linksInputGroup input").length;
+
+        $("#linksInputGroup")
+            .append("<input type='hidden' name='UsefulLinks[" + newIndex + "]' id='UsefulLinks_" + newIndex + "_' data-index='" + newIndex + "' value='" + newLink + "' /> \
+                    <span class='border border-info rounded p-1 bg-info m-1' data-index='" + newIndex + "'> \
+                        <a href='" + newLink + "' style='color:#fff !important'>" + newLink + "</a>&nbsp; \
+                        <span class='badge badge-danger deleteLink' style='cursor:pointer' data-index='" + newIndex + "'>&times</span> \
+                    </span>");
+
+    });
+
+    $("#linksInputGroup").on('click', '.deleteLink', function () {
+        // Get the index to delete
+        var index = parseInt($(this).attr('data-index'));
+
+        // Delete the input and span with that index
+        $("#linksInputGroup input[data-index='" + index + "']").remove();
+        $("#linksInputGroup span.border[data-index='" + index + "']").remove();
+
+        // Re-index the remaining
+        $("#linksInputGroup input").each(function () {
+            var thisIndex = $(this).attr('data-index');
+            if (thisIndex > index) {
+                $(this).attr('data-index', (thisIndex - 1));
+                $(this).attr('id', 'UsefulLinks_' + (thisIndex - 1) + '_');
+                $(this).attr('name', 'UsefulLinks[' + (thisIndex - 1) + ']');
+            }
+        });
+        $("#linksInputGroup span").each(function () {
+            var thisIndex = $(this).attr('data-index');
+            if (thisIndex > index) {
+                $(this).attr('data-index', (thisIndex - 1));
+            }
+        });
     });
 });

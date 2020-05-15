@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Azure.Cosmos;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -20,6 +21,15 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Tournaments
         public List<Question> Questions { get; set; }
 
         public AssignedQuestion QuestionToAdd { get; set; }
+
+        public UserProfile CurrentUserProfile { get; set; }
+
+        public class UserProfile
+        {
+            public string SubscriptionId { get; set; }
+            public string UserNameHashed { get; set; }
+            public string TenantId { get; set; }
+        }
     }
 
     public class TournamentQuestion
@@ -46,7 +56,11 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Tournaments
         public string Description { get; set; }
         public string Text { get; set; }
         public List<KVPair> TextParameters { get; set; }
+        public string Justification { get; set; }
+        public List<string> UsefulLinks { get; set; }
+
         public List<UriList> Uris { get; set; }
+
         public List<AnswerList> Answers { get; set; }
 
         public class UriList
@@ -69,6 +83,7 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Tournaments
         {
             public string Key { get; set; }
             public string Value { get; set; }
+            public string ErrorMessage { get; set; }
         }
         public string DifficultyString => this.Difficulty == 1 ? "Easy" : this.Difficulty == 2 ? "Medium" : this.Difficulty == 3 ? "Hard" : "Expert";
     }

@@ -9,11 +9,36 @@ using System.Threading.Tasks;
 
 namespace AzureChallenge.Providers
 {
-    public class ParameterProvider : IParameterProvider<AzureChallengeResult, GlobalParameters>
+    public class ParameterProvider : IParameterProvider<AzureChallengeResult, GlobalTournamentParameters>
+    {
+        private IDataProvider<AzureChallengeResult, GlobalTournamentParameters> dataProvider;
+
+        public ParameterProvider(IDataProvider<AzureChallengeResult, GlobalTournamentParameters> dataProvider)
+        {
+            this.dataProvider = dataProvider;
+        }
+
+        public async Task<AzureChallengeResult> AddItemAsync(GlobalTournamentParameters item)
+        {
+            return await dataProvider.AddItemAsync(item);
+        }
+
+        public async Task<(AzureChallengeResult, IList<GlobalTournamentParameters>)> GetAllItemsAsync()
+        {
+            return await dataProvider.GetAllItemsAsync("GlobalTournamentParameters");
+        }
+
+        public async Task<(AzureChallengeResult, GlobalTournamentParameters)> GetItemAsync(string id)
+        {
+            return await dataProvider.GetItemAsync(id, "GlobalTournamentParameters");
+        }
+    }
+
+    public class GlobalParameterProvider : IParameterProvider<AzureChallengeResult, GlobalParameters>
     {
         private IDataProvider<AzureChallengeResult, GlobalParameters> dataProvider;
 
-        public ParameterProvider(IDataProvider<AzureChallengeResult, GlobalParameters> dataProvider)
+        public GlobalParameterProvider(IDataProvider<AzureChallengeResult, GlobalParameters> dataProvider)
         {
             this.dataProvider = dataProvider;
         }

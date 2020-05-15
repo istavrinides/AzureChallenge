@@ -25,6 +25,9 @@
         <input class="form-control" asp-for="@Model.Name" readonly />
         <input type="hidden" asp-for="@Model.Id" />
         <input type='hidden' asp-for="@Model.Description" />
+        <input type="hidden" asp-for="@Model.CurrentUserProfile.SubscriptionId" />
+        <input type="hidden" asp-for="@Model.CurrentUserProfile.TenantId" />
+        <input type="hidden" asp-for="@Model.CurrentUserProfile.UserNameHashed" />
     </div>
     <div class="form-group row">
         <h4 class="pl-3">Associate questions with the tournament</h4>
@@ -157,14 +160,16 @@
                         <div class="tab-content" id="modalTabsContent">
                             <div class="tab-pane fade show active tab-pane-upper" id="modal-text" role="tabpanel" aria-labelledby="modal-text-tab">
                                 <div id="textParamsGroup" class="form-border form-group">
-                                    <div class="form-group">
+                                    <div class="form-group" id="hiddenParamGroup">
                                         <textarea id="QuestionToAdd_Text" name="QuestionToAdd.Text" class="form-control" rows="4" readonly></textarea>
-                                        <input type="hidden" id="QuestionToAdd_AssociatedQuestionId" name="QuestionToAdd.AssociatedQuestionId" />
-                                        <input type="hidden" id="QuestionToAdd_Name" name="QuestionToAdd.Name" />
-                                        <input type="hidden" id="QuestionToAdd_TargettedAzureService" name="QuestionToAdd.TargettedAzureService" />
-                                        <input type="hidden" id="QuestionToAdd_Difficulty" name="QuestionToAdd.Difficulty" />
-                                        <input type="hidden" id="QuestionToAdd_Description" name="QuestionToAdd.Description" />
-                                        <input type="hidden" id="QuestionToAdd_TournamentId" name="QuestionToAdd.TournamentId" />
+                                        <input type="hidden" class="modal-hidden" id="QuestionToAdd_AssociatedQuestionId" name="QuestionToAdd.AssociatedQuestionId" />
+                                        <input type="hidden" class="modal-hidden" id="QuestionToAdd_Name" name="QuestionToAdd.Name" />
+                                        <input type="hidden" class="modal-hidden" id="QuestionToAdd_TargettedAzureService" name="QuestionToAdd.TargettedAzureService" />
+                                        <input type="hidden" class="modal-hidden" id="QuestionToAdd_Difficulty" name="QuestionToAdd.Difficulty" />
+                                        <input type="hidden" class="modal-hidden" id="QuestionToAdd_Description" name="QuestionToAdd.Description" />
+                                        <input type="hidden" class="modal-hidden" id="QuestionToAdd_TournamentId" name="QuestionToAdd.TournamentId" />
+                                        <input type="hidden" class="modal-hidden" id="QuestionToAdd_Id" name="QuestionToAdd.Id" />
+                                        <input type="hidden" class="modal-hidden" id="QuestionToAdd_Justification" name="QuestionToAdd.Justification" />
                                     </div>
                                     <div id="textParamsInputGroup" class="form-group row">
                                     </div>

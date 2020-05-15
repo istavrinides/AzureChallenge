@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <Folder Include="Areas\Administration\Data\" />
+    <Folder Include="wwwroot\lib\" />
   </ItemGroup>
 
 

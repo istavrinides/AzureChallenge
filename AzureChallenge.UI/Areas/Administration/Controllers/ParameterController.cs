@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using AzureChallenge.Interfaces.Providers.Parameters;
+using AzureChallenge.Models.Parameters;
 using AzureChallenge.UI.Areas.Administration.Models.Tournaments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,11 +20,11 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
     [Authorize(Roles = "Administrator")]
     public class ParameterController : Controller
     {
-        private IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalParameters> parametersProvider;
+        private IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalTournamentParameters> parametersProvider;
         private IMapper mapper;
         private IConfiguration configuration;
 
-        public ParameterController(IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalParameters> parametersProvider,
+        public ParameterController(IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalTournamentParameters> parametersProvider,
                                     IMapper mapper,
                                     IConfiguration configuration)
         {
@@ -57,13 +58,13 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateParameters(IndexParameterViewModel inputModel)
         {
-            var tournamentParameters = new ACMP.GlobalParameters() { Parameters = new List<ACMP.GlobalParameters.ParameterDefinition>(), TournamentId = inputModel.TournamentId };
+            var tournamentParameters = new ACMP.GlobalTournamentParameters() { Parameters = new List<ACMP.GlobalTournamentParameters.ParameterDefinition>(), TournamentId = inputModel.TournamentId };
 
             if (inputModel.ParameterList != null)
             {
                 foreach (var p in inputModel.ParameterList)
                 {
-                    tournamentParameters.Parameters.Add(new ACMP.GlobalParameters.ParameterDefinition() { Key = p.Name, Value = p.Value, AssignedToQuestion = p.AssignedToQuestion });
+                    tournamentParameters.Parameters.Add(new ACMP.GlobalTournamentParameters.ParameterDefinition() { Key = p.Name, Value = p.Value, AssignedToQuestion = p.AssignedToQuestion });
                 }
             }
 
@@ -82,7 +83,12 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
             if (result.Item1.Success)
             {
-                return Ok(result.Item2);
+                var globalParameters = new GlobalTournamentParameters
+                {
+                    Parameters = result.Item2.Parameters.Select(p => new GlobalTournamentParameters.ParameterDefinition() { AssignedToQuestion = p.AssignedToQuestion, Key = $"Global.{p.Key}", Value = p.Value }).ToList(),
+                    TournamentId = result.Item2.TournamentId
+                };
+                return Ok(globalParameters);
             }
 
             return StatusCode(500);

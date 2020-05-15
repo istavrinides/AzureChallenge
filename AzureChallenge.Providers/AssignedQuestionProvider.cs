@@ -23,12 +23,12 @@ namespace AzureChallenge.Providers
         private readonly IDataProvider<AzureChallengeResult, AssignedQuestion> dataProvider;
         private readonly IAzureAuthProvider authProvider;
         private readonly IRESTProvider restProvider;
-        private readonly IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalParameters> parametersProvider;
+        private readonly IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalTournamentParameters> parametersProvider;
 
         public AssignedQuestionProvider(IDataProvider<AzureChallengeResult, AssignedQuestion> dataProvider,
                                         IAzureAuthProvider authProvider,
                                         IRESTProvider restProvider,
-                                        IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalParameters> parametersProvider)
+                                        IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalTournamentParameters> parametersProvider)
         {
             this.dataProvider = dataProvider;
             this.authProvider = authProvider;
@@ -60,17 +60,13 @@ namespace AzureChallenge.Providers
         {
             // Get the question definition
             var result = await GetItemAsync(id);
+            // Create a list to check validity of answers
+            List<KeyValuePair<string, bool>> correctAsnwers = new List<KeyValuePair<string, bool>>();
 
             if (!result.Item1.Success)
                 return null;
 
             var question = result.Item2;
-
-            // Get the access token
-            var access_token = await authProvider.AuthorizeAsync(profile.GetSecretsForAuth());
-
-            // Create a list to check validity of answers
-            List<KeyValuePair<string, bool>> correctAsnwers = new List<KeyValuePair<string, bool>>();
 
             // Get the global parameters
             var globalParameters = await parametersProvider.GetItemAsync(question.TournamentId);
@@ -83,18 +79,48 @@ namespace AzureChallenge.Providers
 
             for (int i = 0; i < question.Uris.Count; i++)
             {
-                if (question.Uris[0].CallType == "GET")
+                if (question.Uris[i].CallType == "GET")
                 {
                     // Prepare the uri
                     // First we need to replace the . notation for Global and Profile placeholders to _ (SmartFormat doesn't like the . notation)
-                    var formattedUri = question.Uris[0].Uri.Replace("Global.", "Global_").Replace("Profile.", "Profile_");
+                    var formattedUri = question.Uris[i].Uri.Replace("Global.", "Global_").Replace("Profile.", "Profile_");
                     // Then we need to concatenate all the parameters
                     parameters = parameters.Concat(profile.GetKeyValuePairs()).ToDictionary(p => p.Key, p => p.Value);
                     // Filter out the Profile. and Global. from Uri Parameters, since they don't have values anyway
                     parameters = parameters.Concat(question.Uris[0].UriParameters.Where(p => !p.Key.StartsWith("Profile.") && !p.Key.StartsWith("Global.")).ToDictionary(p => p.Key, p => p.Value)).ToDictionary(p => p.Key, p => p.Value);
                     formattedUri = SmartFormat.Smart.Format(formattedUri, parameters);
 
-                    var response = await restProvider.GetAsync(formattedUri, access_token);
+                    // Get the access token
+                    var access_token = "";
+                    try
+                    {
+                        // Do a regular auth if not for Cosmos
+                        if (!formattedUri.Contains("documents.azure.com"))
+                            access_token = await authProvider.AzureAuthorizeAsync(profile.GetSecretsForAuth());
+                        else
+                        {
+                            // We should have a Resource Group in the uri parameters, else auth won't work
+                            var resourceGroup = question.Uris[i].UriParameters.Where(p => p.Key == "ResourceGroupName").Select(p => p.Value).FirstOrDefault();
+                            access_token = await authProvider.CosmosAuthorizeAsync(profile.GetSecretsForAuth(), formattedUri, resourceGroup);
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        correctAsnwers.Add(new KeyValuePair<string, bool>("Could not complete authorization step. Please check the values in your profile", false));
+                        return correctAsnwers;
+                    }
+
+                    var response = "";
+                    try
+                    {
+                        response = await restProvider.GetAsync(formattedUri, access_token);
+                    }
+                    catch(Exception ex)
+                    {
+                        correctAsnwers = new List<KeyValuePair<string, bool>>();
+                        correctAsnwers.Add(new KeyValuePair<string, bool>("Calling one of the APIs to check your answer failed. Either the resource requested has not been created or is still being created. Try in a while.", false));
+                        return correctAsnwers;
+                    }
 
                     JObject o = JObject.Parse(response);
 
@@ -104,10 +130,12 @@ namespace AzureChallenge.Providers
                         correctAsnwers.Add(new KeyValuePair<string, bool>(answer.Key, CheckAnswer(o, properties, answer.Value, 0, properties.Count)));
                     }
 
-                }
-                else if (question.Uris[0].CallType == "HEAD")
-                {
-                    var response = await restProvider.HeadAsync(SmartFormat.Smart.Format(question.Uris[0].Uri, question.Uris[0].UriParameters), access_token);
+                    // If we don't need to check any answers, the call was successful
+                    if(question.Answers[i].AnswerParameters.Count == 0)
+                    {
+                        correctAsnwers.Add(new KeyValuePair<string, bool>("Call succeeded", true));
+                    }
+
                 }
             }
 
@@ -125,6 +153,10 @@ namespace AzureChallenge.Providers
             else if (thisProperty.Type == JTokenType.String && index + 1 == maxIndex)
             {
                 return value == (string)thisProperty;
+            }
+            else if (thisProperty.Type == JTokenType.Boolean && index + 1 == maxIndex)
+            {
+                return bool.Parse(value) == (bool)thisProperty;
             }
             else if (thisProperty.Type == JTokenType.Object)
             {

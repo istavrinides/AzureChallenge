@@ -35,6 +35,13 @@ namespace AzureChallenge.Models.Questions
 
         [JsonProperty(PropertyName = "textParameters")]
         public Dictionary<string, string> TextParameters { get; set; }
+
+        [JsonProperty(PropertyName = "justification")]
+        public string Justification { get; set; }
+
+        [JsonProperty(PropertyName = "usefulLinks")]
+        public List<string> UsefulLinks { get; set; }
+
         [JsonProperty(PropertyName = "urilist")]
         public List<UriList> Uris { get; set; }
 
@@ -62,10 +69,17 @@ namespace AzureChallenge.Models.Questions
             public int AssociatedQuestionId { get; set; }
 
             [JsonProperty(PropertyName = "answers")]
-            public Dictionary<string, string> AnswerParameters { get; set; }
+            public List<AnswerParameterItem> AnswerParameters { get; set; }
 
             [JsonProperty(PropertyName = "responsetype")]
             public string ResponseType { get; set; }
+        }
+
+        public class AnswerParameterItem
+        {
+            public string Key { get; set; }
+            public string Value { get; set; }
+            public string ErrorMessage { get; set; }
         }
     }
 }
