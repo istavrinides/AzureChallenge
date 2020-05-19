@@ -348,6 +348,12 @@ $(document).ready(function () {
                 data.forEach(function (item) {
                     $("#checkModalContentDiv").append("<div class='col-md-6'>" + item.Key + "</div><div class='col-md-6'>" + (item.Value ? "<span class='text-success'>Success</span>" : "<span class='text-danger'>Failure</span>") + "</div>");
                 });
+            })
+            .fail(function () {
+                window.alert("Could not validate the question, an internal error occured. Please try again later.");
+                $("#checkModal").hide();
+                $('body').removeClass('modal-open');
+                $('.modal-backdrop').remove();  
             });
     })
 
@@ -392,7 +398,7 @@ $(document).ready(function () {
                             <label>Value to check</label> \
                             <input class='form-control answerParamInput answerParamInputVal' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].Value' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__Value' data-index='" + currentIndex + "' required /></div>");
         container.append("<div class='form-group col-4'> \
-                            <label>Value to check</label> \
+                            <label>Error Message</label> \
                             <input class='form-control answerParamInput answerParamInputError' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].ErrorMessage' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__ErrorMessage' data-index='" + currentIndex + "' required /></div>");
 
         var numberOfRequiredInputs = 0;
@@ -582,7 +588,7 @@ var populateModal = function (selectedQuestionId, tournamentId, readOnly = false
                                             <label>Value to check</label> \
                                         <input class='form-control answerParamInput answerParamInputVal' name='QuestionToAdd.Answers[" + i + "].AnswerParameters[" + j + "].Value' id='QuestionToAdd_Answers_" + i + "_AnswerParameters_" + j + "__Value' data-index='" + j + "' required " + (readOnly ? "readonly" : "") + " /></div>";
                             toAppend += "<div class='form-group col-4'> \
-                                            <label>Value to check</label> \
+                                            <label>Error Message</label> \
                                         <input class='form-control answerParamInput answerParamInputError' name='QuestionToAdd.Answers[" + i + "].AnswerParameters[" + j + "].ErrorMessage' id='QuestionToAdd_Answers_" + i + "_AnswerParameters_" + j + "__ErrorMessage' data-index='" + j + "' required " + (readOnly ? "readonly" : "") + " /></div>";
                         }
 

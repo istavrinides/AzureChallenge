@@ -70,15 +70,18 @@ namespace AzureChallenge.Providers
 
             // Get the global parameters
             var globalParameters = await parametersProvider.GetItemAsync(question.TournamentId);
-            // Global parameters don't have the Global. prefix, so create a new dictionary with that as the key name
-            var parameters = new Dictionary<string, string>();
-            foreach (var gp in globalParameters.Item2.Parameters)
-            {
-                parameters.Add($"Global_{gp.Key}", gp.Value);
-            }
+
+            List<KeyValuePair<string, string>> additionalHeaders = null;
 
             for (int i = 0; i < question.Uris.Count; i++)
             {
+                var parameters = new Dictionary<string, string>();
+
+                // Global parameters don't have the Global. prefix, so create a new dictionary with that as the key name
+                foreach (var gp in globalParameters.Item2.Parameters)
+                {
+                    parameters.Add($"Global_{gp.Key}", gp.Value);
+                }
                 if (question.Uris[i].CallType == "GET")
                 {
                     // Prepare the uri
@@ -87,7 +90,7 @@ namespace AzureChallenge.Providers
                     // Then we need to concatenate all the parameters
                     parameters = parameters.Concat(profile.GetKeyValuePairs()).ToDictionary(p => p.Key, p => p.Value);
                     // Filter out the Profile. and Global. from Uri Parameters, since they don't have values anyway
-                    parameters = parameters.Concat(question.Uris[0].UriParameters.Where(p => !p.Key.StartsWith("Profile.") && !p.Key.StartsWith("Global.")).ToDictionary(p => p.Key, p => p.Value)).ToDictionary(p => p.Key, p => p.Value);
+                    parameters = parameters.Concat(question.Uris[i].UriParameters.Where(p => !p.Key.StartsWith("Profile.") && !p.Key.StartsWith("Global.")).ToDictionary(p => p.Key, p => p.Value)).ToDictionary(p => p.Key, p => p.Value);
                     formattedUri = SmartFormat.Smart.Format(formattedUri, parameters);
 
                     // Get the access token
@@ -101,10 +104,10 @@ namespace AzureChallenge.Providers
                         {
                             // We should have a Resource Group in the uri parameters, else auth won't work
                             var resourceGroup = question.Uris[i].UriParameters.Where(p => p.Key == "ResourceGroupName").Select(p => p.Value).FirstOrDefault();
-                            access_token = await authProvider.CosmosAuthorizeAsync(profile.GetSecretsForAuth(), formattedUri, resourceGroup);
+                            access_token = authProvider.CosmosAuthorizeAsync(profile.GetSecretsForAuth(), formattedUri, resourceGroup).GetAwaiter().GetResult();
                         }
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         correctAsnwers.Add(new KeyValuePair<string, bool>("Could not complete authorization step. Please check the values in your profile", false));
                         return correctAsnwers;
@@ -113,9 +116,26 @@ namespace AzureChallenge.Providers
                     var response = "";
                     try
                     {
-                        response = await restProvider.GetAsync(formattedUri, access_token);
+                        // Clear the additionalHeaders by setting to null
+                        additionalHeaders = null;
+
+                        if (formattedUri.Contains("documents.azure.com"))
+                        {
+                            // We need to add additional headers for CosmosDb calls
+                            additionalHeaders = new List<KeyValuePair<string, string>>();
+                            additionalHeaders.Add(new KeyValuePair<string, string>("x-ms-date", DateTime.UtcNow.ToString("R")));
+                            additionalHeaders.Add(new KeyValuePair<string, string>("x-ms-version", "2018-12-31"));
+                            // If we are trying to get a doc, we need to pass the Partion Key in the header
+                            if (formattedUri.Contains("/docs/"))
+                            {
+                                var partKey = question.Uris[i].UriParameters.Where(p => p.Key == "PartitionKey").Select(p => p.Value).FirstOrDefault();
+                                additionalHeaders.Add(new KeyValuePair<string, string>("x-ms-documentdb-partitionkey", partKey));
+                            }
+                        }
+
+                        response = await restProvider.GetAsync(formattedUri, access_token, additionalHeaders);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         correctAsnwers = new List<KeyValuePair<string, bool>>();
                         correctAsnwers.Add(new KeyValuePair<string, bool>("Calling one of the APIs to check your answer failed. Either the resource requested has not been created or is still being created. Try in a while.", false));
@@ -124,18 +144,83 @@ namespace AzureChallenge.Providers
 
                     JObject o = JObject.Parse(response);
 
-                    foreach (var answer in question.Answers[i].AnswerParameters)
-                    {
-                        var properties = answer.Key.Split('.').ToList();
-                        correctAsnwers.Add(new KeyValuePair<string, bool>(answer.Key, CheckAnswer(o, properties, answer.Value, 0, properties.Count)));
-                    }
-
                     // If we don't need to check any answers, the call was successful
-                    if(question.Answers[i].AnswerParameters.Count == 0)
+                    if (question.Answers[i].AnswerParameters == null || question.Answers[i].AnswerParameters.Count == 0)
                     {
                         correctAsnwers.Add(new KeyValuePair<string, bool>("Call succeeded", true));
                     }
+                    else
+                    {
 
+                        // Special case for RUs. We need to check the offer, and for that we need the database and collection Ids, to make sure we are checking the right collection for the RUs
+                        if (formattedUri.Contains("documents.azure.com") && formattedUri.ToLower().EndsWith("/offers"))
+                        {
+                            // First get the database and collection id
+                            var formattedUriForRUs = SmartFormat.Smart.Format(
+                                formattedUri.Substring(0, formattedUri.IndexOf(".documents.azure.com")) + ".documents.azure.com/dbs/{DatabaseName}/colls/{CollectionName}", parameters);
+                            // We should have a Resource Group in the uri parameters, else auth won't work
+                            var resourceGroup = question.Uris[i].UriParameters.Where(p => p.Key == "ResourceGroupName").Select(p => p.Value).FirstOrDefault();
+                            var throughput = question.Answers[i].AnswerParameters.Where(p => p.Key.Contains("offerThroughput")).Select(p => p.Value).FirstOrDefault();
+
+                            if (!string.IsNullOrWhiteSpace(throughput))
+                            {
+                                access_token = await authProvider.CosmosAuthorizeAsync(profile.GetSecretsForAuth(), formattedUriForRUs, resourceGroup);
+                                var responseForDBandCollIds = "";
+                                try
+                                {// We need to add additional headers for CosmosDb calls
+                                    additionalHeaders = new List<KeyValuePair<string, string>>();
+                                    additionalHeaders.Add(new KeyValuePair<string, string>("x-ms-date", DateTime.UtcNow.ToString("R")));
+                                    additionalHeaders.Add(new KeyValuePair<string, string>("x-ms-version", "2018-12-31"));
+
+                                    responseForDBandCollIds = await restProvider.GetAsync(formattedUriForRUs, access_token, additionalHeaders);
+                                }
+                                catch (Exception ex)
+                                {
+                                    correctAsnwers = new List<KeyValuePair<string, bool>>();
+                                    correctAsnwers.Add(new KeyValuePair<string, bool>("Calling one of the APIs to check your answer failed. Either the resource requested has not been created or is still being created. Try in a while.", false));
+                                    return correctAsnwers;
+                                }
+
+                                dynamic json = JObject.Parse(responseForDBandCollIds);
+                                var ids = json._self;
+
+                                dynamic jsonOffer = JObject.Parse(response);
+                                var answerForThroughput = question.Answers[i].AnswerParameters.Where(p => p.Key.Contains("offerThroughput")).FirstOrDefault();
+                                var found = false;
+                                foreach (var j in jsonOffer.Offers)
+                                {
+                                    if (j.content.offerThroughput == throughput && j.resource == ids)
+                                    {
+                                        correctAsnwers.Add(new KeyValuePair<string, bool>(answerForThroughput.Key, true));
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (!found)
+                                {
+                                    correctAsnwers.Add(new KeyValuePair<string, bool>(answerForThroughput.Key, false));
+                                }
+
+                                // Remove the thoughput answer from the answer parameters to check any pending
+                                question.Answers[i].AnswerParameters.Remove(answerForThroughput);
+                            }
+
+                            foreach (var answer in question.Answers[i].AnswerParameters)
+                            {
+                                var properties = answer.Key.Split('.').ToList();
+                                correctAsnwers.Add(new KeyValuePair<string, bool>(answer.Key, CheckAnswer(o, properties, answer.Value, 0, properties.Count)));
+                            }
+                        }
+                        else
+                        {
+                            foreach (var answer in question.Answers[i].AnswerParameters)
+                            {
+                                var properties = answer.Key.Split('.').ToList();
+                                correctAsnwers.Add(new KeyValuePair<string, bool>(answer.Key, CheckAnswer(o, properties, answer.Value, 0, properties.Count)));
+                            }
+                        }
+
+                    }
                 }
             }
 
@@ -150,7 +235,7 @@ namespace AzureChallenge.Providers
             {
                 return false;
             }
-            else if (thisProperty.Type == JTokenType.String && index + 1 == maxIndex)
+            else if (thisProperty.Type == JTokenType.String || thisProperty.Type == JTokenType.Integer && index + 1 == maxIndex)
             {
                 return value == (string)thisProperty;
             }

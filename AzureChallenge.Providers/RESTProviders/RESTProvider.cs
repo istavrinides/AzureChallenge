@@ -13,7 +13,7 @@ namespace AzureChallenge.Providers.RESTProviders
 {
     public class RESTProvider : IRESTProvider
     {
-        public async Task<string> GetAsync(string uri, string authorizationHeader)
+        public async Task<string> GetAsync(string uri, string authorizationHeader, List<KeyValuePair<string, string>> additionalHeaders)
         {
             using (var httpClient = new HttpClient())
             {
@@ -23,18 +23,30 @@ namespace AzureChallenge.Providers.RESTProviders
                 httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json");
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authorizationHeader);
 
-                var request = new HttpRequestMessage
+                // All Cosmos Db calls expect the current UTC time in RFC1123 format and the API version in the header variables
+                if (uri.Contains("documents.azure.com"))
+                {
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationHeader);
+                }
+
+                HttpRequestMessage request = new HttpRequestMessage
                 {
                     Method = HttpMethod.Get,
                     RequestUri = new Uri(uri)
                 };
 
-                // All Cosmos Db calls expect the current UTC time in RFC1123 format and the API version in the header variables
-                if (uri.Contains("documents.azure.com"))
+                if (additionalHeaders != null)
                 {
-                    request.Headers.Add("x-ms-date", DateTime.UtcNow.ToString("R"));
-                    request.Headers.Add("x-ms-version", "2018-12-31");
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationHeader);
+                    foreach (var h in additionalHeaders)
+                    {
+                        // If the key is x-ms-documentdb-partitionkey, the value needs to be in an array
+                        if (h.Key == "x-ms-documentdb-partitionkey")
+                        {
+                            request.Headers.Add(h.Key, Newtonsoft.Json.JsonConvert.SerializeObject(new[] { h.Value }));
+                        }
+                        else
+                            request.Headers.Add(h.Key, h.Value);
+                    }
                 }
 
                 var response = await httpClient.SendAsync(request);
@@ -71,7 +83,7 @@ namespace AzureChallenge.Providers.RESTProviders
             using (var httpClient = new HttpClient())
             {
                 if (contentType == IRESTProvider.ContentType.FormUrlEncoded)
-                {   
+                {
                     var request = new HttpRequestMessage
                     {
                         Method = HttpMethod.Post,

@@ -46,7 +46,7 @@ namespace AzureChallenge.Providers.RESTProviders
 
             // Now get the Cosmos Db key
             var subscriptionId = secrets.Where(p => p.Key == "SubscriptionId").Select(p => p.Value).FirstOrDefault();
-            var response = await restProvider.GetAsync($"https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/readonlykeys?api-version=2019-12-12", azureAccessToken);
+            var response = await restProvider.GetAsync($"https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/readonlykeys?api-version=2019-12-12", azureAccessToken, null);
 
             dynamic json = JObject.Parse(response);
             string cosmosDbAccessKey = json.primaryReadonlyMasterKey;
@@ -54,12 +54,12 @@ namespace AzureChallenge.Providers.RESTProviders
             // Parse the uri on /
 
             // We need the resource type and link
-            string resourceType = "", resourceLink = uri.Substring(uri.IndexOf("dbs"));
+            string resourceType = "", resourceLink = uri.Substring(uri.IndexOf("dbs") > 0 ? uri.IndexOf("dbs") : 0);
             if (uri.Contains("offers"))
             {
                 resourceType = "offers";
                 // Special case, only for offers
-                resourceLink = uri.Split('/').Last();
+                resourceLink = uri.Split('/').Last() == "offers" ? "" : uri.Split('/').Last().ToLower();
             }
             else if (uri.Contains("permissions")) resourceType = "permissions";
             else if (uri.Contains("users")) resourceType = "users";
