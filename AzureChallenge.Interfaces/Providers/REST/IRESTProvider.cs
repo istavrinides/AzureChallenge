@@ -13,7 +13,7 @@ namespace AzureChallenge.Interfaces.Providers.REST
             FormUrlEncoded
         }
 
-        public Task<string> GetAsync(string uri, string authorizationHeader);
+        public Task<string> GetAsync(string uri, string authorizationHeader, List<KeyValuePair<string, string>> additionalHeaders);
 
         public Task<Dictionary<string, string>> HeadAsync(string uri, string authorizationHeader);
 

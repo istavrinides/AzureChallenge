@@ -99,7 +99,18 @@
         var addedParameters = [];
 
         // If the uri is for Cosmos Db, we need to add a compulsory ResourceGroupName parameter
-        uriParameters.push("{ResourceGroupName}");
+        if ($(this).val().indexOf("documents.azure.com") > 0) {
+            uriParameters.push("{ResourceGroupName}");
+            // If we are looking at the offer url, we need to check the database and collection
+            if ($(this).val().toLowerCase().endsWith("/offers")) {
+                uriParameters.push("{DatabaseName}");
+                uriParameters.push("{CollectionName}");
+            }
+            // If we are looking for a document, we need to include the PartitionKey
+            if ($(this).val().toLowerCase().indexOf("/docs/") > 0) {
+                uriParameters.push("{PartitionKey}");
+            }
+        }
 
         // If the regex found parameters
         if (uriParameters) {

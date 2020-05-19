@@ -116,7 +116,7 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
             // Test the credentials. We should get the subscription name
             var profile = mapper.Map<AzureChallenge.Models.Profile.UserProfile>(user);
             var token = await azureAuthProvider.AzureAuthorizeAsync(profile.GetSecretsForAuth());
-            var result = await restProvider.GetAsync($"https://management.azure.com/subscriptions/{user.SubscriptionId}?api-version=2020-01-01", token);
+            var result = await restProvider.GetAsync($"https://management.azure.com/subscriptions/{user.SubscriptionId}?api-version=2020-01-01", token, null);
 
             JObject o = JObject.Parse(result);
             string subscriptionName = (string)o.SelectToken("displayName");
