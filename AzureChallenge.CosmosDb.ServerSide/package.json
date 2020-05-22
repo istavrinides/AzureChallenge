@@ -1,0 +1,17 @@
+{
+  "name": "azure-challenge.cosmos-db.server-side.post-triggers",
+  "version": "0.0.0",
+  "description": "AzureChallenge.CosmosDb.ServerSide.PostTriggers",
+  "main": "app.js",
+  "author": "",
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean"
+  },
+  "devDependencies": {
+    "@types/node": "^8.0.14",
+    "typescript": "^3.2.2",
+    "@types/documentdb-server": "0.0.33"
+  },
+  "license": "ISC"
+}

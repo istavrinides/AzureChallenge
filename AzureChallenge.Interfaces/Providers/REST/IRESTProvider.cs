@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,7 +14,7 @@ namespace AzureChallenge.Interfaces.Providers.REST
             FormUrlEncoded
         }
 
-        public Task<string> GetAsync(string uri, string authorizationHeader, List<KeyValuePair<string, string>> additionalHeaders);
+        public Task<(string Content, HttpStatusCode StatusCode)> GetAsync(string uri, string authorizationHeader, List<KeyValuePair<string, string>> additionalHeaders);
 
         public Task<Dictionary<string, string>> HeadAsync(string uri, string authorizationHeader);
 

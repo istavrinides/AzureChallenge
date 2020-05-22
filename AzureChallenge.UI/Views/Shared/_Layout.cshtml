@@ -26,9 +26,6 @@
                     <partial name="_LoginPartial" />
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                         @if (SignInManager.IsSignedIn(User))
@@ -40,7 +37,7 @@
                                         Administration
                                     </a>
                                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                        <a class="nav-link text-dark" asp-area="Administration" asp-controller="Tournament" asp-action="Index">Tournaments</a>
+                                        <a class="nav-link text-dark" asp-area="Administration" asp-controller="Challenge" asp-action="Index">Challenges</a>
                                         <a class="nav-link text-dark" asp-area="Administration" asp-controller="Question" asp-action="Index">Question Templates</a>
                                     </div>
                                 </li>
@@ -63,11 +60,11 @@
                         <br />
                         @if (User.IsInRole("Administrator"))
                         {
-                            <span>If you do not do so, you cannot validate any questions or participate in any Tournament</span>
+                            <span>If you do not do so, you cannot validate any questions or participate in any Challenge</span>
                         }
                         else
                         {
-                            <span>If you do not do so, you cannot participate in any Tournament</span>
+                            <span>If you do not do so, you cannot participate in any Challenge</span>
                         }
                     </div>
                 }
@@ -78,7 +75,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2020 - Cosmic Challenge - Created by Ioannis Stavrinides as a tool for learning Azure using a challenge approach - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2020 - Azure Challenge - Created by Ioannis Stavrinides as a tool for learning Azure using a challenge approach - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
     <script src="~/lib/jquery/jquery.min.js"></script>

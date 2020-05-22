@@ -1,10 +1,11 @@
-﻿@model AzureChallenge.UI.Areas.Administration.Models.Tournaments.EditTournamentViewModel
+﻿@model AzureChallenge.UI.Areas.Administration.Models.Challenges.EditChallengeViewModel
 @{
-    ViewData["Title"] = "Edit Tournament";
+    ViewData["Title"] = $"Edit {Model.Name} Challenge";
 }
 @section Styles{
     <link href="~/lib/bootstrap-slider/css/bootstrap-slider.css" rel="stylesheet" type="text/css" />
     <link href="~/lib/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" type="text/css" />
+    <link href="~/lib/bootstrap-toggle/css/bootstrap-toggle.min.css" rel="stylesheet" />
     <style>
         .form-border {
             padding: 1rem;
@@ -16,21 +17,24 @@
 
 <h1>@ViewData["Title"]</h1>
 <hr />
-<form asp-controller="Tournament" asp-action="AddAssignedQuestion" method="post">
+<form asp-controller="Challenge" asp-action="AddAssignedQuestion" method="post">
     @Html.AntiForgeryToken()
 
     <div id="saveAlert" class="alert alert-danger d-none" role="alert">You have made changes. Please click save or risk losing them!</div>
-    <div class="form-group">
-        <label asp-for="@Model.Name"></label>
-        <input class="form-control" asp-for="@Model.Name" readonly />
-        <input type="hidden" asp-for="@Model.Id" />
-        <input type='hidden' asp-for="@Model.Description" />
-        <input type="hidden" asp-for="@Model.CurrentUserProfile.SubscriptionId" />
-        <input type="hidden" asp-for="@Model.CurrentUserProfile.TenantId" />
-        <input type="hidden" asp-for="@Model.CurrentUserProfile.UserNameHashed" />
+    <input type="hidden" asp-for="Id" />
+    <input type='hidden' asp-for="Description" />
+    <input type="hidden" asp-for="CurrentUserProfile.SubscriptionId" />
+    <input type="hidden" asp-for="CurrentUserProfile.TenantId" />
+    <input type="hidden" asp-for="CurrentUserProfile.UserNameHashed" />
+    <input type="hidden" asp-for="Name" />
+    <div class="form-group row">
+        <div class="col-md-12">
+            <label class="pr-2" asp-for="IsPublic"></label><input type="checkbox" asp-for="IsPublic" data-toggle="toggle" data-style="ios" data-size="small" />
+            <input type="hidden" asp-for="OldIsPublic" />
+        </div>
     </div>
     <div class="form-group row">
-        <h4 class="pl-3">Associate questions with the tournament</h4>
+        <h4 class="pl-3">Associate questions with the challenge</h4>
     </div>
     <div id="saveAlert" class="alert alert-danger d-none" role="alert">You have made changes. Please click save or risk losing them!</div>
     <div class="form-group row">
@@ -65,50 +69,56 @@
             <thead class="thead-dark">
                 <tr>
                     <th style="width:12%">Order</th>
-                    <th style="width:54.68%">
-                        @Html.DisplayNameFor(model => model.TournamentQuestions[0].Name)
+                    <th style="width:46.35%">
+                        @Html.DisplayNameFor(model => (model.ChallengeQuestions[0].Name))
                     </th>
                     <th style="width:8.33%" class="text-center">Edit</th>
                     <th style="width:8.33%" class="text-center">Details</th>
+                    <th style="width:8.33%" class="text-center">Copy</th>
                     <th style="width:8.33%" class="text-center">Check</th>
                     <th style="width:8.33%" class="text-center">Delete</th>
                 </tr>
             </thead>
             <tbody>
-                @for (int i = 0; i < Model.TournamentQuestions.Count; i++)
+                @for (int i = 0; i < Model.ChallengeQuestions.Count; i++)
                 {
                     <tr>
                         <td>
-                            <select asp-for="@Model.TournamentQuestions[i].Index" class="form-control indexSelector" style="border: 1px solid #ced4da !important; background-image: none !important"
-                                    data-questionId="@Model.TournamentQuestions[i].Id"
-                                    asp-items="@Enumerable.Range(0, Model.TournamentQuestions.Count).Select(p => new SelectListItem { Text = p.ToString(), Value = p.ToString() })"></select>
+                            <select asp-for="@Model.ChallengeQuestions[i].Index" class="form-control indexSelector" style="border: 1px solid #ced4da !important; background-image: none !important"
+                                    data-questionId="@Model.ChallengeQuestions[i].Id"
+                                    asp-items="@Enumerable.Range(0, Model.ChallengeQuestions.Count).Select(p => new SelectListItem { Text = p.ToString(), Value = p.ToString() })"></select>
                         </td>
                         <td>
-                            @(Model.TournamentQuestions[i].Name + " - " + Model.TournamentQuestions[i].Description + " (Level: " + Model.TournamentQuestions[i].DifficultyString + ")")
-                            <input type="hidden" asp-for="@Model.TournamentQuestions[i].Name" />
-                            <input type="hidden" asp-for="@Model.TournamentQuestions[i].Description" />
-                            <input type="hidden" asp-for="@Model.TournamentQuestions[i].Difficulty" />
-                            <input type="hidden" class="nextQuestionId" asp-for="@Model.TournamentQuestions[i].NextQuestionId" />
-                            <input type="hidden" asp-for="@Model.TournamentQuestions[i].AssociatedQuestionId" />
-                            <input type="hidden" class="questionId" asp-for="@Model.TournamentQuestions[i].Id" />
+                            @(Model.ChallengeQuestions[i].Name + " - " + Model.ChallengeQuestions[i].Description + " (Level: " + Model.ChallengeQuestions[i].DifficultyString + ")")
+                            <input type="hidden" asp-for="@Model.ChallengeQuestions[i].Name" />
+                            <input type="hidden" asp-for="@Model.ChallengeQuestions[i].Description" />
+                            <input type="hidden" asp-for="@Model.ChallengeQuestions[i].Difficulty" />
+                            <input type="hidden" class="nextQuestionId" asp-for="@Model.ChallengeQuestions[i].NextQuestionId" />
+                            <input type="hidden" asp-for="@Model.ChallengeQuestions[i].AssociatedQuestionId" />
+                            <input type="hidden" class="questionId" asp-for="@Model.ChallengeQuestions[i].Id" />
                         </td>
                         <td class="text-center">
-                            <a href="#" class="tableLinkEdit" data-toggle="modal" data-target="#questionModal" data-questionId="@Model.TournamentQuestions[i].Id">
+                            <a href="#" class="tableLinkEdit" data-toggle="modal" data-target="#questionModal" data-questionId="@Model.ChallengeQuestions[i].Id">
                                 <img src="~/images/edit.svg" />
                             </a>
                         </td>
                         <td class="text-center">
-                            <a href="#" class="tableLinkDetails" data-toggle="modal" data-target="#questionModal" data-questionId="@Model.TournamentQuestions[i].Id">
+                            <a href="#" class="tableLinkDetails" data-toggle="modal" data-target="#questionModal" data-questionId="@Model.ChallengeQuestions[i].Id">
                                 <img src="~/images/eye.svg" />
                             </a>
                         </td>
                         <td class="text-center">
-                            <a href="#" class="tableLinkCheck" data-toggle="modal" data-target="#checkModal" data-questionId="@Model.TournamentQuestions[i].Id">
+                            <a href="#" class="tableLinkCopy" data-toggle="modal" data-target="#questionModal" data-questionId="@Model.ChallengeQuestions[i].AssociatedQuestionId">
+                                <img src="~/images/copy.svg" style="width:24px" />
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <a href="#" class="tableLinkCheck" data-toggle="modal" data-target="#checkModal" data-questionId="@Model.ChallengeQuestions[i].Id">
                                 <img src="~/images/check-square.svg" />
                             </a>
                         </td>
                         <td class="text-center">
-                            <a href="#" class="deleteAssociatedQuestion" data-toggle="modal" data-target="#deleteModal" data-questionId="@Model.TournamentQuestions[i].Id">
+                            <a href="#" class="deleteAssociatedQuestion" data-toggle="modal" data-target="#deleteModal" data-questionId="@Model.ChallengeQuestions[i].Id">
                                 <img src="~/images/trash-2.svg" class="svg-filter-danger" />
                             </a>
                         </td>
@@ -167,10 +177,14 @@
                                         <input type="hidden" class="modal-hidden" id="QuestionToAdd_TargettedAzureService" name="QuestionToAdd.TargettedAzureService" />
                                         <input type="hidden" class="modal-hidden" id="QuestionToAdd_Difficulty" name="QuestionToAdd.Difficulty" />
                                         <input type="hidden" class="modal-hidden" id="QuestionToAdd_Description" name="QuestionToAdd.Description" />
-                                        <input type="hidden" class="modal-hidden" id="QuestionToAdd_TournamentId" name="QuestionToAdd.TournamentId" />
+                                        <input type="hidden" class="modal-hidden" id="QuestionToAdd_ChallengeId" name="QuestionToAdd.ChallengeId" />
                                         <input type="hidden" class="modal-hidden" id="QuestionToAdd_Id" name="QuestionToAdd.Id" />
                                         <input type="hidden" class="modal-hidden" id="QuestionToAdd_Justification" name="QuestionToAdd.Justification" />
                                     </div>
+                                    <div class="text-primary">
+                                        <span class="font-italic font-weight-bold">Preview:</span>
+                                    </div>
+                                    <div id="textParamsPreview" class="text-primary pb-2"></div>
                                     <div id="textParamsInputGroup" class="form-group row">
                                     </div>
                                 </div>
@@ -269,12 +283,12 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Updating the tournament</h5>
+                    <h5 class="modal-title">Updating the challenge</h5>
                 </div>
                 <div class="modal-body">
                     <div id="checkModalWaiting" class="text-center">
                         <div>
-                            Please wait while the tournament is updating...
+                            Please wait while the challenge is updating...
                         </div>
                         <div>
                             <img src="/images/wait.gif">
@@ -291,7 +305,8 @@
 {
     <script src="~/lib/bootstrap-slider/bootstrap-slider.js"></script>
     <script src="~/lib/bootstrap-select/js/bootstrap-select.js"></script>
-    <script src="~/js/azurechallenge.edittournament.js"></script>
+    <script src="~/lib/bootstrap-toggle/js/bootstrap-toggle.min.js"></script>
+    <script src="~/js/azurechallenge.admin.editchallenge.js"></script>
     <partial name="_ValidationScriptsPartial" />
 
 }

@@ -4,11 +4,11 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading.Tasks;
 
-namespace AzureChallenge.UI.Areas.Administration.Models.Tournaments
+namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
 {
     public class IndexParameterViewModel
     {
-        public string TournamentId { get; set; }
+        public string ChallengeId { get; set; }
         public List<ParameterItem> ParameterList { get; set; }
 
         public class ParameterItem

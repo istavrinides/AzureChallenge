@@ -48,7 +48,12 @@ namespace AzureChallenge.Providers.RESTProviders
             var subscriptionId = secrets.Where(p => p.Key == "SubscriptionId").Select(p => p.Value).FirstOrDefault();
             var response = await restProvider.GetAsync($"https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/readonlykeys?api-version=2019-12-12", azureAccessToken, null);
 
-            dynamic json = JObject.Parse(response);
+            if(response.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                return "";
+            }
+
+            dynamic json = JObject.Parse(response.Content);
             string cosmosDbAccessKey = json.primaryReadonlyMasterKey;
 
             // Parse the uri on /

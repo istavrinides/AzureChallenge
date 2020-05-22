@@ -71,7 +71,7 @@
             <label asp-for="@Model.Text"></label>
             <textarea asp-for="@Model.Text" class="form-control autocomplete" id="Text" rows="4"></textarea>
             <small class="form-text text-muted">Please enter the question text. Placeholders should be wrapped in curly braces {} and will appear in the Discovered Parameters section below.</small>
-            <small class="form-text text-muted">Since each tournament has Global Parameters, please prepend your common parameters with a Global. prefix to get the global values set on the tournament level.</small>
+            <small class="form-text text-muted">Since each challenge has Global Parameters, please prepend your common parameters with a Global. prefix to get the global values set on the challenge level.</small>
             <small class="form-text text-muted">For personalization, some parameters from the user profile are available (Profile.UserNameHased - used for unique identifier, Profile.SubscriptionId and Profile.TenantId).</small>
         </div>
         <div class="form-group">
@@ -205,6 +205,6 @@
     <script src="~/lib/bootstrap-slider/bootstrap-slider.js"></script>
     <script src="~/lib/bootstrap-select/js/bootstrap-select.js"></script>
     <script src="~/lib/tributejs/tribute.js"></script>
-    <script src="~/js/azurechallenge.addquestion.js" asp-append-version="true"></script>
+    <script src="~/js/azurechallenge.admin.addquestion.js" asp-append-version="true"></script>
     <partial name="_ValidationScriptsPartial" />
 }

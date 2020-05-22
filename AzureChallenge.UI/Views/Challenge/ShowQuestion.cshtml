@@ -1,0 +1,10 @@
+﻿@model AzureChallenge.UI.Models.ChallengeViewModels.QuestionViewModel
+
+    <div>ChallengeId: @Model.ChallengeId</div>
+    <div>Difficulty: @Model.Difficulty</div>
+    <div>HelpfulLinks: @foreach (var h in Model.HelpfulLinks) { @h }</div>
+    <div>Justification: @Model.Justification</div>
+    <div>NextQuestionId: @Model.NextQuestionId</div>
+    <div>QuestionId: @Model.QuestionId</div>
+    <div>QuestionText: @Model.QuestionText</div>
+    <div>QuestionIndex: @Model.QuestionIndex</div>

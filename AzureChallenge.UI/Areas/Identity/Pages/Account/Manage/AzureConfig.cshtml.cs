@@ -118,7 +118,7 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
             var token = await azureAuthProvider.AzureAuthorizeAsync(profile.GetSecretsForAuth());
             var result = await restProvider.GetAsync($"https://management.azure.com/subscriptions/{user.SubscriptionId}?api-version=2020-01-01", token, null);
 
-            JObject o = JObject.Parse(result);
+            JObject o = JObject.Parse(result.Content);
             string subscriptionName = (string)o.SelectToken("displayName");
 
             user.SubscriptionName = subscriptionName;

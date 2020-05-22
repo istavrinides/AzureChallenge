@@ -15,8 +15,8 @@ namespace AzureChallenge.Models.Questions
         [JsonProperty(PropertyName = "associatedQuestionId")]
         public string AssociatedQuestionId { get; set; }
 
-        [JsonProperty(PropertyName = "tournamentId")]
-        public string TournamentId { get; set; }
+        [JsonProperty(PropertyName = "challengeId")]
+        public string ChallengeId { get; set; }
 
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }

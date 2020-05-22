@@ -1,0 +1,58 @@
+﻿@model AzureChallenge.UI.Models.ChallengeViewModels.IndexViewModel
+@{
+    ViewData["Title"] = "Challenge list";
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+
+<form>
+    <div class="container">
+        <table class="table table-responsive-md table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th style="width:16.67%">
+                        @Html.DisplayNameFor(model => model.Challenges[0].Name)
+                    </th>
+                    <th style="width:75%">
+                        @Html.DisplayNameFor(model => model.Challenges[0].Description)
+                    </th>
+                    <th style="width:8.33%"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var q in Model.Challenges)
+                {
+                    <tr>
+                        <td>
+                            @q.Name
+                        </td>
+                        <td>
+                            @q.Description
+                        </td>
+                        <td>
+                            @if (q.IsComplete)
+                            {
+                                <span class="text-success">Completed</span>
+                            }
+                            else if (q.IsUnderway)
+                            {
+                                <a asp-action="ShowQuestion" asp-controller="Challenge" asp-route-challengeId="@q.Id" asp-route-questionId="@q.CurrentQuestionId">Continue</a>
+                            }
+                            else
+                            {
+                                <a asp-action="ShowQuestion" asp-controller="Challenge" asp-route-challengeId="@q.Id" asp-route-questionId="@q.CurrentQuestionId">Start</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</form>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+}

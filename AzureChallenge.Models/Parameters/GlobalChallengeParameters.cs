@@ -6,12 +6,12 @@ using System.Text;
 
 namespace AzureChallenge.Models.Parameters
 {
-    public class GlobalTournamentParameters : AzureChallengeDocument
+    public class GlobalChallengeParameters : AzureChallengeDocument
     {
-        public GlobalTournamentParameters() : base("GlobalTournamentParameters") { }
+        public GlobalChallengeParameters() : base("GlobalChallengeParameters") { }
         
         [JsonProperty(PropertyName = "id")]
-        public string TournamentId { get; set; }
+        public string ChallengeId { get; set; }
         [JsonProperty(PropertyName = "parameters")]
         public List<ParameterDefinition> Parameters { get; set; }
 

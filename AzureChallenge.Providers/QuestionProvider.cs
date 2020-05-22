@@ -29,7 +29,7 @@ namespace AzureChallenge.Providers
 
         public async Task<AzureChallengeResult> AddItemAsync(Question item)
         {
-            return await dataProvider.AddItemAsync(item);
+            return await dataProvider.UpsertItemAsync(item);
         }
     }
 }
