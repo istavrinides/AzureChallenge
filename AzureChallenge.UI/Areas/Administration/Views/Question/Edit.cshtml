@@ -173,13 +173,33 @@
             </div>
         </div>
     </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" class="btn btn-primary" data-toggle="modal" data-target="#waitModal">Submit</button>
+
+    <div class="modal" id="waitModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Updating the question</h5>
+                </div>
+                <div class="modal-body">
+                    <div id="checkModalWaiting" class="text-center">
+                        <div>
+                            Please wait while the question is being updated...
+                        </div>
+                        <div>
+                            <img src="/images/wait.gif">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </form>
 
 @section Scripts
 {
     <script src="~/lib/tributejs/tribute.js"></script>
-    <script src="~/js/azurechallenge.addquestion.js" asp-append-version="true"></script>
+    <script src="~/js/azurechallenge.admin.addquestion.js" asp-append-version="true"></script>
     <script src="~/lib/bootstrap-slider/bootstrap-slider.js"></script>
     <script src="~/lib/bootstrap-select/js/bootstrap-select.js"></script>
     <partial name="_ValidationScriptsPartial" />

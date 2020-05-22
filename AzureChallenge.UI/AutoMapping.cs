@@ -17,7 +17,7 @@ namespace AzureChallenge.UI
 
             CreateMap<ACModels.Profile.UserProfile, AzureChallenge.UI.Areas.Identity.Data.AzureChallengeUIUser>().ReverseMap();
 
-            CreateMap<ACModels.Tournaments.TournamentDetails, ACAreaViewModels.Tournaments.IndexTournamentViewModel>().ReverseMap();           
+            CreateMap<ACModels.Challenges.ChallengeDetails, ACAreaViewModels.Challenges.IndexChallengeViewModel>().ReverseMap();           
         }
     }
 }

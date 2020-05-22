@@ -17,9 +17,9 @@
 		"sourceMap": false
 	},
 	{
-		"outputFileName": "wwwroot/js/azurechallenge.addquestion.min.js",
+		"outputFileName": "wwwroot/js/azurechallenge.admin.addquestion.min.js",
 		"inputFiles": [
-			"wwwroot/js/azurechallenge.addquestion.js"
+			"wwwroot/js/azurechallenge.admin.addquestion.js"
 		],
 		"minify": {
 			"enabled": true,
@@ -28,9 +28,9 @@
 		"sourceMap": false
 	},
 	{
-		"outputFileName": "wwwroot/js/azurechallenge.edittournament.min.js",
+		"outputFileName": "wwwroot/js/azurechallenge.admin.editchallenge.min.js",
 		"inputFiles": [
-			"wwwroot/js/azurechallenge.edittournament.js"
+			"wwwroot/js/azurechallenge.admin.editchallenge.js"
 		],
 		"minify": {
 			"enabled": true,
@@ -39,9 +39,9 @@
 		"sourceMap": false
 	},
 	{
-		"outputFileName": "wwwroot/js/azurechallenge.parameterlist.min.js",
+		"outputFileName": "wwwroot/js/azurechallenge.admin.parameterlist.min.js",
 		"inputFiles": [
-			"wwwroot/js/azurechallenge.parameterlist.js"
+			"wwwroot/js/azurechallenge.admin.parameterlist.js"
 		],
 		"minify": {
 			"enabled": true,

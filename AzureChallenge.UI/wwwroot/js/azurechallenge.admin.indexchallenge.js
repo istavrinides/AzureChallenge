@@ -26,12 +26,12 @@
             Description: Description
         };
 
-        $.post("/Administration/Tournament/AddNewTournament", model)
+        $.post("/Administration/Challenge/AddNewChallenge", model)
             .done(function () {
                 location.reload();
             })
             .fail(function () {
-                window.alert("Could not add the new Tournament, an internal error occured. Please try again later.");
+                window.alert("Could not add the new Challenge, an internal error occured. Please try again later.");
                 location.reload();
             })
 

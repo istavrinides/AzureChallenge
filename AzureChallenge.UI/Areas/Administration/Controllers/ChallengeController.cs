@@ -4,86 +4,93 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using AzureChallenge.Interfaces.Providers.Questions;
-using AzureChallenge.Interfaces.Providers.Tournaments;
+using AzureChallenge.Interfaces.Providers.Challenges;
 using AzureChallenge.Interfaces.Providers.Parameters;
-using VM = AzureChallenge.UI.Areas.Administration.Models.Tournaments;
+using VM = AzureChallenge.UI.Areas.Administration.Models.Challenges;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using ACM = AzureChallenge.Models;
-using ACMT = AzureChallenge.Models.Tournaments;
+using ACMT = AzureChallenge.Models.Challenges;
 using ACMQ = AzureChallenge.Models.Questions;
 using ACMP = AzureChallenge.Models.Parameters;
+using ACMA = AzureChallenge.Models.Aggregates;
 using Microsoft.CodeAnalysis.Differencing;
-using AzureChallenge.UI.Areas.Administration.Models.Tournaments;
+using AzureChallenge.UI.Areas.Administration.Models.Challenges;
 using Microsoft.AspNetCore.Identity;
 using AzureChallenge.UI.Areas.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Azure.Cosmos.Linq;
+using AzureChallenge.Interfaces.Providers.Aggregates;
 
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
     [Area("Administration")]
     [Authorize]
     [Authorize(Roles = "Administrator")]
-    public class TournamentController : Controller
+    public class ChallengeController : Controller
     {
-        private readonly ITournamentProvider<ACM.AzureChallengeResult, ACMT.TournamentDetails> tournamentProvider;
+        private readonly IChallengeProvider<ACM.AzureChallengeResult, ACMT.ChallengeDetails> challengeProvider;
         private readonly IAssignedQuestionProvider<ACM.AzureChallengeResult, ACMQ.AssignedQuestion> assignedQuestionProvider;
         private readonly IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider;
-        private readonly IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalTournamentParameters> globalParameterProvider;
+        private readonly IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> globalParameterProvider;
+        private readonly IAggregateProvider<ACM.AzureChallengeResult, ACMA.Aggregate> aggregateProvider;
         private readonly IMapper mapper;
         private readonly IConfiguration configuration;
         private readonly UserManager<AzureChallengeUIUser> userManager;
 
-        public TournamentController(ITournamentProvider<ACM.AzureChallengeResult, ACMT.TournamentDetails> tournamentProvider,
+        public ChallengeController(IChallengeProvider<ACM.AzureChallengeResult, ACMT.ChallengeDetails> challengeProvider,
                                     IAssignedQuestionProvider<ACM.AzureChallengeResult, ACMQ.AssignedQuestion> assignedQuestionProvider,
                                     IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider,
-                                    IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalTournamentParameters> globalParameterProvider,
+                                    IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> globalParameterProvider,
+                                    IAggregateProvider<ACM.AzureChallengeResult, ACMA.Aggregate> aggregateProvider,
                                     IMapper mapper,
                                     IConfiguration configuration,
                                     UserManager<AzureChallengeUIUser> userManager)
         {
-            this.tournamentProvider = tournamentProvider;
+            this.challengeProvider = challengeProvider;
             this.assignedQuestionProvider = assignedQuestionProvider;
             this.questionProvider = questionProvider;
             this.globalParameterProvider = globalParameterProvider;
+            this.aggregateProvider = aggregateProvider;
             this.mapper = mapper;
             this.configuration = configuration;
             this.userManager = userManager;
         }
 
-        [Route("Administration/Tournament/Index")]
-        [Route("Administration/Tournament")]
+        [Route("Administration/Challenge/Index")]
+        [Route("Administration/Challenge")]
         public async Task<IActionResult> Index()
         {
-            var result = await tournamentProvider.GetAllItemsAsync();
+            var result = await challengeProvider.GetAllItemsAsync();
 
-            var model = mapper.Map<IList<VM.IndexTournamentViewModel>>(result.Item2);
+            var model = mapper.Map<IList<VM.IndexChallengeViewModel>>(result.Item2);
 
             return View(model);
         }
 
-        [Route("Administration/Tournament/{tournamentId}/Edit")]
-        public async Task<IActionResult> Edit(string tournamentId)
+        [Route("Administration/Challenge/{challengeId}/Edit")]
+        public async Task<IActionResult> Edit(string challengeId)
         {
-            // Get the tournament details
-            var tournament = await tournamentProvider.GetItemAsync(tournamentId);
+            // Get the challenge details
+            var challenge = await challengeProvider.GetItemAsync(challengeId);
 
             // Get the list of available questions
             var questions = await questionProvider.GetAllItemsAsync();
 
             var userProfile = await userManager.GetUserAsync(User);
 
-            var model = new VM.EditTournamentViewModel()
+            var model = new VM.EditChallengeViewModel()
             {
                 Questions = new List<VM.Question>(),
-                Id = tournamentId,
-                Description = tournament.Item2.Description,
-                Name = tournament.Item2.Name,
-                TournamentQuestions = tournament.Item2.Questions.OrderBy(p => p.Index)
-                                            .Select(p => new VM.TournamentQuestion
+                Id = challengeId,
+                Description = challenge.Item2.Description,
+                IsPublic = challenge.Item2.IsPublic,
+                OldIsPublic = challenge.Item2.IsPublic,
+                Name = challenge.Item2.Name,
+                ChallengeQuestions = challenge.Item2.Questions.OrderBy(p => p.Index)
+                                            .Select(p => new VM.ChallengeQuestion
                                             {
                                                 Description = p.Description,
                                                 Difficulty = p.Difficulty,
@@ -93,7 +100,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                                 NextQuestionId = p.NextQuestionId,
                                                 AssociatedQuestionId = p.AssociatedQuestionId
                                             }).ToList(),
-                CurrentUserProfile = new EditTournamentViewModel.UserProfile
+                CurrentUserProfile = new EditChallengeViewModel.UserProfile
                 {
                     SubscriptionId = userProfile.SubscriptionId,
                     TenantId = userProfile.TenantId,
@@ -103,7 +110,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
             foreach (var q in questions.Item2)
             {
-                if (!model.TournamentQuestions.Exists(p => p.AssociatedQuestionId == q.Id))
+                if (!model.ChallengeQuestions.Exists(p => p.AssociatedQuestionId == q.Id))
                 {
                     model.Questions.Add(new VM.Question()
                     {
@@ -120,7 +127,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddAssignedQuestion(EditTournamentViewModel inputModel)
+        public async Task<IActionResult> AddAssignedQuestion(EditChallengeViewModel inputModel)
         {
             if (ModelState.IsValid)
             {
@@ -143,7 +150,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     TargettedAzureService = inputModel.QuestionToAdd.TargettedAzureService,
                     Text = inputModel.QuestionToAdd.Text,
                     TextParameters = inputModel.QuestionToAdd.TextParameters.ToDictionary(p => p.Key, p => p.Value),
-                    TournamentId = inputModel.QuestionToAdd.TournamentId,
+                    ChallengeId = inputModel.QuestionToAdd.ChallengeId,
                     Uris = inputModel.QuestionToAdd.Uris
                                     .Select(p => new ACMQ.AssignedQuestion.UriList
                                     {
@@ -157,9 +164,9 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     UsefulLinks = inputModel.QuestionToAdd.UsefulLinks
                 };
 
-                List<ACMQ.QuestionLite> tournamentQuestions = null;
-                if (inputModel.TournamentQuestions != null)
-                    tournamentQuestions = inputModel.TournamentQuestions
+                List<ACMQ.QuestionLite> challengeQuestions = null;
+                if (inputModel.ChallengeQuestions != null)
+                    challengeQuestions = inputModel.ChallengeQuestions
                                                       .Select(p => new ACMQ.QuestionLite
                                                       {
                                                           Description = p.Description,
@@ -171,21 +178,21 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                                           NextQuestionId = p.NextQuestionId
                                                       }).ToList();
                 else
-                    tournamentQuestions = new List<ACMQ.QuestionLite>();
+                    challengeQuestions = new List<ACMQ.QuestionLite>();
 
-                // Get the existing tournament details
-                var tournament = new ACMT.TournamentDetails()
+                // Get the existing challenge details
+                var challenge = new ACMT.ChallengeDetails()
                 {
                     Description = inputModel.Description,
                     Id = inputModel.Id,
                     Name = inputModel.Name,
-                    Questions = tournamentQuestions
+                    Questions = challengeQuestions
                 };
 
-                // Check if this is an update to an existing tournament question
-                if (tournament.Questions.Exists(p => p.Id == assignedQuestion.QuestionId))
+                // Check if this is an update to an existing challenge question
+                if (challenge.Questions.Exists(p => p.Id == assignedQuestion.QuestionId))
                 {
-                    // We only need to update the assigned question, not the tournament
+                    // We only need to update the assigned question, not the challenge
                     var updateQuestionResult = await assignedQuestionProvider.AddItemAsync(assignedQuestion);
                     if (!updateQuestionResult.Success)
                     {
@@ -194,25 +201,25 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 }
                 else
                 {
-                    // Create a new Tournament Question
-                    var newTournamentQuestion = new ACMQ.QuestionLite
+                    // Create a new Challenge Question
+                    var newChallengeQuestion = new ACMQ.QuestionLite
                     {
                         Name = assignedQuestion.Name,
                         Description = assignedQuestion.Description,
                         Difficulty = assignedQuestion.Difficulty,
                         Id = assignedQuestion.QuestionId,
                         AssociatedQuestionId = assignedQuestion.AssociatedQuestionId,
-                        Index = tournament.Questions.Count()
+                        Index = challenge.Questions.Count()
                     };
-                    // Assign the next question value of the last question in the tournament to this one
-                    if (tournament.Questions.Count > 0)
+                    // Assign the next question value of the last question in the challenge to this one
+                    if (challenge.Questions.Count > 0)
                     {
-                        tournament.Questions[tournament.Questions.Count - 1].NextQuestionId = assignedQuestion.QuestionId;
+                        challenge.Questions[challenge.Questions.Count - 1].NextQuestionId = assignedQuestion.QuestionId;
                     }
-                    tournament.Questions.Add(newTournamentQuestion);
+                    challenge.Questions.Add(newChallengeQuestion);
 
-                    // Get the global parameters for the tournament
-                    var globalParamsResponse = await globalParameterProvider.GetItemAsync(assignedQuestion.TournamentId);
+                    // Get the global parameters for the challenge
+                    var globalParamsResponse = await globalParameterProvider.GetItemAsync(assignedQuestion.ChallengeId);
                     var globalParams = globalParamsResponse.Item2;
 
                     // Check if the parameter is global and it exists in the global parameters list
@@ -226,9 +233,9 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                             if (globalParameter == null)
                             {
                                 if (globalParams.Parameters == null)
-                                    globalParams.Parameters = new List<ACMP.GlobalTournamentParameters.ParameterDefinition>();
+                                    globalParams.Parameters = new List<ACMP.GlobalChallengeParameters.ParameterDefinition>();
 
-                                globalParams.Parameters.Add(new ACMP.GlobalTournamentParameters.ParameterDefinition
+                                globalParams.Parameters.Add(new ACMP.GlobalChallengeParameters.ParameterDefinition
                                 {
                                     Key = parameter.Key.Replace("Global.", ""),
                                     Value = parameter.Value,
@@ -247,9 +254,9 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     var addQuestionResult = await assignedQuestionProvider.AddItemAsync(assignedQuestion);
                     if (addQuestionResult.Success)
                     {
-                        var updateTournamentResult = await tournamentProvider.AddItemAsync(tournament);
+                        var updateChallengeResult = await challengeProvider.AddItemAsync(challenge);
 
-                        if (!updateTournamentResult.Success)
+                        if (!updateChallengeResult.Success)
                         {
                             await assignedQuestionProvider.DeleteItemAsync(assignedQuestion.QuestionId);
                             return StatusCode(500);
@@ -260,12 +267,12 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
             return RedirectToAction("Edit", new
             {
-                tournamentId = inputModel.QuestionToAdd.TournamentId
+                challengeId = inputModel.QuestionToAdd.ChallengeId
             });
         }
 
-        [Route("Administration/Tournament/{tournamentId}/AssignedQuestion/{assignedQuestionId}")]
-        public async Task<IActionResult> GetAssignedQuestionAsync(string tournamentId, string assignedQuestionId)
+        [Route("Administration/Challenge/{challengeId}/AssignedQuestion/{assignedQuestionId}")]
+        public async Task<IActionResult> GetAssignedQuestionAsync(string challengeId, string assignedQuestionId)
         {
             var result = await assignedQuestionProvider.GetItemAsync(assignedQuestionId);
 
@@ -288,7 +295,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     TargettedAzureService = result.Item2.TargettedAzureService,
                     Text = result.Item2.Text,
                     TextParameters = result.Item2.TextParameters.Select(p => new VM.AssignedQuestion.KVPair { Key = p.Key, Value = p.Value }).ToList(),
-                    TournamentId = result.Item2.TournamentId,
+                    ChallengeId = result.Item2.ChallengeId,
                     Uris = result.Item2.Uris
                              .Select(p => new VM.AssignedQuestion.UriList
                              {
@@ -309,52 +316,52 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             }
         }
 
-        public async Task<IActionResult> RemoveQuestion(string tournamentId, string questionId)
+        public async Task<IActionResult> RemoveQuestion(string challengeId, string questionId)
         {
-            // Get the tournament
-            var tournamentResponse = await tournamentProvider.GetItemAsync(tournamentId);
+            // Get the challenge
+            var challengeResponse = await challengeProvider.GetItemAsync(challengeId);
 
-            if (tournamentResponse.Item1.Success)
+            if (challengeResponse.Item1.Success)
             {
                 // Create a new object, in case we need to revert
-                var tournament = new ACMT.TournamentDetails
+                var challenge = new ACMT.ChallengeDetails
                 {
-                    Description = tournamentResponse.Item2.Description,
-                    Id = tournamentResponse.Item2.Id,
-                    Name = tournamentResponse.Item2.Name,
-                    Questions = tournamentResponse.Item2.Questions
+                    Description = challengeResponse.Item2.Description,
+                    Id = challengeResponse.Item2.Id,
+                    Name = challengeResponse.Item2.Name,
+                    Questions = challengeResponse.Item2.Questions
                 };
 
-                var tournamentQuestions = tournament.Questions;
+                var challengeQuestions = challenge.Questions;
 
                 // Remove the question from the list, re-index the next questions and change the pointers also
                 // First find the question's index
-                var questionIndex = tournamentQuestions.IndexOf(tournamentQuestions.Where(p => p.Id == questionId).FirstOrDefault());
+                var questionIndex = challengeQuestions.IndexOf(challengeQuestions.Where(p => p.Id == questionId).FirstOrDefault());
                 // Starting backwards until the question index - 1, re-index
-                for (int i = tournamentQuestions.Count - 1; i > questionIndex - 1; i--)
+                for (int i = challengeQuestions.Count - 1; i > questionIndex - 1; i--)
                 {
-                    tournamentQuestions[i].Index = tournamentQuestions[i].Index - 1;
+                    challengeQuestions[i].Index = challengeQuestions[i].Index - 1;
                 }
                 // Point the previous question to the next one
                 // If the question to delete is the last one, point the previous question to null
-                if (questionIndex == tournamentQuestions.Count - 1)
+                if (questionIndex == challengeQuestions.Count - 1)
                 {
                     // We only need to do something if it's not the only question
                     if (questionIndex > 0)
-                        tournamentQuestions[questionIndex - 1].NextQuestionId = null;
+                        challengeQuestions[questionIndex - 1].NextQuestionId = null;
                 }
                 else
                 {
                     // We only need to do something if it's not the first question
                     if (questionIndex > 0)
-                        tournamentQuestions[questionIndex - 1].NextQuestionId = tournamentQuestions[questionIndex + 1].Id;
+                        challengeQuestions[questionIndex - 1].NextQuestionId = challengeQuestions[questionIndex + 1].Id;
                 }
 
                 // Get the assigned question
                 var assignedQuestionResponse = await assignedQuestionProvider.GetItemAsync(questionId);
                 var assignedQuestion = assignedQuestionResponse.Item2;
-                // Get the global parameters for the tournament
-                var globalParamsResponse = await globalParameterProvider.GetItemAsync(tournamentId);
+                // Get the global parameters for the challenge
+                var globalParamsResponse = await globalParameterProvider.GetItemAsync(challengeId);
                 var globalParams = globalParamsResponse.Item2;
 
                 // Check if the parameter is global and it exists in the global parameters list
@@ -375,10 +382,10 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 await globalParameterProvider.AddItemAsync(globalParams);
 
                 // Now remove the question
-                tournamentQuestions.RemoveAt(questionIndex);
+                challengeQuestions.RemoveAt(questionIndex);
 
-                // Update the tournament
-                var updateResult = await tournamentProvider.AddItemAsync(tournament);
+                // Update the challenge
+                var updateResult = await challengeProvider.AddItemAsync(challenge);
 
                 if (updateResult.Success)
                 {
@@ -392,7 +399,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     else
                     {
                         // Try to re-add the previous state, hopefully it works
-                        await tournamentProvider.AddItemAsync(tournamentResponse.Item2);
+                        await challengeProvider.AddItemAsync(challengeResponse.Item2);
                         return StatusCode(500);
                     }
                 }
@@ -415,15 +422,16 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateTournament(EditTournamentViewModel inputModel)
+        public async Task<IActionResult> UpdateChallenge(EditChallengeViewModel inputModel)
         {
-            // We only care about updating the tournament values
-            var tournament = new ACMT.TournamentDetails
+            // We only care about updating the challenge values
+            var challenge = new ACMT.ChallengeDetails
             {
                 Description = inputModel.Description,
                 Id = inputModel.Id,
                 Name = inputModel.Name,
-                Questions = inputModel.TournamentQuestions
+                IsPublic = inputModel.IsPublic,
+                Questions = inputModel.ChallengeQuestions
                                       .Select(p => new ACMQ.QuestionLite()
                                       {
                                           AssociatedQuestionId = p.AssociatedQuestionId,
@@ -436,7 +444,29 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                       }).ToList()
             };
 
-            var updateResult = await tournamentProvider.AddItemAsync(tournament);
+            var updateResult = await challengeProvider.AddItemAsync(challenge);
+
+            // Check the IsPublic property. Depending on the change, we need to add or remove the challenge from the aggregate
+            if (inputModel.IsPublic != inputModel.OldIsPublic)
+            {
+                // We only have one, so just get via the Partition search
+                var aggregatesReponse = await aggregateProvider.GetAllItemsAsync();
+
+                if (aggregatesReponse.Item1.Success)
+                {
+                    var agg =
+                        aggregatesReponse.Item2.Count() > 0 ?
+                            aggregatesReponse.Item2[0] :
+                            new ACMA.Aggregate()
+                            {
+                                Id = Guid.NewGuid().ToString(),
+                                Challenge = new ACMA.ChallengeAggregate() { TotalPublic = 0 }
+                            };
+
+                    agg.Challenge.TotalPublic += inputModel.IsPublic ? 1 : agg.Challenge.TotalPublic > 0 ? -1 : 0;
+                    await aggregateProvider.AddItemAsync(agg);
+                }
+            }
 
             if (updateResult.Success)
                 return Ok();
@@ -445,9 +475,9 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddNewTournament(IndexTournamentViewModel inputModel)
+        public async Task<IActionResult> AddNewChallenge(IndexChallengeViewModel inputModel)
         {
-            var tournament = new ACMT.TournamentDetails
+            var challenge = new ACMT.ChallengeDetails
             {
                 Description = inputModel.Description,
                 Id = Guid.NewGuid().ToString(),
@@ -455,12 +485,12 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 Questions = new List<ACMQ.QuestionLite>()
             };
 
-            var response = await tournamentProvider.AddItemAsync(tournament);
+            var response = await challengeProvider.AddItemAsync(challenge);
 
             if (response.Success)
             {
-                // Add a new global parameter object for the Tournament
-                await globalParameterProvider.AddItemAsync(new ACMP.GlobalTournamentParameters() { TournamentId = tournament.Id });
+                // Add a new global parameter object for the Challenge
+                await globalParameterProvider.AddItemAsync(new ACMP.GlobalChallengeParameters() { ChallengeId = challenge.Id });
                 return Ok();
             }
 

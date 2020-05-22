@@ -15,6 +15,7 @@ using ACM = AzureChallenge.Models;
 using ACMP = AzureChallenge.Models.Parameters;
 using AzureChallenge.Models.Profile;
 using System.Xml.Linq;
+using System.Net;
 
 namespace AzureChallenge.Providers
 {
@@ -23,12 +24,12 @@ namespace AzureChallenge.Providers
         private readonly IDataProvider<AzureChallengeResult, AssignedQuestion> dataProvider;
         private readonly IAzureAuthProvider authProvider;
         private readonly IRESTProvider restProvider;
-        private readonly IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalTournamentParameters> parametersProvider;
+        private readonly IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> parametersProvider;
 
         public AssignedQuestionProvider(IDataProvider<AzureChallengeResult, AssignedQuestion> dataProvider,
                                         IAzureAuthProvider authProvider,
                                         IRESTProvider restProvider,
-                                        IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalTournamentParameters> parametersProvider)
+                                        IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> parametersProvider)
         {
             this.dataProvider = dataProvider;
             this.authProvider = authProvider;
@@ -48,7 +49,7 @@ namespace AzureChallenge.Providers
 
         public async Task<AzureChallengeResult> AddItemAsync(AssignedQuestion item)
         {
-            return await dataProvider.AddItemAsync(item);
+            return await dataProvider.UpsertItemAsync(item);
         }
 
         public async Task<AzureChallengeResult> DeleteItemAsync(string id)
@@ -69,7 +70,7 @@ namespace AzureChallenge.Providers
             var question = result.Item2;
 
             // Get the global parameters
-            var globalParameters = await parametersProvider.GetItemAsync(question.TournamentId);
+            var globalParameters = await parametersProvider.GetItemAsync(question.ChallengeId);
 
             List<KeyValuePair<string, string>> additionalHeaders = null;
 
@@ -91,6 +92,7 @@ namespace AzureChallenge.Providers
                     parameters = parameters.Concat(profile.GetKeyValuePairs()).ToDictionary(p => p.Key, p => p.Value);
                     // Filter out the Profile. and Global. from Uri Parameters, since they don't have values anyway
                     parameters = parameters.Concat(question.Uris[i].UriParameters.Where(p => !p.Key.StartsWith("Profile.") && !p.Key.StartsWith("Global.")).ToDictionary(p => p.Key, p => p.Value)).ToDictionary(p => p.Key, p => p.Value);
+                    parameters = parameters.Concat(question.TextParameters.Where(p => !p.Key.StartsWith("Profile.") && !p.Key.StartsWith("Global.")).ToDictionary(p => p.Key, p => p.Value)).ToDictionary(p => p.Key, p => p.Value);
                     formattedUri = SmartFormat.Smart.Format(formattedUri, parameters);
 
                     // Get the access token
@@ -113,7 +115,8 @@ namespace AzureChallenge.Providers
                         return correctAsnwers;
                     }
 
-                    var response = "";
+                    (string Content, HttpStatusCode StatusCode) response;
+
                     try
                     {
                         // Clear the additionalHeaders by setting to null
@@ -134,6 +137,13 @@ namespace AzureChallenge.Providers
                         }
 
                         response = await restProvider.GetAsync(formattedUri, access_token, additionalHeaders);
+
+                        if (response.StatusCode != HttpStatusCode.OK)
+                        {
+                            correctAsnwers = new List<KeyValuePair<string, bool>>();
+                            correctAsnwers.Add(new KeyValuePair<string, bool>(response.Content, false));
+                            return correctAsnwers;
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -142,7 +152,7 @@ namespace AzureChallenge.Providers
                         return correctAsnwers;
                     }
 
-                    JObject o = JObject.Parse(response);
+                    JObject o = JObject.Parse(response.Content);
 
                     // If we don't need to check any answers, the call was successful
                     if (question.Answers[i].AnswerParameters == null || question.Answers[i].AnswerParameters.Count == 0)
@@ -165,7 +175,7 @@ namespace AzureChallenge.Providers
                             if (!string.IsNullOrWhiteSpace(throughput))
                             {
                                 access_token = await authProvider.CosmosAuthorizeAsync(profile.GetSecretsForAuth(), formattedUriForRUs, resourceGroup);
-                                var responseForDBandCollIds = "";
+                                (string Content, HttpStatusCode StatusCode) responseForDBandCollIds;
                                 try
                                 {// We need to add additional headers for CosmosDb calls
                                     additionalHeaders = new List<KeyValuePair<string, string>>();
@@ -173,6 +183,13 @@ namespace AzureChallenge.Providers
                                     additionalHeaders.Add(new KeyValuePair<string, string>("x-ms-version", "2018-12-31"));
 
                                     responseForDBandCollIds = await restProvider.GetAsync(formattedUriForRUs, access_token, additionalHeaders);
+
+                                    if (responseForDBandCollIds.StatusCode != HttpStatusCode.OK)
+                                    {
+                                        correctAsnwers = new List<KeyValuePair<string, bool>>();
+                                        correctAsnwers.Add(new KeyValuePair<string, bool>(responseForDBandCollIds.Content, false));
+                                        return correctAsnwers;
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
@@ -181,10 +198,10 @@ namespace AzureChallenge.Providers
                                     return correctAsnwers;
                                 }
 
-                                dynamic json = JObject.Parse(responseForDBandCollIds);
+                                dynamic json = JObject.Parse(responseForDBandCollIds.Content);
                                 var ids = json._self;
 
-                                dynamic jsonOffer = JObject.Parse(response);
+                                dynamic jsonOffer = JObject.Parse(response.Content);
                                 var answerForThroughput = question.Answers[i].AnswerParameters.Where(p => p.Key.Contains("offerThroughput")).FirstOrDefault();
                                 var found = false;
                                 foreach (var j in jsonOffer.Offers)
@@ -208,7 +225,10 @@ namespace AzureChallenge.Providers
                             foreach (var answer in question.Answers[i].AnswerParameters)
                             {
                                 var properties = answer.Key.Split('.').ToList();
-                                correctAsnwers.Add(new KeyValuePair<string, bool>(answer.Key, CheckAnswer(o, properties, answer.Value, 0, properties.Count)));
+                                // Get and format the answer. Answers might contain parameters
+                                var answerValue = SmartFormat.Smart.Format(answer.Value.Replace("Global.", "Global_").Replace("Profile.", "Profile_"), parameters);
+
+                                correctAsnwers.Add(new KeyValuePair<string, bool>(answer.Key, CheckAnswer(o, properties, answerValue, 0, properties.Count)));
                             }
                         }
                         else
@@ -216,7 +236,10 @@ namespace AzureChallenge.Providers
                             foreach (var answer in question.Answers[i].AnswerParameters)
                             {
                                 var properties = answer.Key.Split('.').ToList();
-                                correctAsnwers.Add(new KeyValuePair<string, bool>(answer.Key, CheckAnswer(o, properties, answer.Value, 0, properties.Count)));
+                                // Get and format the answer. Answers might contain parameters
+                                var answerValue = SmartFormat.Smart.Format(answer.Value.Replace("Global.", "Global_").Replace("Profile.", "Profile_"), parameters);
+
+                                correctAsnwers.Add(new KeyValuePair<string, bool>(answer.Key, CheckAnswer(o, properties, answerValue, 0, properties.Count)));
                             }
                         }
 
@@ -229,7 +252,23 @@ namespace AzureChallenge.Providers
 
         public static bool CheckAnswer(JObject json, List<string> properties, string value, int index, int maxIndex)
         {
-            var thisProperty = json.SelectToken(properties[index]);
+            var tokenValue = "";
+            var arrayValue = "";
+
+            // Check if properties[index] has an array notation.
+            if (properties[index].Contains("["))
+            {
+                tokenValue = properties[index].Split('[').First();
+                arrayValue = properties[index].Split('[').Last();
+                // Remove the ] last character
+                arrayValue = arrayValue.Substring(0, arrayValue.Length - 1);
+            }
+            else
+            {
+                tokenValue = properties[index];
+            }
+
+            var thisProperty = json.SelectToken(tokenValue);
 
             if (thisProperty == null)
             {
@@ -237,7 +276,15 @@ namespace AzureChallenge.Providers
             }
             else if (thisProperty.Type == JTokenType.String || thisProperty.Type == JTokenType.Integer && index + 1 == maxIndex)
             {
-                return value == (string)thisProperty;
+                // ipRangeFilter is a CSV list of IPs, so we need to see if the value exists in it
+                if (properties[index] == "ipRangeFilter")
+                {
+                    return ((string)thisProperty).Contains(value);
+                }
+                else
+                {
+                    return value == (string)thisProperty || value.ToLower() == ((string)thisProperty).ToLower();
+                }
             }
             else if (thisProperty.Type == JTokenType.Boolean && index + 1 == maxIndex)
             {
@@ -250,15 +297,28 @@ namespace AzureChallenge.Providers
             }
             else if (thisProperty.Type == JTokenType.Array)
             {
-                foreach (var j in (JArray)thisProperty)
+                // If arrayValue is not empty, this means we are looking for a value into a specific object in the array
+                if (!string.IsNullOrWhiteSpace(arrayValue))
                 {
-                    if (j.Type == JTokenType.Object)
+                    var parsedArrayValue = arrayValue.Split('=');
+
+                    var selectedPath = json.SelectToken($"$.{tokenValue}[?(@.{parsedArrayValue[0]} == '{parsedArrayValue[1]}')]");
+
+                    if (CheckAnswer((JObject)selectedPath, properties, value, index + 1, maxIndex))
+                        return true;
+                }
+                else
+                {
+                    foreach (var j in (JArray)thisProperty)
                     {
-                        if (CheckAnswer((JObject)j, properties, value, index + 1, maxIndex))
-                            return true;
+                        if (j.Type == JTokenType.Object)
+                        {
+                            if (CheckAnswer((JObject)j, properties, value, index + 1, maxIndex))
+                                return true;
+                        }
+                        else if (j.Type == JTokenType.String && index + 1 == maxIndex)
+                            return value == (string)j;
                     }
-                    else if (j.Type == JTokenType.String && index + 1 == maxIndex)
-                        return value == (string)j;
                 }
             }
 

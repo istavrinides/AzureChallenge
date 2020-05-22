@@ -1,6 +1,6 @@
-﻿@model AzureChallenge.UI.Areas.Administration.Models.Tournaments.IndexParameterViewModel
+﻿@model AzureChallenge.UI.Areas.Administration.Models.Challenges.IndexParameterViewModel
 @{
-    ViewData["Title"] = "Tournament Paremeter list";
+    ViewData["Title"] = "Challenge Paremeter list";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -10,7 +10,7 @@
 <form asp-controller="Parameter" asp-action="SaveChanges" method="post">
     @Html.AntiForgeryToken()
 
-    <input type="hidden" asp-for="@Model.TournamentId" />
+    <input type="hidden" asp-for="@Model.ChallengeId" />
     <div class="container">
 
         <div class="form-group row">
@@ -109,7 +109,7 @@
                 <div class="modal-body">
                     <div id="checkModalWaiting" class="text-center">
                         <div>
-                            Please wait while we update the tournament's parameter list...
+                            Please wait while we update the challenge's parameter list...
                         </div>
                         <div>
                             <img src="/images/wait.gif">
@@ -124,6 +124,6 @@
 
 @section Scripts
 {
-    <script src="~/js/azurechallenge.parameterlist.js" type="text/javascript"></script>
+    <script src="~/js/azurechallenge.admin.parameterlist.js" type="text/javascript"></script>
     <partial name="_ValidationScriptsPartial" />
 }

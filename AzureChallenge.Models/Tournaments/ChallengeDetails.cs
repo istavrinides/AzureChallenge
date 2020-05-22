@@ -4,11 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AzureChallenge.Models.Tournaments
+namespace AzureChallenge.Models.Challenges
 {
-    public class TournamentDetails : AzureChallengeDocument
+    public class ChallengeDetails : AzureChallengeDocument
     {
-        public TournamentDetails() : base("Tournament") { }
+        public ChallengeDetails() : base("Challenge") { }
 
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
@@ -16,8 +16,11 @@ namespace AzureChallenge.Models.Tournaments
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
 
-        [JsonProperty(PropertyName = "descritpion")]
+        [JsonProperty(PropertyName = "description")]
         public string Description { get; set; }
+
+        [JsonProperty(PropertyName = "isPublic")]
+        public bool IsPublic { get; set; }
 
         [JsonProperty(PropertyName = "questions")]
         public List<QuestionLite> Questions { get; set; }

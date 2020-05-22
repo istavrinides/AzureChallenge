@@ -5,17 +5,23 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AzureChallenge.UI.Areas.Administration.Models.Tournaments
+namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
 {
-    public class EditTournamentViewModel
+    public class EditChallengeViewModel
     {
         public string Id { get; set; }
 
-        [Display(Name = "Tournament Name")]
+        [Display(Name = "Challenge Name")]
         public string Name { get; set; }
 
         public string Description { get; set; }
-        public List<TournamentQuestion> TournamentQuestions { get; set; }
+
+        [Display(Name="Will the challenge be publically visible (users can search for and join)?")]
+        public bool IsPublic { get; set; }
+
+        public bool OldIsPublic { get; set; }
+
+        public List<ChallengeQuestion> ChallengeQuestions { get; set; }
 
         [Display(Name = "Available Questions")]
         public List<Question> Questions { get; set; }
@@ -32,7 +38,7 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Tournaments
         }
     }
 
-    public class TournamentQuestion
+    public class ChallengeQuestion
     {
         public string Id { get; set; }
         public string AssociatedQuestionId { get; set; }
@@ -49,7 +55,7 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Tournaments
     {
         public string Id { get; set; }
         public string AssociatedQuestionId { get; set; }
-        public string TournamentId { get; set; }
+        public string ChallengeId { get; set; }
         public string Name { get; set; }
         public string TargettedAzureService { get; set; }
         public int Difficulty { get; set; }

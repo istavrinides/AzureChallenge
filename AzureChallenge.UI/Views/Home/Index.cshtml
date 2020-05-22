@@ -1,8 +1,116 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Identity
+@using AzureChallenge.UI.Areas.Identity.Data;
+@inject SignInManager<AzureChallengeUIUser> SignInManager
+@inject UserManager<AzureChallengeUIUser> UserManager
+@model AzureChallenge.UI.Models.HomeViewModels.IndexViewModel;
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@if (SignInManager.IsSignedIn(User))
+{
+    var user = await UserManager.GetUserAsync(User);
+
+    <div class="text-center">
+        <h1 class="display-4">Welcome to Azure Challenge!</h1>
+    </div>
+    @if (string.IsNullOrWhiteSpace(user.SubscriptionId))
+    {
+        <div>
+            <p class="pt-2">
+                Now that you have logged in, you need to setup access to your Azure Subscription. Azure Challenge uses a Service Principal
+                so that it can validate the results of the challenges we pose to you. This is done using Azure REST APIs, in their entirity GET (read) requests.
+                We will not change in any way any resource in your Azure Subscription.
+            </p>
+            <p class="pt-2">
+                To setup access, please follow these steps:
+            </p>
+            <ol>
+                <li>
+                    Create a Service Principal. You can follow <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal">this document</a>
+                    as a reference. You will need to note the following values:
+                    <ul>
+                        <li>
+                            Subscription Id
+                        </li>
+                        <li>
+                            Tenant Id
+                        </li>
+                        <li>
+                            Client Id
+                        </li>
+                        <li>
+                            Client Secret
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Once created, please navigate to the Profile page, where you can add the above values in the <a asp-area="Identity" asp-page="/Account/Manage/AzureConfig">Azure Configuration</a> section.
+                </li>
+                <li>
+                    Once saved, you should see the Subscription Name appear, as validation that everything went well!
+                </li>
+            </ol>
+        </div>
+    }
+    else
+    {
+        <div>
+            <p class="pt-2">
+                Everything is setup so that you can enjoy a new challenge (or complete one you already started)!
+            </p>
+            <p class="pt-2">
+                If you been invited in a private event, please click here:
+            </p>
+            <p class="pt-2">
+                You can always select from our list of Public challenges or continue a challenge you haven't yet completed
+            </p>
+            <p class="pt-5">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header text-center font-weight-bold">
+                                Available Challenges
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="card-title p-1" style="font-size:95px">
+                                    @Model.AvailableChallenges
+                                </div>
+                                <div>
+                                    <a class="btn btn-primary" asp-controller="Challenge" asp-action="Index">View available challenges</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header text-center font-weight-bold">
+                                Your Unfinished Challenges
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="card-title p-1" style="font-size:95px">
+                                    @Model.UnfinishedChallenges
+                                </div>
+                                <div>
+                                    <a href="#" class="btn btn-primary">View unfinished challenges</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </p>
+        </div>
+    }
+}
+else
+{
+    <div class="text-center">
+        <h1 class="display-4">Welcome to Azure Challenge!</h1>
+        <p class="pt-2">
+            Azure Challenge is an online, interactive challenge-based web application for you to learn how to use Azure Services!
+        </p>
+        <p class="pt-5">
+            To get started, please <a asp-area="Identity" asp-page="/Account/Login">Login (or Register)</a>.
+        </p>
+    </div>
+}

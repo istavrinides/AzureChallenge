@@ -9,28 +9,28 @@ using System.Threading.Tasks;
 
 namespace AzureChallenge.Providers
 {
-    public class ParameterProvider : IParameterProvider<AzureChallengeResult, GlobalTournamentParameters>
+    public class ParameterProvider : IParameterProvider<AzureChallengeResult, GlobalChallengeParameters>
     {
-        private IDataProvider<AzureChallengeResult, GlobalTournamentParameters> dataProvider;
+        private IDataProvider<AzureChallengeResult, GlobalChallengeParameters> dataProvider;
 
-        public ParameterProvider(IDataProvider<AzureChallengeResult, GlobalTournamentParameters> dataProvider)
+        public ParameterProvider(IDataProvider<AzureChallengeResult, GlobalChallengeParameters> dataProvider)
         {
             this.dataProvider = dataProvider;
         }
 
-        public async Task<AzureChallengeResult> AddItemAsync(GlobalTournamentParameters item)
+        public async Task<AzureChallengeResult> AddItemAsync(GlobalChallengeParameters item)
         {
-            return await dataProvider.AddItemAsync(item);
+            return await dataProvider.UpsertItemAsync(item);
         }
 
-        public async Task<(AzureChallengeResult, IList<GlobalTournamentParameters>)> GetAllItemsAsync()
+        public async Task<(AzureChallengeResult, IList<GlobalChallengeParameters>)> GetAllItemsAsync()
         {
-            return await dataProvider.GetAllItemsAsync("GlobalTournamentParameters");
+            return await dataProvider.GetAllItemsAsync("GlobalChallengeParameters");
         }
 
-        public async Task<(AzureChallengeResult, GlobalTournamentParameters)> GetItemAsync(string id)
+        public async Task<(AzureChallengeResult, GlobalChallengeParameters)> GetItemAsync(string id)
         {
-            return await dataProvider.GetItemAsync(id, "GlobalTournamentParameters");
+            return await dataProvider.GetItemAsync(id, "GlobalChallengeParameters");
         }
     }
 
@@ -45,7 +45,7 @@ namespace AzureChallenge.Providers
 
         public async Task<AzureChallengeResult> AddItemAsync(GlobalParameters item)
         {
-            return await dataProvider.AddItemAsync(item);
+            return await dataProvider.UpsertItemAsync(item);
         }
 
         public async Task<(AzureChallengeResult, IList<GlobalParameters>)> GetAllItemsAsync()

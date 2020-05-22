@@ -1,6 +1,6 @@
-﻿@model IList<AzureChallenge.UI.Areas.Administration.Models.Tournaments.IndexTournamentViewModel>
+﻿@model IList<AzureChallenge.UI.Areas.Administration.Models.Challenges.IndexChallengeViewModel>
 @{
-    ViewData["Title"] = "Tournament list";
+    ViewData["Title"] = "Challenge list";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -40,13 +40,13 @@
                             @q.Description
                         </td>
                         <td>
-                            <a asp-action="Index" asp-controller="Parameter" asp-area="Administration" asp-route-tournamentId="@q.Id">Parameters</a>
+                            <a asp-action="Index" asp-controller="Parameter" asp-area="Administration" asp-route-challengeId="@q.Id">Parameters</a>
                         </td>
                         <td>
                             <a asp-action="Details" asp-route-id="@q.Id">Details</a>
                         </td>
                         <td>
-                            <a asp-action="Edit" asp-controller="Tournament" asp-area="Administration" asp-route-tournamentId="@q.Id">Edit</a>
+                            <a asp-action="Edit" asp-controller="Challenge" asp-area="Administration" asp-route-challengeId="@q.Id">Edit</a>
                         </td>
                     </tr>
                 }
@@ -58,7 +58,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add new tournament</h5>
+                    <h5 class="modal-title">Add new challenge</h5>
                 </div>
                 <div class="modal-body">
                     <div id="checkModalWaiting" class="text-center">
@@ -85,7 +85,7 @@
 
 @section Scripts
 {
-    <script src="~/js/azurechallenge.indextournament.js"></script>
+    <script src="~/js/azurechallenge.admin.indexchallenge.js"></script>
     <partial name="_ValidationScriptsPartial" />
 
 }

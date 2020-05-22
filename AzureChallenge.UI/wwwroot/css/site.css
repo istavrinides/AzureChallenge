@@ -18,6 +18,26 @@ a {
     border-color: #1861ac;
 }
 
+.btn-default {
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+}
+
+.vertical-text {
+    transform: rotate(180deg);
+    transform-origin: left top 0;
+}
+
+.toggle.ios, .toggle-on.ios, .toggle-off.ios {
+    border-radius: 10px;
+}
+
+    .toggle.ios .toggle-handle {
+        border-radius: 10px;
+    }
+
+
 .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
     color: #fff;
     background-color: #1b6ec2;
@@ -26,7 +46,7 @@ a {
 
 /* Sticky footer styles
 -------------------------------------------------- */
-html {
+    html {
     font-size: 14px;
 }
 

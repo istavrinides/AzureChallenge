@@ -10,7 +10,7 @@ namespace AzureChallenge.Interfaces.Providers.Data
         Task<(T, IEnumerable<Q>)> GetItemsAsync(string query);
         Task<(T, IList<Q>)> GetAllItemsAsync(string type);
         Task<(T, Q)> GetItemAsync(string id, string type);
-        Task<T> AddItemAsync(Q item);
+        Task<T> UpsertItemAsync(Q item);
         Task<T> UpdateItemAsync(string id, Q item);
         Task<T> DeleteItemAsync(string id, string type);
     }

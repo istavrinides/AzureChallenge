@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using AzureChallenge.Interfaces.Providers.Parameters;
 using AzureChallenge.Models.Parameters;
-using AzureChallenge.UI.Areas.Administration.Models.Tournaments;
+using AzureChallenge.UI.Areas.Administration.Models.Challenges;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -20,11 +20,11 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
     [Authorize(Roles = "Administrator")]
     public class ParameterController : Controller
     {
-        private IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalTournamentParameters> parametersProvider;
+        private IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> parametersProvider;
         private IMapper mapper;
         private IConfiguration configuration;
 
-        public ParameterController(IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalTournamentParameters> parametersProvider,
+        public ParameterController(IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> parametersProvider,
                                     IMapper mapper,
                                     IConfiguration configuration)
         {
@@ -33,15 +33,15 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             this.configuration = configuration;
         }
 
-        [Route("Administration/Tournament/{tournamentId}/GlobalParameters")]
-        public async Task<IActionResult> Index(string tournamentId)
+        [Route("Administration/Challenge/{challengeId}/GlobalParameters")]
+        public async Task<IActionResult> Index(string challengeId)
         {
-            var result = await parametersProvider.GetItemAsync(tournamentId);
+            var result = await parametersProvider.GetItemAsync(challengeId);
 
             if (!result.Item1.Success)
                 return StatusCode(500);
 
-            var model = new IndexParameterViewModel() { TournamentId = tournamentId, ParameterList = new List<IndexParameterViewModel.ParameterItem>() };
+            var model = new IndexParameterViewModel() { ChallengeId = challengeId, ParameterList = new List<IndexParameterViewModel.ParameterItem>() };
 
             if (result.Item2.Parameters != null)
             {
@@ -58,17 +58,17 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateParameters(IndexParameterViewModel inputModel)
         {
-            var tournamentParameters = new ACMP.GlobalTournamentParameters() { Parameters = new List<ACMP.GlobalTournamentParameters.ParameterDefinition>(), TournamentId = inputModel.TournamentId };
+            var challengeParameters = new ACMP.GlobalChallengeParameters() { Parameters = new List<ACMP.GlobalChallengeParameters.ParameterDefinition>(), ChallengeId = inputModel.ChallengeId };
 
             if (inputModel.ParameterList != null)
             {
                 foreach (var p in inputModel.ParameterList)
                 {
-                    tournamentParameters.Parameters.Add(new ACMP.GlobalTournamentParameters.ParameterDefinition() { Key = p.Name, Value = p.Value, AssignedToQuestion = p.AssignedToQuestion });
+                    challengeParameters.Parameters.Add(new ACMP.GlobalChallengeParameters.ParameterDefinition() { Key = p.Name, Value = p.Value, AssignedToQuestion = p.AssignedToQuestion });
                 }
             }
 
-            var result = await parametersProvider.AddItemAsync(tournamentParameters);
+            var result = await parametersProvider.AddItemAsync(challengeParameters);
 
             if (!result.Success)
                 return StatusCode(500);
@@ -76,17 +76,17 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             return Ok();
         }
 
-        [Route("Administration/Tournament/{tournamentId}/GlobalParameters/Get")]
-        public async Task<IActionResult> GetQuestionByIdAsync(string tournamentId)
+        [Route("Administration/Challenge/{challengeId}/GlobalParameters/Get")]
+        public async Task<IActionResult> GetQuestionByIdAsync(string challengeId)
         {
-            var result = await parametersProvider.GetItemAsync(tournamentId);
+            var result = await parametersProvider.GetItemAsync(challengeId);
 
             if (result.Item1.Success)
             {
-                var globalParameters = new GlobalTournamentParameters
+                var globalParameters = new GlobalChallengeParameters
                 {
-                    Parameters = result.Item2.Parameters.Select(p => new GlobalTournamentParameters.ParameterDefinition() { AssignedToQuestion = p.AssignedToQuestion, Key = $"Global.{p.Key}", Value = p.Value }).ToList(),
-                    TournamentId = result.Item2.TournamentId
+                    Parameters = result.Item2.Parameters.Select(p => new GlobalChallengeParameters.ParameterDefinition() { AssignedToQuestion = p.AssignedToQuestion, Key = $"Global.{p.Key}", Value = p.Value }).ToList(),
+                    ChallengeId = result.Item2.ChallengeId
                 };
                 return Ok(globalParameters);
             }

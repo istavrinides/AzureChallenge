@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AzureChallenge.Interfaces.Providers.Tournaments
+namespace AzureChallenge.Interfaces.Providers.Challenges
 {
-    public interface ITournamentProvider<T, Q>
+    public interface IChallengeProvider<T, Q>
     {
         public Task<(T, Q)> GetItemAsync(string id);
 

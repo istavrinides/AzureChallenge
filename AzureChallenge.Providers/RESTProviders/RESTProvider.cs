@@ -13,10 +13,12 @@ namespace AzureChallenge.Providers.RESTProviders
 {
     public class RESTProvider : IRESTProvider
     {
-        public async Task<string> GetAsync(string uri, string authorizationHeader, List<KeyValuePair<string, string>> additionalHeaders)
+        public async Task<(string Content, HttpStatusCode StatusCode)> GetAsync(string uri, string authorizationHeader, List<KeyValuePair<string, string>> additionalHeaders)
         {
             using (var httpClient = new HttpClient())
             {
+                HttpResponseMessage response = null;
+
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
@@ -49,10 +51,20 @@ namespace AzureChallenge.Providers.RESTProviders
                     }
                 }
 
-                var response = await httpClient.SendAsync(request);
-                response.EnsureSuccessStatusCode();
+                var content = "";
 
-                return await response.Content.ReadAsStringAsync();
+                try
+                {
+                    response = await httpClient.SendAsync(request);
+                    content = await response.Content.ReadAsStringAsync();
+                    response.EnsureSuccessStatusCode();
+                }
+                catch(Exception ex)
+                {
+                    content += "\n\n" + ex.Message;
+                }
+
+                return (Content: content, StatusCode: response != null ? response.StatusCode : HttpStatusCode.InternalServerError);
             }
         }
         public async Task<Dictionary<string, string>> HeadAsync(string uri, string authorizationHeader)
