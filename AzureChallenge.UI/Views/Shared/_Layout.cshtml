@@ -8,14 +8,14 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Azure Challenge</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@ViewData["Title"] - AzChallenge</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" />
     @RenderSection("Styles", false)
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-primary border-bottom box-shadow">
             <div class="container">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Azure Challenge</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -25,20 +25,27 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
                     <partial name="_LoginPartial" />
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
                         @if (SignInManager.IsSignedIn(User))
                         {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Challenges
+                                </a>
+                                <div class="dropdown-menu bg-primary" aria-labelledby="navbarDropdown">
+
+                                    <a class="nav-link text-white" asp-area="" asp-controller="Challenge" asp-action="Index">All Challenges</a>
+                                    <a class="nav-link text-white" asp-area="" asp-controller="Challenge" asp-action="UserChallenges">My Challenges</a>
+                                </div>
+                            </li>
                             if (User.IsInRole("Administrator"))
                             {
                                 <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         Administration
                                     </a>
-                                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                        <a class="nav-link text-dark" asp-area="Administration" asp-controller="Challenge" asp-action="Index">Challenges</a>
-                                        <a class="nav-link text-dark" asp-area="Administration" asp-controller="Question" asp-action="Index">Question Templates</a>
+                                    <div class="dropdown-menu bg-primary" aria-labelledby="navbarDropdown">
+                                        <a class="nav-link text-white" asp-area="Administration" asp-controller="Challenge" asp-action="Index">Challenges</a>
+                                        <a class="nav-link text-white" asp-area="Administration" asp-controller="Question" asp-action="Index">Question Templates</a>
                                     </div>
                                 </li>
                             }
@@ -48,7 +55,8 @@
             </div>
         </nav>
     </header>
-    <div class="container">
+    <div class="container container-fluid min-vh-100 d-flex flex-column main-bg">
+        <partial name="_CookieConsentPartial" />
         <main role="main" class="pb-3">
             @if (SignInManager.IsSignedIn(User))
             {
@@ -75,7 +83,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2020 - Azure Challenge - Created by Ioannis Stavrinides as a tool for learning Azure using a challenge approach - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2020 - AzChallenge - Created by Ioannis Stavrinides as a tool for learning Azure using a challenge approach - <a class="text-white" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
     <script src="~/lib/jquery/jquery.min.js"></script>

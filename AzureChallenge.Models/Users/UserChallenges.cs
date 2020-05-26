@@ -23,6 +23,10 @@ namespace AzureChallenge.Models.Users
         public string ChallengeId { get; set; }
         [JsonProperty(PropertyName = "currentQuestion")]
         public string CurrentQuestion { get; set; }
+        [JsonProperty(PropertyName = "currentIndex")]
+        public int CurrentIndex { get; set; }
+        [JsonProperty(PropertyName = "numOfQuestions")]
+        public int NumOfQuestions { get; set; }
         [JsonProperty(PropertyName = "accumulatedXP")]
         public int AccumulatedXP { get; set; }
         [JsonProperty(PropertyName = "startTimeUTC")]

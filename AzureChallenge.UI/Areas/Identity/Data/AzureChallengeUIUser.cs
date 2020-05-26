@@ -27,6 +27,9 @@ namespace AzureChallenge.UI.Areas.Identity.Data
         [ProtectedPersonalData]
         public string SubscriptionName { get; set; }
 
+        [ProtectedPersonalData]
+        public int AccumulatedPoint { get; set; }
+
         public string UserNameHashed()
         {
             using (var md5Hasher = MD5.Create())

@@ -19,7 +19,7 @@ namespace AzureChallenge.Providers
 
         public async Task<(AzureChallengeResult, Question)> GetItemAsync(string id)
         {
-            return await dataProvider.GetItemAsync(id , "Question");
+            return await dataProvider.GetItemAsync(id, "Question");
         }
 
         public async Task<(AzureChallengeResult, IList<Question>)> GetAllItemsAsync()

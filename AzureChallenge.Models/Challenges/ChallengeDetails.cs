@@ -22,6 +22,9 @@ namespace AzureChallenge.Models.Challenges
         [JsonProperty(PropertyName = "isPublic")]
         public bool IsPublic { get; set; }
 
+        [JsonProperty(PropertyName = "isLocked")]
+        public bool IsLocked { get; set; }
+
         [JsonProperty(PropertyName = "questions")]
         public List<QuestionLite> Questions { get; set; }
     }

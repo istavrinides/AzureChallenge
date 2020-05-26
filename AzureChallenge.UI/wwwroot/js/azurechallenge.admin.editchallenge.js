@@ -266,6 +266,8 @@ var populateModal = function (selectedQuestionId, challengeId, readOnly = false)
     $.get("/Administration/Challenge/" + challengeId + "/AssignedQuestion/" + selectedQuestionId)
         .done(function (data) {
             $("#QuestionToAdd_Text").val(data.text);
+            if (readOnly)
+                $("#QuestionToAdd_Text").addClass('d-none');
             $("#QuestionToAdd_AssociatedQuestionId").val(data.id);
             $("#QuestionToAdd_Name").val(data.name);
             $("#QuestionToAdd_TargettedAzureService").val(data.targettedAzureService);
@@ -435,6 +437,7 @@ var populateModal = function (selectedQuestionId, challengeId, readOnly = false)
 
                     $("#uri-0-tab").trigger('click');
                     $("#answer-0-tab").trigger('click');
+                    populatePreview();
                 });
         })
         .fail(function () {

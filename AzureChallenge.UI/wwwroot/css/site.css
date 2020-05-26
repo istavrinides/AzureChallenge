@@ -18,6 +18,10 @@ a {
     border-color: #1861ac;
 }
 
+.bg-primary {
+    background-color: #1b6ec2 !important;
+}
+
 .btn-default {
     color: #333;
     background-color: #fff;
@@ -46,7 +50,7 @@ a {
 
 /* Sticky footer styles
 -------------------------------------------------- */
-    html {
+html {
     font-size: 14px;
 }
 
@@ -82,7 +86,14 @@ html {
 
 body {
     /* Margin bottom by footer height */
-    margin-bottom: 60px;
+    background-color: #F7F7F7;
+}
+
+.main-bg {
+    background-color: #fff;
+    padding-top: 80px;
+    margin-top: -60px;
+    padding-bottom: 40px;
 }
 
 .footer {
@@ -91,6 +102,8 @@ body {
     width: 100%;
     white-space: nowrap;
     line-height: 60px; /* Vertically center the text there */
+    background-color: #1b6ec2 !important;
+    color: #fff !important;
 }
 
 
@@ -145,5 +158,15 @@ body {
 }
 
 .popover-body {
-    color: red !important; 
+    color: red !important;
+}
+
+.points-icon {
+    filter: invert(77%) sepia(67%) saturate(654%) hue-rotate(340deg) brightness(88%) contrast(94%);
+    width: 18px;
+    top: -2px;
+    position: relative;
+}
+.points-text {
+    color: #DAA520;
 }

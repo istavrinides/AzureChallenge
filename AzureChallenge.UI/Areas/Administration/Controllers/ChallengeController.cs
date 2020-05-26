@@ -87,6 +87,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 Id = challengeId,
                 Description = challenge.Item2.Description,
                 IsPublic = challenge.Item2.IsPublic,
+                IsLocked = challenge.Item2.IsLocked,
                 OldIsPublic = challenge.Item2.IsPublic,
                 Name = challenge.Item2.Name,
                 ChallengeQuestions = challenge.Item2.Questions.OrderBy(p => p.Index)
@@ -228,11 +229,15 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     {
                         if (parameter.Key.StartsWith("Global."))
                         {
-                            var globalParameter = globalParams.Parameters?.Where(p => p.Key == parameter.Key.Replace("Global.", "")).FirstOrDefault();
+                            var globalParameter = globalParams?.Parameters?.Where(p => p.Key == parameter.Key.Replace("Global.", "")).FirstOrDefault();
 
                             if (globalParameter == null)
                             {
-                                if (globalParams.Parameters == null)
+                                if (globalParams == null)
+                                {
+                                    globalParams = new ACMP.GlobalChallengeParameters() { ChallengeId = assignedQuestion.ChallengeId, Parameters = new List<ACMP.GlobalChallengeParameters.ParameterDefinition>() };
+                                }
+                                else if (globalParams.Parameters == null)
                                     globalParams.Parameters = new List<ACMP.GlobalChallengeParameters.ParameterDefinition>();
 
                                 globalParams.Parameters.Add(new ACMP.GlobalChallengeParameters.ParameterDefinition
@@ -495,6 +500,70 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             }
 
             return StatusCode(500);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CopyChallenge(IndexChallengeViewModel inputModel)
+        {
+            var newChallengeId = Guid.NewGuid().ToString();
+
+            // Get the copy-from challenge, assigned questions and global parameters
+            var challegeOriginalResponse = await challengeProvider.GetItemAsync(inputModel.Id);
+            var assignedQuestionOriginalResponse = await assignedQuestionProvider.GetItemsOfChallengeAsync(inputModel.Id);
+            var globalParametersOriginalReponse = await globalParameterProvider.GetItemAsync(inputModel.Id);
+
+            // Change the challenge name, description and id
+            var challenge = challegeOriginalResponse.Item2;
+            challenge.Name = inputModel.Name;
+            challenge.Description = inputModel.Description;
+            challenge.Id = newChallengeId;
+            challenge.IsLocked = false;
+            challenge.IsPublic = false;
+
+            // For each assigned question, change the id and associated id in the 
+            foreach (var q in assignedQuestionOriginalResponse.Item2)
+            {
+                var newQuestionId = Guid.NewGuid().ToString();
+
+                var challengeQuestion = challenge.Questions.Where(p => p.Id == q.QuestionId).FirstOrDefault();
+                challengeQuestion.Id = newQuestionId;
+                q.QuestionId = newQuestionId;
+                q.ChallengeId = newChallengeId;
+            }
+
+            // We need to set the correct new nextQuestionIds
+            for (var i = 0; i < challenge.Questions.Count(); i++)
+            {
+                if (i + 1 != challenge.Questions.Count())
+                {
+                    challenge.Questions[i].NextQuestionId = challenge.Questions[i + 1].Id;
+                }
+            }
+
+            globalParametersOriginalReponse.Item2.ChallengeId = newChallengeId;
+
+            // Add the challenge
+            await challengeProvider.AddItemAsync(challenge);
+            await globalParameterProvider.AddItemAsync(globalParametersOriginalReponse.Item2);
+
+            // For each question, add it
+            foreach (var q in assignedQuestionOriginalResponse.Item2)
+            {
+                await assignedQuestionProvider.AddItemAsync(q);
+            }
+
+            return Ok();
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteChallenge(string challengeId)
+        {
+            await challengeProvider.DeleteItemAsync(challengeId);
+            await globalParameterProvider.DeleteItemAsync(challengeId);
+            await assignedQuestionProvider.DeleteAllItemsOfChallenge(challengeId);
+
+            return Ok();
         }
     }
 }

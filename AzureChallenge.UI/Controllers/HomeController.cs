@@ -57,7 +57,7 @@ namespace AzureChallenge.UI.Controllers
                 {
                     if (userChallengesResponse.Item2 != null)
                     {
-                        model.UnfinishedChallenges = userChallengesResponse.Item2.Challenges.Where(c => c.Completed).Count();
+                        model.UnfinishedChallenges = userChallengesResponse.Item2.Challenges.Where(c => !c.Completed).Count();
                     }
                 }
             }

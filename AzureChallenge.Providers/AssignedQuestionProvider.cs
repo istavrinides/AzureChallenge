@@ -42,6 +42,16 @@ namespace AzureChallenge.Providers
             return await dataProvider.GetItemAsync(id, "AssignedQuestion");
         }
 
+        public async Task<(AzureChallengeResult, IList<AssignedQuestion>)> GetItemsOfChallengeAsync(string challengeId)
+        {
+            return await dataProvider.GetItemsAsync($"SELECT * FROM assignedQuestions aq WHERE aq.type = 'AssignedQuestion' and aq.challengeId = '{challengeId}'", "AssignedQuestion");
+        }
+
+        public async Task<AzureChallengeResult> DeleteAllItemsOfChallenge(string challengeId)
+        {
+            return await dataProvider.DeleteItemsAsync($"SELECT * FROM assignedQuestions aq WHERE aq.type = 'AssignedQuestion' and aq.challengeId = '{challengeId}'", "AssignedQuestion");
+        }
+
         public async Task<(AzureChallengeResult, IList<AssignedQuestion>)> GetAllItemsAsync()
         {
             return await dataProvider.GetAllItemsAsync("AssignedQuestion");
@@ -62,7 +72,7 @@ namespace AzureChallenge.Providers
             // Get the question definition
             var result = await GetItemAsync(id);
             // Create a list to check validity of answers
-            List<KeyValuePair<string, bool>> correctAsnwers = new List<KeyValuePair<string, bool>>();
+            List<KeyValuePair<string, bool>> correctAnswers = new List<KeyValuePair<string, bool>>();
 
             if (!result.Item1.Success)
                 return null;
@@ -92,7 +102,7 @@ namespace AzureChallenge.Providers
                     parameters = parameters.Concat(profile.GetKeyValuePairs()).ToDictionary(p => p.Key, p => p.Value);
                     // Filter out the Profile. and Global. from Uri Parameters, since they don't have values anyway
                     parameters = parameters.Concat(question.Uris[i].UriParameters.Where(p => !p.Key.StartsWith("Profile.") && !p.Key.StartsWith("Global.")).ToDictionary(p => p.Key, p => p.Value)).ToDictionary(p => p.Key, p => p.Value);
-                    parameters = parameters.Concat(question.TextParameters.Where(p => !p.Key.StartsWith("Profile.") && !p.Key.StartsWith("Global.")).ToDictionary(p => p.Key, p => p.Value)).ToDictionary(p => p.Key, p => p.Value);
+                    parameters = parameters.Concat(question.TextParameters.Where(p => !p.Key.StartsWith("Profile.") && !p.Key.StartsWith("Global.") && !parameters.ContainsKey(p.Key)).ToDictionary(p => p.Key, p => p.Value)).ToDictionary(p => p.Key, p => p.Value);
                     formattedUri = SmartFormat.Smart.Format(formattedUri, parameters);
 
                     // Get the access token
@@ -111,8 +121,8 @@ namespace AzureChallenge.Providers
                     }
                     catch (Exception ex)
                     {
-                        correctAsnwers.Add(new KeyValuePair<string, bool>("Could not complete authorization step. Please check the values in your profile", false));
-                        return correctAsnwers;
+                        correctAnswers.Add(new KeyValuePair<string, bool>("Could not complete authorization step. Please check the values in your profile", false));
+                        return correctAnswers;
                     }
 
                     (string Content, HttpStatusCode StatusCode) response;
@@ -140,16 +150,16 @@ namespace AzureChallenge.Providers
 
                         if (response.StatusCode != HttpStatusCode.OK)
                         {
-                            correctAsnwers = new List<KeyValuePair<string, bool>>();
-                            correctAsnwers.Add(new KeyValuePair<string, bool>(response.Content, false));
-                            return correctAsnwers;
+                            correctAnswers = new List<KeyValuePair<string, bool>>();
+                            correctAnswers.Add(new KeyValuePair<string, bool>("Error: " + response.Content, false));
+                            return correctAnswers;
                         }
                     }
                     catch (Exception ex)
                     {
-                        correctAsnwers = new List<KeyValuePair<string, bool>>();
-                        correctAsnwers.Add(new KeyValuePair<string, bool>("Calling one of the APIs to check your answer failed. Either the resource requested has not been created or is still being created. Try in a while.", false));
-                        return correctAsnwers;
+                        correctAnswers = new List<KeyValuePair<string, bool>>();
+                        correctAnswers.Add(new KeyValuePair<string, bool>("Calling one of the APIs to check your answer failed. Either the resource requested has not been created or is still being created. Try in a while.", false));
+                        return correctAnswers;
                     }
 
                     JObject o = JObject.Parse(response.Content);
@@ -157,7 +167,7 @@ namespace AzureChallenge.Providers
                     // If we don't need to check any answers, the call was successful
                     if (question.Answers[i].AnswerParameters == null || question.Answers[i].AnswerParameters.Count == 0)
                     {
-                        correctAsnwers.Add(new KeyValuePair<string, bool>("Call succeeded", true));
+                        correctAnswers.Add(new KeyValuePair<string, bool>("Call succeeded", true));
                     }
                     else
                     {
@@ -186,16 +196,16 @@ namespace AzureChallenge.Providers
 
                                     if (responseForDBandCollIds.StatusCode != HttpStatusCode.OK)
                                     {
-                                        correctAsnwers = new List<KeyValuePair<string, bool>>();
-                                        correctAsnwers.Add(new KeyValuePair<string, bool>(responseForDBandCollIds.Content, false));
-                                        return correctAsnwers;
+                                        correctAnswers = new List<KeyValuePair<string, bool>>();
+                                        correctAnswers.Add(new KeyValuePair<string, bool>(responseForDBandCollIds.Content, false));
+                                        return correctAnswers;
                                     }
                                 }
                                 catch (Exception ex)
                                 {
-                                    correctAsnwers = new List<KeyValuePair<string, bool>>();
-                                    correctAsnwers.Add(new KeyValuePair<string, bool>("Calling one of the APIs to check your answer failed. Either the resource requested has not been created or is still being created. Try in a while.", false));
-                                    return correctAsnwers;
+                                    correctAnswers = new List<KeyValuePair<string, bool>>();
+                                    correctAnswers.Add(new KeyValuePair<string, bool>("Calling one of the APIs to check your answer failed. Either the resource requested has not been created or is still being created. Try in a while.", false));
+                                    return correctAnswers;
                                 }
 
                                 dynamic json = JObject.Parse(responseForDBandCollIds.Content);
@@ -208,14 +218,14 @@ namespace AzureChallenge.Providers
                                 {
                                     if (j.content.offerThroughput == throughput && j.resource == ids)
                                     {
-                                        correctAsnwers.Add(new KeyValuePair<string, bool>(answerForThroughput.Key, true));
+                                        correctAnswers.Add(new KeyValuePair<string, bool>(answerForThroughput.Key, true));
                                         found = true;
                                         break;
                                     }
                                 }
                                 if (!found)
                                 {
-                                    correctAsnwers.Add(new KeyValuePair<string, bool>(answerForThroughput.Key, false));
+                                    correctAnswers.Add(new KeyValuePair<string, bool>(answerForThroughput.Key, false));
                                 }
 
                                 // Remove the thoughput answer from the answer parameters to check any pending
@@ -228,7 +238,7 @@ namespace AzureChallenge.Providers
                                 // Get and format the answer. Answers might contain parameters
                                 var answerValue = SmartFormat.Smart.Format(answer.Value.Replace("Global.", "Global_").Replace("Profile.", "Profile_"), parameters);
 
-                                correctAsnwers.Add(new KeyValuePair<string, bool>(answer.Key, CheckAnswer(o, properties, answerValue, 0, properties.Count)));
+                                correctAnswers.Add(new KeyValuePair<string, bool>(answer.Key, CheckAnswer(o, properties, answerValue, 0, properties.Count)));
                             }
                         }
                         else
@@ -239,7 +249,7 @@ namespace AzureChallenge.Providers
                                 // Get and format the answer. Answers might contain parameters
                                 var answerValue = SmartFormat.Smart.Format(answer.Value.Replace("Global.", "Global_").Replace("Profile.", "Profile_"), parameters);
 
-                                correctAsnwers.Add(new KeyValuePair<string, bool>(answer.Key, CheckAnswer(o, properties, answerValue, 0, properties.Count)));
+                                correctAnswers.Add(new KeyValuePair<string, bool>(answer.ErrorMessage, CheckAnswer(o, properties, answerValue, 0, properties.Count)));
                             }
                         }
 
@@ -247,7 +257,7 @@ namespace AzureChallenge.Providers
                 }
             }
 
-            return correctAsnwers;
+            return correctAnswers;
         }
 
         public static bool CheckAnswer(JObject json, List<string> properties, string value, int index, int maxIndex)
