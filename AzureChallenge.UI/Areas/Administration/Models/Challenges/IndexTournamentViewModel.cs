@@ -10,5 +10,6 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
         public string Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public bool IsLocked { get; set; }
     }
 }

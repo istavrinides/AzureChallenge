@@ -19,6 +19,8 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
         [Display(Name="Will the challenge be publically visible (users can search for and join)?")]
         public bool IsPublic { get; set; }
 
+        public bool IsLocked { get; set; }
+
         public bool OldIsPublic { get; set; }
 
         public List<ChallengeQuestion> ChallengeQuestions { get; set; }

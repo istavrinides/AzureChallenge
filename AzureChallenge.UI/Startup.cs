@@ -35,6 +35,7 @@ using AzureChallenge.Models.Aggregates;
 using AzureChallenge.Interfaces.Providers.Aggregates;
 using AzureChallenge.Models.Users;
 using AzureChallenge.Interfaces.Providers.Users;
+using Microsoft.AspNetCore.Http;
 
 namespace AzureChallenge.UI
 {
@@ -50,6 +51,15 @@ namespace AzureChallenge.UI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                // This lambda determines whether user consent for non-essential 
+                // cookies is needed for a given request.
+                options.CheckConsentNeeded = context => true;
+                // requires using Microsoft.AspNetCore.Http;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
+            });
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
@@ -124,6 +134,7 @@ namespace AzureChallenge.UI
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseCookiePolicy();
 
             app.UseRouting();
 

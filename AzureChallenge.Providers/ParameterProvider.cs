@@ -23,6 +23,11 @@ namespace AzureChallenge.Providers
             return await dataProvider.UpsertItemAsync(item);
         }
 
+        public async Task<AzureChallengeResult> DeleteItemAsync(string id)
+        {
+            return await dataProvider.DeleteItemAsync(id, "GlobalChallengeParameters");
+        }
+
         public async Task<(AzureChallengeResult, IList<GlobalChallengeParameters>)> GetAllItemsAsync()
         {
             return await dataProvider.GetAllItemsAsync("GlobalChallengeParameters");
@@ -46,6 +51,11 @@ namespace AzureChallenge.Providers
         public async Task<AzureChallengeResult> AddItemAsync(GlobalParameters item)
         {
             return await dataProvider.UpsertItemAsync(item);
+        }
+
+        public Task<AzureChallengeResult> DeleteItemAsync(string id)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<(AzureChallengeResult, IList<GlobalParameters>)> GetAllItemsAsync()

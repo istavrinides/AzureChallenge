@@ -1,6 +1,6 @@
 ﻿@model AzureChallenge.UI.Models.ChallengeViewModels.IndexViewModel
 @{
-    ViewData["Title"] = "Available Challenges";
+    ViewData["Title"] = "My Challenges";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -14,10 +14,10 @@
                     <th style="width:16.67%">
                         @Html.DisplayNameFor(model => model.Challenges[0].Name)
                     </th>
-                    <th style="width:75%">
+                    <th style="width:66.67%">
                         @Html.DisplayNameFor(model => model.Challenges[0].Description)
                     </th>
-                    <th style="width:8.33%"></th>
+                    <th style="width:16.66%"></th>
                 </tr>
             </thead>
             <tbody>
@@ -37,7 +37,7 @@
                             }
                             else if (q.IsUnderway)
                             {
-                                <a asp-action="StartChallenge" asp-controller="Challenge" asp-route-challengeId="@q.Id" asp-route-questionId="@q.CurrentQuestionId">Continue</a>
+                                <a asp-action="StartChallenge" asp-controller="Challenge" asp-route-challengeId="@q.Id" asp-route-questionId="@q.CurrentQuestionId">Continue (@q.CurrentQuestionIndex of @q.TotalQuestions)</a>
                             }
                             else
                             {

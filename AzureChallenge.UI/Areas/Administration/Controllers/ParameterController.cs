@@ -37,11 +37,12 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         public async Task<IActionResult> Index(string challengeId)
         {
             var result = await parametersProvider.GetItemAsync(challengeId);
-
-            if (!result.Item1.Success)
-                return StatusCode(500);
-
             var model = new IndexParameterViewModel() { ChallengeId = challengeId, ParameterList = new List<IndexParameterViewModel.ParameterItem>() };
+
+            if (result.Item1.IsError)
+                return StatusCode(500);
+            else if (!result.Item1.Success)
+                return View(model);
 
             if (result.Item2.Parameters != null)
             {
@@ -88,6 +89,17 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Parameters = result.Item2.Parameters.Select(p => new GlobalChallengeParameters.ParameterDefinition() { AssignedToQuestion = p.AssignedToQuestion, Key = $"Global.{p.Key}", Value = p.Value }).ToList(),
                     ChallengeId = result.Item2.ChallengeId
                 };
+                return Ok(globalParameters);
+            }
+            else if (!result.Item1.IsError)
+            {
+                // No parameters yet
+                var globalParameters = new GlobalChallengeParameters
+                {
+                    Parameters = new List<GlobalChallengeParameters.ParameterDefinition>(),
+                    ChallengeId = challengeId
+                };
+
                 return Ok(globalParameters);
             }
 

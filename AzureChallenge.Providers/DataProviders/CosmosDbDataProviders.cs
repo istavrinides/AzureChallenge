@@ -19,7 +19,7 @@ using AzureChallenge.Models.Users;
 
 namespace AzureChallenge.Providers.DataProviders
 {
-    public class CosmosDbQuestionDataProvider: IDataProvider<AzureChallengeResult, Question>
+    public class CosmosDbQuestionDataProvider : IDataProvider<AzureChallengeResult, Question>
     {
         private CosmosClient client;
         private readonly string databaseId;
@@ -32,7 +32,7 @@ namespace AzureChallenge.Providers.DataProviders
             this.containerId = containerId;
         }
 
-        public Task<(AzureChallengeResult, IEnumerable<Question>)> GetItemsAsync(string query)
+        public Task<(AzureChallengeResult, IList<Question>)> GetItemsAsync(string query, string type)
         {
             throw new NotImplementedException();
         }
@@ -66,14 +66,15 @@ namespace AzureChallenge.Providers.DataProviders
                         allQuestions.Add(r);
                     }
                 }
+
+                result.Success = true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
+                result.IsError = true;
                 result.Success = false;
                 result.Message = "Error while calling Cosmos Db";
             }
-
-            result.Success = true;
 
             return (result, allQuestions);
         }
@@ -94,8 +95,15 @@ namespace AzureChallenge.Providers.DataProviders
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
+                result.IsError = false;
                 result.Success = false;
                 result.Message = $"Failed to get question. No such document with id {id} found.";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
             return (result, doc);
@@ -103,22 +111,29 @@ namespace AzureChallenge.Providers.DataProviders
 
         public async Task<AzureChallengeResult> UpsertItemAsync(Question item)
         {
-            var retVal = new AzureChallengeResult();
+            var result = new AzureChallengeResult();
             var database = client.GetDatabase(databaseId);
             var container = database.GetContainer(containerId);
 
             try
             {
                 await container.UpsertItemAsync<Question>(item, new PartitionKey(item.Type));
-                retVal.Success = true;
+                result.Success = true;
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
-                retVal.Success = false;
-                retVal.Message = "Failed to insert question into database. A document with the same Id already exists";
+                result.IsError = false;
+                result.Success = false;
+                result.Message = "Failed to insert question into database. A document with the same Id already exists";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
-            return retVal;
+            return result;
         }
 
         public async Task<AzureChallengeResult> UpdateItemAsync(string id, Question item)
@@ -127,6 +142,27 @@ namespace AzureChallenge.Providers.DataProviders
         }
 
         public async Task<AzureChallengeResult> DeleteItemAsync(string id, string type)
+        {
+            var result = new AzureChallengeResult();
+            var database = client.GetDatabase(databaseId);
+            var container = database.GetContainer(containerId);
+
+            try
+            {
+                ItemResponse<GlobalChallengeParameters> response = await container.DeleteItemAsync<GlobalChallengeParameters>(id: id, partitionKey: new PartitionKey(type));
+                result.Success = response.StatusCode == HttpStatusCode.NoContent;
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<AzureChallengeResult> DeleteItemsAsync(string query, string type)
         {
             throw new NotImplementedException();
         }
@@ -145,7 +181,7 @@ namespace AzureChallenge.Providers.DataProviders
             this.containerId = containerId;
         }
 
-        public Task<(AzureChallengeResult, IEnumerable<ChallengeDetails>)> GetItemsAsync(string query)
+        public Task<(AzureChallengeResult, IList<ChallengeDetails>)> GetItemsAsync(string query, string type)
         {
             throw new NotImplementedException();
         }
@@ -179,14 +215,15 @@ namespace AzureChallenge.Providers.DataProviders
                         allQuestions.Add(r);
                     }
                 }
+
+                result.Success = true;
             }
             catch (Exception ex)
             {
+                result.IsError = true;
                 result.Success = false;
-                result.Message = "Error while calling Cosmos Db";
+                result.Message = ex.ToString();
             }
-
-            result.Success = true;
 
             return (result, allQuestions);
         }
@@ -207,8 +244,15 @@ namespace AzureChallenge.Providers.DataProviders
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
+                result.IsError = false;
                 result.Success = false;
                 result.Message = $"Failed to get challenge. No such document with id {id} found.";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
             return (result, doc);
@@ -216,22 +260,28 @@ namespace AzureChallenge.Providers.DataProviders
 
         public async Task<AzureChallengeResult> UpsertItemAsync(ChallengeDetails item)
         {
-            var retVal = new AzureChallengeResult();
+            var result = new AzureChallengeResult();
             var database = client.GetDatabase(databaseId);
             var container = database.GetContainer(containerId);
 
             try
             {
                 await container.UpsertItemAsync<ChallengeDetails>(item, new PartitionKey(item.Type));
-                retVal.Success = true;
+                result.Success = true;
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
-                retVal.Success = false;
-                retVal.Message = "Failed to insert question into database. A document with the same Id already exists";
+                result.Success = false;
+                result.Message = "Failed to insert question into database. A document with the same Id already exists";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
-            return retVal;
+            return result;
         }
 
         public async Task<AzureChallengeResult> UpdateItemAsync(string id, ChallengeDetails item)
@@ -240,6 +290,27 @@ namespace AzureChallenge.Providers.DataProviders
         }
 
         public async Task<AzureChallengeResult> DeleteItemAsync(string id, string type)
+        {
+            var result = new AzureChallengeResult();
+            var database = client.GetDatabase(databaseId);
+            var container = database.GetContainer(containerId);
+
+            try
+            {
+                ItemResponse<GlobalChallengeParameters> response = await container.DeleteItemAsync<GlobalChallengeParameters>(id: id, partitionKey: new PartitionKey(type));
+                result.Success = response.StatusCode == HttpStatusCode.NoContent;
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<AzureChallengeResult> DeleteItemsAsync(string query, string type)
         {
             throw new NotImplementedException();
         }
@@ -258,7 +329,7 @@ namespace AzureChallenge.Providers.DataProviders
             this.containerId = containerId;
         }
 
-        public Task<(AzureChallengeResult, IEnumerable<GlobalChallengeParameters>)> GetItemsAsync(string query)
+        public Task<(AzureChallengeResult, IList<GlobalChallengeParameters>)> GetItemsAsync(string query, string type)
         {
             throw new NotImplementedException();
         }
@@ -292,14 +363,15 @@ namespace AzureChallenge.Providers.DataProviders
                         allQuestions.Add(r);
                     }
                 }
+
+                result.Success = true;
             }
             catch (Exception ex)
             {
+                result.IsError = true;
                 result.Success = false;
-                result.Message = "Error while calling Cosmos Db";
+                result.Message = ex.ToString();
             }
-
-            result.Success = true;
 
             return (result, allQuestions);
         }
@@ -320,8 +392,15 @@ namespace AzureChallenge.Providers.DataProviders
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
+                result.IsError = false;
                 result.Success = false;
                 result.Message = $"Failed to get global challenge parameter. No such document with id {id} found.";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
             return (result, doc);
@@ -329,22 +408,28 @@ namespace AzureChallenge.Providers.DataProviders
 
         public async Task<AzureChallengeResult> UpsertItemAsync(GlobalChallengeParameters item)
         {
-            var retVal = new AzureChallengeResult();
+            var result = new AzureChallengeResult();
             var database = client.GetDatabase(databaseId);
             var container = database.GetContainer(containerId);
 
             try
             {
                 await container.UpsertItemAsync<GlobalChallengeParameters>(item, new PartitionKey(item.Type));
-                retVal.Success = true;
+                result.Success = true;
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
-                retVal.Success = false;
-                retVal.Message = "Failed to insert global challenge parameter into database. A document with the same Id already exists";
+                result.Success = false;
+                result.Message = "Failed to insert global challenge parameter into database. A document with the same Id already exists";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
-            return retVal;
+            return result;
         }
 
         public async Task<AzureChallengeResult> UpdateItemAsync(string id, GlobalChallengeParameters item)
@@ -354,22 +439,28 @@ namespace AzureChallenge.Providers.DataProviders
 
         public async Task<AzureChallengeResult> DeleteItemAsync(string id, string type)
         {
-            var retVal = new AzureChallengeResult();
+            var result = new AzureChallengeResult();
             var database = client.GetDatabase(databaseId);
             var container = database.GetContainer(containerId);
 
             try
             {
                 ItemResponse<GlobalChallengeParameters> response = await container.DeleteItemAsync<GlobalChallengeParameters>(id: id, partitionKey: new PartitionKey(type));
-                retVal.Success = response.StatusCode == HttpStatusCode.NoContent;
+                result.Success = response.StatusCode == HttpStatusCode.NoContent;
             }
-            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            catch (Exception ex)
             {
-                retVal.Success = false;
-                retVal.Message = "Failed to insert global challenge parameter into database. A document with the same Id already exists";
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
-            return retVal;
+            return result;
+        }
+
+        public async Task<AzureChallengeResult> DeleteItemsAsync(string query, string type)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -386,7 +477,7 @@ namespace AzureChallenge.Providers.DataProviders
             this.containerId = containerId;
         }
 
-        public Task<(AzureChallengeResult, IEnumerable<GlobalParameters>)> GetItemsAsync(string query)
+        public Task<(AzureChallengeResult, IList<GlobalParameters>)> GetItemsAsync(string query, string type)
         {
             throw new NotImplementedException();
         }
@@ -420,14 +511,15 @@ namespace AzureChallenge.Providers.DataProviders
                         allQuestions.Add(r);
                     }
                 }
+
+                result.Success = true;
             }
             catch (Exception ex)
             {
+                result.IsError = true;
                 result.Success = false;
-                result.Message = "Error while calling Cosmos Db";
+                result.Message = ex.ToString();
             }
-
-            result.Success = true;
 
             return (result, allQuestions);
         }
@@ -448,8 +540,15 @@ namespace AzureChallenge.Providers.DataProviders
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
+                result.IsError = false;
                 result.Success = false;
                 result.Message = $"Failed to get global parameter. No such document with id {id} found.";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
             return (result, doc);
@@ -457,22 +556,29 @@ namespace AzureChallenge.Providers.DataProviders
 
         public async Task<AzureChallengeResult> UpsertItemAsync(GlobalParameters item)
         {
-            var retVal = new AzureChallengeResult();
+            var result = new AzureChallengeResult();
             var database = client.GetDatabase(databaseId);
             var container = database.GetContainer(containerId);
 
             try
             {
                 await container.UpsertItemAsync<GlobalParameters>(item, new PartitionKey(item.Type));
-                retVal.Success = true;
+                result.Success = true;
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
-                retVal.Success = false;
-                retVal.Message = "Failed to insert global parameter into database. A document with the same Id already exists";
+                result.IsError = false;
+                result.Success = false;
+                result.Message = "Failed to insert global parameter into database. A document with the same Id already exists";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
-            return retVal;
+            return result;
         }
 
         public async Task<AzureChallengeResult> UpdateItemAsync(string id, GlobalParameters item)
@@ -482,22 +588,28 @@ namespace AzureChallenge.Providers.DataProviders
 
         public async Task<AzureChallengeResult> DeleteItemAsync(string id, string type)
         {
-            var retVal = new AzureChallengeResult();
+            var result = new AzureChallengeResult();
             var database = client.GetDatabase(databaseId);
             var container = database.GetContainer(containerId);
 
             try
             {
                 ItemResponse<GlobalParameters> response = await container.DeleteItemAsync<GlobalParameters>(id: id, partitionKey: new PartitionKey(type));
-                retVal.Success = response.StatusCode == HttpStatusCode.NoContent;
+                result.Success = response.StatusCode == HttpStatusCode.NoContent;
             }
-            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            catch (Exception ex)
             {
-                retVal.Success = false;
-                retVal.Message = "Failed to insert global parameter into database. A document with the same Id already exists";
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
-            return retVal;
+            return result;
+        }
+
+        public async Task<AzureChallengeResult> DeleteItemsAsync(string query, string type)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -514,9 +626,44 @@ namespace AzureChallenge.Providers.DataProviders
             this.containerId = containerId;
         }
 
-        public Task<(AzureChallengeResult, IEnumerable<AssignedQuestion>)> GetItemsAsync(string query)
+        public async Task<(AzureChallengeResult, IList<AssignedQuestion>)> GetItemsAsync(string queryText, string type)
         {
-            throw new NotImplementedException();
+            var database = client.GetDatabase(databaseId);
+            var container = database.GetContainer(containerId);
+            var result = new AzureChallengeResult();
+            QueryDefinition query = new QueryDefinition(queryText);
+
+            FeedIterator<AssignedQuestion> resultSet = container.GetItemQueryIterator<AssignedQuestion>(
+                query,
+                requestOptions: new QueryRequestOptions()
+                {
+                    PartitionKey = new PartitionKey(type),
+                    MaxItemCount = 10
+                });
+
+            List<AssignedQuestion> allQuestions = new List<AssignedQuestion>();
+            try
+            {
+                while (resultSet.HasMoreResults)
+                {
+                    FeedResponse<AssignedQuestion> response = await resultSet.ReadNextAsync();
+
+                    foreach (var r in response)
+                    {
+                        allQuestions.Add(r);
+                    }
+                }
+
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
+            }
+
+            return (result, allQuestions);
         }
 
         public async Task<(AzureChallengeResult, IList<AssignedQuestion>)> GetAllItemsAsync(string type)
@@ -548,14 +695,15 @@ namespace AzureChallenge.Providers.DataProviders
                         allQuestions.Add(r);
                     }
                 }
+
+                result.Success = true;
             }
             catch (Exception ex)
             {
+                result.IsError = true;
                 result.Success = false;
-                result.Message = "Error while calling Cosmos Db";
+                result.Message = ex.ToString();
             }
-
-            result.Success = true;
 
             return (result, allQuestions);
         }
@@ -576,8 +724,15 @@ namespace AzureChallenge.Providers.DataProviders
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
+                result.IsError = false;
                 result.Success = false;
                 result.Message = $"Failed to get assigned question. No such document with id {id} found.";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
             return (result, doc);
@@ -585,22 +740,29 @@ namespace AzureChallenge.Providers.DataProviders
 
         public async Task<AzureChallengeResult> UpsertItemAsync(AssignedQuestion item)
         {
-            var retVal = new AzureChallengeResult();
+            var result = new AzureChallengeResult();
             var database = client.GetDatabase(databaseId);
             var container = database.GetContainer(containerId);
 
             try
             {
                 await container.UpsertItemAsync<AssignedQuestion>(item, new PartitionKey(item.Type));
-                retVal.Success = true;
+                result.Success = true;
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
-                retVal.Success = false;
-                retVal.Message = "Failed to insert assigned question into database. A document with the same Id already exists";
+                result.IsError = false;
+                result.Success = false;
+                result.Message = "Failed to insert assigned question into database. A document with the same Id already exists";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
-            return retVal;
+            return result;
         }
 
         public async Task<AzureChallengeResult> UpdateItemAsync(string id, AssignedQuestion item)
@@ -610,22 +772,63 @@ namespace AzureChallenge.Providers.DataProviders
 
         public async Task<AzureChallengeResult> DeleteItemAsync(string id, string type)
         {
-            var retVal = new AzureChallengeResult();
+            var result = new AzureChallengeResult();
             var database = client.GetDatabase(databaseId);
             var container = database.GetContainer(containerId);
 
             try
             {
                 ItemResponse<AssignedQuestion> response = await container.DeleteItemAsync<AssignedQuestion>(id: id, partitionKey: new PartitionKey(type));
-                retVal.Success = response.StatusCode == HttpStatusCode.NoContent;
+                result.Success = response.StatusCode == HttpStatusCode.NoContent;
             }
-            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            catch (Exception ex)
             {
-                retVal.Success = false;
-                retVal.Message = "Failed to insert assigned question into database. A document with the same Id already exists";
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
-            return retVal;
+            return result;
+        }
+
+        public async Task<AzureChallengeResult> DeleteItemsAsync(string queryText, string type)
+        {
+            var database = client.GetDatabase(databaseId);
+            var container = database.GetContainer(containerId);
+            var result = new AzureChallengeResult();
+            QueryDefinition query = new QueryDefinition(queryText);
+
+            FeedIterator<AssignedQuestion> resultSet = container.GetItemQueryIterator<AssignedQuestion>(
+                query,
+                requestOptions: new QueryRequestOptions()
+                {
+                    PartitionKey = new PartitionKey(type),
+                    MaxItemCount = 10
+                });
+
+            List<AssignedQuestion> allQuestions = new List<AssignedQuestion>();
+            try
+            {
+                while (resultSet.HasMoreResults)
+                {
+                    FeedResponse<AssignedQuestion> response = await resultSet.ReadNextAsync();
+
+                    foreach (var r in response)
+                    {
+                        await container.DeleteItemAsync<AssignedQuestion>(id: r.QuestionId, partitionKey: new PartitionKey(r.Type));
+                    }
+                }
+
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
+            }
+
+            return (result);
         }
     }
 
@@ -642,7 +845,7 @@ namespace AzureChallenge.Providers.DataProviders
             this.containerId = containerId;
         }
 
-        public Task<(AzureChallengeResult, IEnumerable<Aggregate>)> GetItemsAsync(string query)
+        public Task<(AzureChallengeResult, IList<Aggregate>)> GetItemsAsync(string query, string type)
         {
             throw new NotImplementedException();
         }
@@ -676,14 +879,15 @@ namespace AzureChallenge.Providers.DataProviders
                         allQuestions.Add(r);
                     }
                 }
+
+                result.Success = true;
             }
             catch (Exception ex)
             {
+                result.IsError = true;
                 result.Success = false;
-                result.Message = "Error while calling Cosmos Db";
+                result.Message = ex.ToString();
             }
-
-            result.Success = true;
 
             return (result, allQuestions);
         }
@@ -704,8 +908,15 @@ namespace AzureChallenge.Providers.DataProviders
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
+                result.IsError = false;
                 result.Success = false;
                 result.Message = $"Failed to get aggregate. No such document with id {id} found.";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
             return (result, doc);
@@ -713,22 +924,29 @@ namespace AzureChallenge.Providers.DataProviders
 
         public async Task<AzureChallengeResult> UpsertItemAsync(Aggregate item)
         {
-            var retVal = new AzureChallengeResult();
+            var result = new AzureChallengeResult();
             var database = client.GetDatabase(databaseId);
             var container = database.GetContainer(containerId);
 
             try
             {
                 await container.UpsertItemAsync<Aggregate>(item, new PartitionKey(item.Type));
-                retVal.Success = true;
+                result.Success = true;
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
-                retVal.Success = false;
-                retVal.Message = "Failed to insert aggregate into database. A document with the same Id already exists";
+                result.IsError = false;
+                result.Success = false;
+                result.Message = "Failed to insert aggregate into database. A document with the same Id already exists";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
-            return retVal;
+            return result;
         }
 
         public async Task<AzureChallengeResult> UpdateItemAsync(string id, Aggregate item)
@@ -738,22 +956,28 @@ namespace AzureChallenge.Providers.DataProviders
 
         public async Task<AzureChallengeResult> DeleteItemAsync(string id, string type)
         {
-            var retVal = new AzureChallengeResult();
+            var result = new AzureChallengeResult();
             var database = client.GetDatabase(databaseId);
             var container = database.GetContainer(containerId);
 
             try
             {
                 ItemResponse<Aggregate> response = await container.DeleteItemAsync<Aggregate>(id: id, partitionKey: new PartitionKey(type));
-                retVal.Success = response.StatusCode == HttpStatusCode.NoContent;
+                result.Success = response.StatusCode == HttpStatusCode.NoContent;
             }
-            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            catch (Exception ex)
             {
-                retVal.Success = false;
-                retVal.Message = "Failed to insert aggregate into database. A document with the same Id already exists";
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
-            return retVal;
+            return result;
+        }
+
+        public async Task<AzureChallengeResult> DeleteItemsAsync(string query, string type)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -770,7 +994,7 @@ namespace AzureChallenge.Providers.DataProviders
             this.containerId = containerId;
         }
 
-        public Task<(AzureChallengeResult, IEnumerable<UserChallenges>)> GetItemsAsync(string query)
+        public Task<(AzureChallengeResult, IList<UserChallenges>)> GetItemsAsync(string query, string type)
         {
             throw new NotImplementedException();
         }
@@ -804,14 +1028,15 @@ namespace AzureChallenge.Providers.DataProviders
                         allQuestions.Add(r);
                     }
                 }
+
+                result.Success = true;
             }
             catch (Exception ex)
             {
+                result.IsError = true;
                 result.Success = false;
-                result.Message = "Error while calling Cosmos Db";
+                result.Message = ex.ToString();
             }
-
-            result.Success = true;
 
             return (result, allQuestions);
         }
@@ -832,8 +1057,15 @@ namespace AzureChallenge.Providers.DataProviders
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
+                result.IsError = false;
                 result.Success = false;
                 result.Message = $"Failed to get user aggregate. No such document with id {id} found.";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
             return (result, doc);
@@ -841,22 +1073,29 @@ namespace AzureChallenge.Providers.DataProviders
 
         public async Task<AzureChallengeResult> UpsertItemAsync(UserChallenges item)
         {
-            var retVal = new AzureChallengeResult();
+            var result = new AzureChallengeResult();
             var database = client.GetDatabase(databaseId);
             var container = database.GetContainer(containerId);
 
             try
             {
                 await container.UpsertItemAsync<UserChallenges>(item, new PartitionKey(item.Type));
-                retVal.Success = true;
+                result.Success = true;
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
-                retVal.Success = false;
-                retVal.Message = "Failed to insert user aggregate into database. A document with the same Id already exists";
+                result.IsError = false;
+                result.Success = false;
+                result.Message = "Failed to insert user aggregate into database. A document with the same Id already exists";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
-            return retVal;
+            return result;
         }
 
         public async Task<AzureChallengeResult> UpdateItemAsync(string id, UserChallenges item)
@@ -866,22 +1105,28 @@ namespace AzureChallenge.Providers.DataProviders
 
         public async Task<AzureChallengeResult> DeleteItemAsync(string id, string type)
         {
-            var retVal = new AzureChallengeResult();
+            var result = new AzureChallengeResult();
             var database = client.GetDatabase(databaseId);
             var container = database.GetContainer(containerId);
 
             try
             {
                 ItemResponse<UserChallenges> response = await container.DeleteItemAsync<UserChallenges>(id: id, partitionKey: new PartitionKey(type));
-                retVal.Success = response.StatusCode == HttpStatusCode.NoContent;
+                result.Success = response.StatusCode == HttpStatusCode.NoContent;
             }
-            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            catch (Exception ex)
             {
-                retVal.Success = false;
-                retVal.Message = "Failed to insert user aggregate into database. A document with the same Id already exists";
+                result.IsError = true;
+                result.Success = false;
+                result.Message = ex.ToString();
             }
 
-            return retVal;
+            return result;
+        }
+
+        public async Task<AzureChallengeResult> DeleteItemsAsync(string query, string type)
+        {
+            throw new NotImplementedException();
         }
     }
 }

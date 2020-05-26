@@ -48,5 +48,27 @@
 			"renameLocals": true
 		},
 		"sourceMap": false
+	},
+	{
+		"outputFileName": "wwwroot/js/azurechallenge.admin.indexchallenge.min.js",
+		"inputFiles": [
+			"wwwroot/js/azurechallenge.admin.indexchallenge.js"
+		],
+		"minify": {
+			"enabled": true,
+			"renameLocals": true
+		},
+		"sourceMap": false
+	},
+	{
+		"outputFileName": "wwwroot/js/azurechallenge.challenge.question.min.js",
+		"inputFiles": [
+			"wwwroot/js/azurechallenge.challenge.question.js"
+		],
+		"minify": {
+			"enabled": true,
+			"renameLocals": true
+		},
+		"sourceMap": false
 	}
 ]
