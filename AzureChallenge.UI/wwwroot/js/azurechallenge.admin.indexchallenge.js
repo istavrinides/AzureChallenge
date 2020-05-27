@@ -75,11 +75,11 @@
 
         $.post("/Administration/Challenge/AddNewChallenge", model)
             .done(function () {
-                location.reload();
+                location.reload(true);
             })
             .fail(function () {
                 window.alert("Could not add the new Challenge, an internal error occured. Please try again later.");
-                location.reload();
+                location.reload(true);
             })
 
     });
@@ -111,11 +111,11 @@
 
         $.post("/Administration/Challenge/CopyChallenge", model)
             .done(function () {
-                location.reload();
+                location.reload(true);
             })
             .fail(function () {
                 window.alert("Could not copy the Challenge, an internal error occured. Please try again later.");
-                location.reload();
+                location.reload(true);
             })
 
     });

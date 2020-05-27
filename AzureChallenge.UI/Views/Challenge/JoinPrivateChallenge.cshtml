@@ -1,0 +1,21 @@
+﻿@model AzureChallenge.UI.Models.ChallengeViewModels.JoinPrivateChallengeViewModel
+
+@{
+    ViewData["Title"] = "Join Private Challenge";
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+<form asp-controller="Challenge" asp-action="JoinPrivateChallenge" method="post">
+    <div class="form-group row">
+        <div class="col-md-12">
+            <label>Please enter the code you where given for the private challenge:</label>
+            <input asp-for="ChallengeId" class="form-control" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <div class="col-md-12">
+            <input type="submit" class="btn btn-primary" value="Join Challenge" />
+        </div>
+    </div>
+</form>

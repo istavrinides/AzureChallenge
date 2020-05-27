@@ -436,7 +436,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 Id = inputModel.Id,
                 Name = inputModel.Name,
                 IsPublic = inputModel.IsPublic,
-                Questions = inputModel.ChallengeQuestions
+                Questions = inputModel.ChallengeQuestions == null ? new List<ACMQ.QuestionLite>() :
+                            inputModel.ChallengeQuestions?
                                       .Select(p => new ACMQ.QuestionLite()
                                       {
                                           AssociatedQuestionId = p.AssociatedQuestionId,
@@ -559,9 +560,24 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteChallenge(string challengeId)
         {
+            var challengeResponse = await challengeProvider.GetItemAsync(challengeId);
+
             await challengeProvider.DeleteItemAsync(challengeId);
             await globalParameterProvider.DeleteItemAsync(challengeId);
             await assignedQuestionProvider.DeleteAllItemsOfChallenge(challengeId);
+
+            if (challengeResponse.Item2.IsPublic)
+            {
+                // We only have one, so just get via the Partition search
+                var aggregatesReponse = await aggregateProvider.GetAllItemsAsync();
+
+                if (aggregatesReponse.Item1.Success)
+                {
+                    aggregatesReponse.Item2[0].Challenge.TotalPublic -= 1;
+
+                    await aggregateProvider.AddItemAsync(aggregatesReponse.Item2[0]);
+                }
+            }
 
             return Ok();
         }

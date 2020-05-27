@@ -116,6 +116,7 @@ namespace AzureChallenge.UI
             services.AddSingleton<IUserChallengesProvider<AzureChallengeResult, UserChallenges>, UserChallengesProvider>();
             services.AddSingleton<IRESTProvider, RESTProvider>();
             services.AddSingleton<IAzureAuthProvider, AzureAuthProvider>();
+            services.AddApplicationInsightsTelemetry(Configuration["APPINSIGHTS_INSTRUMENTATIONKEY"]);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
