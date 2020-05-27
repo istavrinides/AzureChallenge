@@ -86,7 +86,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             {
                 var globalParameters = new GlobalChallengeParameters
                 {
-                    Parameters = result.Item2.Parameters.Select(p => new GlobalChallengeParameters.ParameterDefinition() { AssignedToQuestion = p.AssignedToQuestion, Key = $"Global.{p.Key}", Value = p.Value }).ToList(),
+                    Parameters = result.Item2.Parameters == null ? new List<GlobalChallengeParameters.ParameterDefinition>() : result.Item2.Parameters.Select(p => new GlobalChallengeParameters.ParameterDefinition() { AssignedToQuestion = p.AssignedToQuestion, Key = $"Global.{p.Key}", Value = p.Value }).ToList(),
                     ChallengeId = result.Item2.ChallengeId
                 };
                 return Ok(globalParameters);

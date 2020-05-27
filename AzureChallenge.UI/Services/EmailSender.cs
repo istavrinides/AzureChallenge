@@ -34,7 +34,7 @@ namespace AzureChallenge.UI.Services
                 client.Credentials = new NetworkCredential(Options.EmailUserName, Options.EmailPassword);
 
                 MailMessage mailMessage = new MailMessage();
-                mailMessage.From = new MailAddress("cosmic-challenge@outlook.com");
+                mailMessage.From = new MailAddress("az-challenge@outlook.com");
                 mailMessage.To.Add(email);
                 mailMessage.IsBodyHtml = true;
                 mailMessage.Body = message;

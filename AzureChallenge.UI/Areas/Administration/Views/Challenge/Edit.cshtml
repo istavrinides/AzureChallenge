@@ -23,7 +23,11 @@
     <div id="saveAlert" class="alert alert-danger d-none" role="alert">You have made changes. Please click save or risk losing them!</div>
     @if (Model.IsLocked)
     {
-        <div id="saveAlert" class="alert alert-danger" role="alert">The Challenge is locked and cannot be edited!</div>
+        <div class="alert alert-danger" role="alert">The Challenge is locked and cannot be edited!</div>
+    }
+    else
+    {
+        <div class="alert alert-secondary" role="alert">The Private Challenge Code for this challenge is @Model.Id</div>
     }
     <input type="hidden" asp-for="Id" />
     <input type='hidden' asp-for="Description" />

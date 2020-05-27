@@ -76,7 +76,14 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button class="btn btn-secondary d-none" id="btnNextModal" onclick='window.location.href="@Url.Action("ShowQuestion", "Challenge", new { challengeId = Model.ChallengeId, questionId = Model.NextQuestionId })"'>Go to next question</button>
+                @if (Model.NextQuestionId != null)
+                {
+                    <button class="btn btn-secondary d-none" id="btnNextModal" onclick='window.location.href="@Url.Action("ShowQuestion", "Challenge", new { challengeId = Model.ChallengeId, questionId = Model.NextQuestionId })"'>Go to next question</button>
+                }
+                else
+                {
+                    <button class="btn btn-secondary d-none" id="btnNextModal" onclick='window.location.href="@Url.Action("Completed", "Challenge", new { challengeId = Model.ChallengeId})"'>Go to next question</button>
+                }
             </div>
         </div>
     </div>

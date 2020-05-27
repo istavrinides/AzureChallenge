@@ -37,4 +37,9 @@ namespace AzureChallenge.UI.Models.ChallengeViewModels
         public string Justification { get; set; }
         public List<string> HelpfulLinks { get; set; }
     }
+
+    public class JoinPrivateChallengeViewModel
+    {
+        public string ChallengeId { get; set; }
+    }
 }

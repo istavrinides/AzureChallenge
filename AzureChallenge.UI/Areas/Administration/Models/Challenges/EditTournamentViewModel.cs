@@ -16,6 +16,8 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
 
         public string Description { get; set; }
 
+        public string PrivateJoinCode { get; set; }
+
         [Display(Name="Will the challenge be publically visible (users can search for and join)?")]
         public bool IsPublic { get; set; }
 

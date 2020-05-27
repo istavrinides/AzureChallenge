@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Spatial;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.Logging;
 
@@ -64,6 +65,7 @@ namespace AzureChallenge.UI.Controllers
             if (challengesResponse.Item1.Success)
             {
                 model.Challenges = challengesResponse.Item2
+                                    .Where(c => c.IsPublic)
                                     .Select(c => new Models.ChallengeViewModels.Challenge
                                     {
                                         Description = c.Description,
@@ -142,6 +144,44 @@ namespace AzureChallenge.UI.Controllers
 
             return View(model);
         }
+
+        [HttpGet]
+        [Route("Challenge/Join")]
+        public async Task<IActionResult> JoinPrivateChallenge()
+        {
+            var model = new JoinPrivateChallengeViewModel();
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [Route("Challenge/Join")]
+        public async Task<IActionResult> JoinPrivateChallenge(JoinPrivateChallengeViewModel inputModel)
+        {
+            if (ModelState.IsValid)
+            {
+                var challengeResponse = await challengesProvider.GetItemAsync(inputModel.ChallengeId);
+
+                if (!challengeResponse.Item1.Success || challengeResponse.Item1.IsError)
+                    return StatusCode(404);
+
+                // Check if the challenge has questions
+                if(challengeResponse.Item2.Questions.Count > 0)
+                {
+                    // Get the id of the first
+                    var firstQuestion = challengeResponse.Item2.Questions.Where(q => q.Index == 0).FirstOrDefault();
+
+                    return RedirectToAction("StartChallenge", new { challengeId = challengeResponse.Item2.Id, questionId = firstQuestion.Id });
+                }
+                else
+                {
+                    return StatusCode(404);
+                }
+            }
+
+            return View(inputModel);
+        }
+
 
         [Route("Challenge/{challengeId}/Start/{questionId}")]
         public async Task<IActionResult> StartChallenge(string challengeId, string questionId)
@@ -304,6 +344,7 @@ namespace AzureChallenge.UI.Controllers
                     if (nextQuestionId == null)
                     {
                         challenge.Completed = true;
+                        challenge.endTimeUTC = DateTime.Now.ToUniversalTime();
                     }
                     else
                     {
