@@ -61,7 +61,7 @@
             @if (SignInManager.IsSignedIn(User))
             {
                 var user = await UserManager.GetUserAsync(User);
-                if (string.IsNullOrWhiteSpace(user.SubscriptionId))
+                if (string.IsNullOrWhiteSpace(user.SubscriptionId) && user.EmailConfirmed)
                 {
                     <div id="saveAlert" class="alert alert-warning text-center" role="alert">
                         You have not setup your Azure Subscription details. Please click <a asp-area="Identity" asp-page="/Account/Manage/AzureConfig">here</a> to configure.

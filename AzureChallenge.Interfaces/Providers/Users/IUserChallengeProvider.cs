@@ -12,5 +12,7 @@ namespace AzureChallenge.Interfaces.Providers.Users
         public Task<(T, IList<Q>)> GetAllItemsAsync();
 
         public Task<T> AddItemAsync(Q item);
+
+        public Task<T> DeleteItemAsync(string id);
     }
 }
