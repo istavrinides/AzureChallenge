@@ -113,16 +113,23 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
             user.ClientSecret = Input.ClientSecret;
             user.TenantId = Input.TenantId;
 
-            // Test the credentials. We should get the subscription name
-            var profile = mapper.Map<AzureChallenge.Models.Profile.UserProfile>(user);
-            var token = await azureAuthProvider.AzureAuthorizeAsync(profile.GetSecretsForAuth());
-            var result = await restProvider.GetAsync($"https://management.azure.com/subscriptions/{user.SubscriptionId}?api-version=2020-01-01", token, null);
+            try
+            {
+                // Test the credentials. We should get the subscription name
+                var profile = mapper.Map<AzureChallenge.Models.Profile.UserProfile>(user);
+                var token = await azureAuthProvider.AzureAuthorizeAsync(profile.GetSecretsForAuth());
+                var result = await restProvider.GetAsync($"https://management.azure.com/subscriptions/{user.SubscriptionId}?api-version=2020-01-01", token, null);
 
-            JObject o = JObject.Parse(result.Content);
-            string subscriptionName = (string)o.SelectToken("displayName");
+                JObject o = JObject.Parse(result.Content);
+                string subscriptionName = (string)o.SelectToken("displayName");
 
-            user.SubscriptionName = subscriptionName;
-
+                user.SubscriptionName = subscriptionName;
+            }
+            catch(Exception ex)
+            {
+                StatusMessage = "Error: Please make sure the Service Principal you have created has at least Read permissions on the subscription.";
+                return RedirectToPage();
+            }
             await _userManager.UpdateAsync(user);
             await _signInManager.RefreshSignInAsync(user);
             

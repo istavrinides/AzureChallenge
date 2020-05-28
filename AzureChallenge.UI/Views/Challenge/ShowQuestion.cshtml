@@ -2,7 +2,12 @@
 @{
     ViewData["Title"] = Model.TournamentName + " -  Question " + (Model.QuestionIndex + 1);
 }
-
+@if (Model.ShowWarning)
+{
+    <div class="alert alert-warning text-center" role="alert">
+        @Model.WarningMessage
+    </div>
+}
 <div class="container pt-5">
     <div class="card">
         <div class="card-header bg-primary text-white font-weight-bold">@Model.TournamentName - Question @(Model.QuestionIndex +1)</div>
