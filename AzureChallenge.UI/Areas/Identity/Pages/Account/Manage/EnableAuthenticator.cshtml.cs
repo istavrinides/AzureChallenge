@@ -149,7 +149,7 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
         {
             return string.Format(
                 AuthenticatorUriFormat,
-                _urlEncoder.Encode("AzureChallenge.UI"),
+                _urlEncoder.Encode("Az Challenge"),
                 _urlEncoder.Encode(email),
                 unformattedKey);
         }

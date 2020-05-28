@@ -25,6 +25,11 @@ namespace AzureChallenge.Providers
             return await dataProvider.UpsertItemAsync(item);
         }
 
+        public async Task<AzureChallengeResult> DeleteItemAsync(string id)
+        {
+            return await dataProvider.DeleteItemAsync(id, "UserChallenges");
+        }
+
         public async Task<(AzureChallengeResult, IList<UserChallenges>)> GetAllItemsAsync()
         {
             return await dataProvider.GetAllItemsAsync("UserChallenges");
