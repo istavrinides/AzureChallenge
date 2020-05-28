@@ -36,6 +36,8 @@ namespace AzureChallenge.UI.Models.ChallengeViewModels
         public int Difficulty { get; set; }
         public string Justification { get; set; }
         public List<string> HelpfulLinks { get; set; }
+        public bool ShowWarning { get; set; }
+        public string WarningMessage { get; set; }
     }
 
     public class JoinPrivateChallengeViewModel
