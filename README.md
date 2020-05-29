@@ -74,7 +74,8 @@ When adding a question, you are essentially "hydrating" the question. In this ph
 - Add answer parameters. If you don't add any, the question will be considered correct it the corresponding URI call returns an HTTP status code 200. In case where the URI returns a JSON document, you can check values within the document. To do this, the following are supported:
   - Path: 
     - A dot separated value that defines the JSON path to the desired property. For example, for the below JSON, to validate the value "myValue", you would give a path of **Path.To.Property** (case sensitive):
-    ```    {
+    ```    
+    {
         "Path": {
             "To": {
                 "Property": "myValue"
@@ -83,7 +84,8 @@ When adding a question, you are essentially "hydrating" the question. In this ph
     }
     ```
     - A dot separated value with square brackets to denote a specific value in an array for a specific property. For example, for the below JSON, you would provide a path of **Path.To.Property[WantThis]** and check the value **Value**
-    ```    {
+    ```    
+    {
         "Path": {
             "To": {
                 "Property": [
