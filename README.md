@@ -1,7 +1,7 @@
 # Azure Challenge
 Azure Challenge is an ASP.NET Core MVC application that serves as a platform for interactive learning of Azure Services. 
 Using the web application, you can define questions and challenges to users participating and check their validity by issuing REST API calls
-to the Azure Backend. The working sample is located at https://az-challenge.azurewebsites.net, you are welcome to give it a try!
+using the Azure Resource Manager. The working sample is located at https://az-challenge.azurewebsites.net, you are welcome to give it a try!
 
 We assume that everyone participating in the challenge has an Azure Subscription.
 
@@ -103,7 +103,7 @@ When adding a question, you are essentially "hydrating" the question. In this ph
 ## License
 Copyright (c) 2020 Ioannis Stavrinides
 
-Full disclaimer, at the time of creation, I am a Cloud Solution Architect working for Microsoft Corp. However, this is a project I created on my own, free time and has no professional association with Microsoft Corp.
+Full disclaimer, at the time of creation, I am a Cloud Solution Architect working for Microsoft Corp. However, this is a project I created on my own, free time.
 
 Licensed under the MIT license.
 
