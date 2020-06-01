@@ -38,6 +38,9 @@ namespace AzureChallenge.Models.Questions
         [JsonProperty(PropertyName = "justification")]
         public string Justification { get; set; }
 
+        [JsonProperty(PropertyName = "owner")]
+        public string Owner { get; set; }
+
         [JsonProperty(PropertyName = "usefulLinks")]
         public List<string> UsefulLinks { get; set; }
 
@@ -56,6 +59,7 @@ namespace AzureChallenge.Models.Questions
             public List<string> UriParameters { get; set; }
         }
 
+        [JsonIgnore]
         public string DifficultyString => this.Difficulty == 1 ? "Easy" : this.Difficulty == 2 ? "Medium" : this.Difficulty == 3 ? "Hard" : "Expert";
     }
 }

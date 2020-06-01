@@ -69,7 +69,7 @@
                         <td class="text-center">
                             @if (q.IsLocked)
                             {
-                                    <img src="~/images/trash-2.svg" />
+                                <img src="~/images/trash-2.svg" />
                             }
                             else
                             {
@@ -126,7 +126,12 @@
 
 @section Scripts
 {
-    <script src="~/js/azurechallenge.admin.indexchallenge.js"></script>
+    <environment include="Development">
+        <script src="~/js/azurechallenge.admin.indexchallenge.js"></script>
+    </environment>
+    <environment exclude="Development">
+        <script src="~/js/azurechallenge.admin.indexchallenge.min.js"></script>
+    </environment>
     <partial name="_ValidationScriptsPartial" />
 
 }

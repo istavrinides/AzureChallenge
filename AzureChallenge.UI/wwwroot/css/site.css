@@ -157,6 +157,10 @@ body {
     filter: invert(18%) sepia(88%) saturate(7402%) hue-rotate(358deg) brightness(109%) contrast(116%);
 }
 
+.svg-filter-disabled {
+    filter: invert(65%) sepia(4%) saturate(847%) hue-rotate(135deg) brightness(87%) contrast(82%);
+}
+
 .popover-body {
     color: red !important;
 }

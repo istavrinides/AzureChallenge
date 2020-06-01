@@ -75,7 +75,22 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         {
             var result = await questionProvider.GetAllItemsAsync();
 
-            (AzureChallengeResult, IList<IndexQuestionViewModel>) model = (result.Item1, mapper.Map<IList<IndexQuestionViewModel>>(result.Item2));
+            if (!result.Item1.Success || result.Item1.IsError)
+                return StatusCode(500);
+
+            var model = new List<IndexQuestionViewModel>();
+
+            foreach (var q in result.Item2)
+            {
+                model.Add(new IndexQuestionViewModel
+                {
+                    CanDelete = q.Owner == User.Identity.Name,
+                    Name = q.Name,
+                    Description = q.Description,
+                    Id = q.Id,
+                    TargettedAzureService = q.TargettedAzureService
+                });
+            }
 
             return View(model);
         }
@@ -140,6 +155,9 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
             if (result.Item1.Success)
             {
+                if (result.Item2.Owner != User.Identity.Name)
+                    return RedirectToAction("Index");
+
                 var client = new HttpClient();
                 var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
                 var azureServiceList = new List<string>();
@@ -333,6 +351,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             }
             model.AzureServicesList = azureServiceList;
             model.AvailableParameters = new List<string>();
+            model.Owner = User.Identity.Name;
+
 
             // Get the list of global parameters (if exist)
             var globalParams = await globalParameterProvider.GetAllItemsAsync();
@@ -366,6 +386,19 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             return Ok(result.Item2);
         }
 
+        public async Task<IActionResult> RemoveQuestion(string id)
+        {
+            var result = await questionProvider.DeleteItemAsync(id);
+
+            if (result.Success)
+            {
+                return Ok();
+            }
+            else
+            {
+                return StatusCode(500);
+            }
+        }
 
         private async Task<bool> AddUpdateQuestionAsync(AddNewQuestionViewModel model)
         {
@@ -416,7 +449,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 TextParameters = model.TextParameters,
                 Uris = uriList,
                 Justification = model.Justification,
-                UsefulLinks = model.UsefulLinks
+                UsefulLinks = model.UsefulLinks,
+                Owner = model.Owner
             };
 
             paramList.AddRange(model.TextParameters);

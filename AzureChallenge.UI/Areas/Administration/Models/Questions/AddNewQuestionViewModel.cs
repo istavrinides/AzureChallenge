@@ -42,6 +42,8 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Questions
         [Display(Name="Useful Links")]
         public List<string> UsefulLinks { get; set; }
 
+        public string Owner { get; set; }
+
         public class UriList
         {
             public int Id { get; set; }
