@@ -1,54 +1,128 @@
-﻿@model (AzureChallenge.Models.AzureChallengeResult, IList<AzureChallenge.UI.Areas.Administration.Models.Questions.IndexQuestionViewModel>)
+﻿@model IList<AzureChallenge.UI.Areas.Administration.Models.Questions.IndexQuestionViewModel>
 @{
     ViewData["Title"] = "Question list";
 }
 
-    <div class="d-flex flex-row">
-        <div class="align-content-between w-100">
-            <span class="h1">@ViewData["Title"]</span>
-            <a asp-action="AddNew" class="float-right mt-2">
-                <button type="button" class="btn btn-info">Add new</button>
-            </a>
-        </div>
+<div class="d-flex flex-row">
+    <div class="align-content-between w-100">
+        <span class="h1">@ViewData["Title"]</span>
+        <a asp-action="AddNew" class="float-right mt-2">
+            <button type="button" class="btn btn-info">Add new</button>
+        </a>
     </div>
+</div>
 <hr />
 
-@if (Model.Item1.Success)
-{
-    <div class="container">
-        <table class="table table-responsive-md table-hover">
-            <thead class="thead-dark">
-                <tr>
-                    <th style="width:16.67%">
-                        @Html.DisplayNameFor(model => model.Item2[0].Name)
-                    </th>
-                    <th style="width:66.67%">
-                        @Html.DisplayNameFor(model => model.Item2[0].Description)
-                    </th>
-                    <th style="width:8.33%"></th>
-                    <th style="width:8.33%"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var q in Model.Item2)
+<div class="container">
+    <table class="table table-responsive-md table-hover" id="questionsTable">
+        <thead class="thead-dark">
+            <tr>
+                <th colspan="2">
+                    <div class="d-flex flex-row">
+                        <label class="col-form-label">Filter:</label>
+                        &nbsp;
+                        <input id="inputFilter" class="form-control" />
+                    </div>
+                </th>
+                <th colspan="3">
+                    <div class="d-flex flex-row p-2">
+                        <input type="checkbox" id="onlyMine" class="form-check-input" />
+                        <label class="form-check-label" for="onlyMine">Only show my questions</label>
+                    </div>
+                </th>
+            </tr>
+            <tr>
+                <th style="width:16.67%">
+                    @Html.DisplayNameFor(model => model[0].Name)
+                </th>
+                <th style="width: 58.34%">
+                    @Html.DisplayNameFor(model => model[0].Description)
+                </th>
+                <th style="width:8.33%">Details</th>
+                <th style="width:8.33%">Edit</th>
+                <th style="width:8.33%">Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var questions in Model.GroupBy(p => p.TargettedAzureService).Select(p => new { Service = p.Key, Questions = p.ToList() }))
+            {
+            <tr class="bg-ligth font-weight-bold" data-mine="@questions.Questions.Any(q => q.CanDelete)">
+                <td colspan="5">
+                    @questions.Service
+                </td>
+            </tr>
+            @foreach (var q in questions.Questions)
                 {
-                    <tr>
-                        <td>
-                            @q.Name
-                        </td>
-                        <td>
-                            @q.Description
-                        </td>
-                        <td>
-                            <a asp-action="Details" asp-route-id="@q.Id">Details</a>
-                        </td>
-                        <td>
-                            <a asp-action="Edit" asp-route-id="@q.Id">Edit</a>
-                        </td>
-                    </tr>
+            <tr data-questionId="@q.Id" data-mine="@q.CanDelete">
+                <td class="name">
+                    @q.Name
+                </td>
+                <td class="description">
+                    @q.Description
+                </td>
+                <td class="text-center">
+                    <a asp-action="Details" asp-route-id="@q.Id">
+                        <img src="~/images/eye.svg" />
+                    </a>
+                </td>
+                <td class="text-center">
+                    @if (q.CanDelete)
+                            {
+                    <a asp-action="Edit" asp-controller="Question" asp-area="Administration" asp-route-id="@q.Id">
+                        <img src="~/images/edit.svg" style="width:24px" />
+                    </a>
+                            }
+                            else
+                            {
+                    <img src="~/images/edit.svg" style="width:24px" class="svg-filter-disabled" data-toggle='tooltip' data-placement='top' title='Cannot edit questions you have not created.' />
+                            }
+                </td>
+                <td class="text-center">
+                    @if (q.CanDelete)
+                            {
+                    <a href="#" class="deleteQuestion" data-questionId="@q.Id">
+                        <img src="~/images/trash-2.svg" class="svg-filter-danger" />
+                    </a>
+                            }
+                            else
+                            {
+                    <img src="~/images/trash.svg" class="svg-filter-disabled" data-toggle='tooltip' data-placement='top' title='Cannot delete questions you have not created.' />
+                            }
+                </td>
+            </tr>
                 }
-            </tbody>
-        </table>
-    </div>
-}
+            }
+        </tbody>
+    </table>
+</div>
 
+<div class="modal" id="deleteModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Deleting the question</h5>
+            </div>
+            <div class="modal-body">
+                <div id="checkModalWaiting" class="text-center">
+                    <div>
+                        Please wait while the question is deleted...
+                    </div>
+                    <div>
+                        <img src="/images/wait.gif">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts
+{
+    <environment include="Development">
+        <script src="~/js/azurechallenge.admin.indexquestion.js" asp-append-version="true"></script>
+    </environment>
+    <environment exclude="Development">
+        <script src="~/js/azurechallenge.admin.indexquestion.min.js" asp-append-version="true"></script>
+    </environment>
+}

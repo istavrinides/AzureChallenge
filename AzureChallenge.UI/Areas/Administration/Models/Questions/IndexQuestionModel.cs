@@ -10,5 +10,7 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Questions
         public string Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public bool CanDelete { get; set; }
+        public string TargettedAzureService { get; set; }
     }
 }

@@ -31,5 +31,10 @@ namespace AzureChallenge.Providers
         {
             return await dataProvider.UpsertItemAsync(item);
         }
+
+        public async Task<AzureChallengeResult> DeleteItemAsync(string id)
+        {
+            return await dataProvider.DeleteItemAsync(id, "Question");
+        }
     }
 }

@@ -28,6 +28,17 @@
 		"sourceMap": false
 	},
 	{
+		"outputFileName": "wwwroot/js/azurechallenge.admin.indexquestion.min.js",
+		"inputFiles": [
+			"wwwroot/js/azurechallenge.admin.indexquestion.js"
+		],
+		"minify": {
+			"enabled": true,
+			"renameLocals": true
+		},
+		"sourceMap": false
+	},
+	{
 		"outputFileName": "wwwroot/js/azurechallenge.admin.editchallenge.min.js",
 		"inputFiles": [
 			"wwwroot/js/azurechallenge.admin.editchallenge.js"

@@ -341,7 +341,7 @@ var populateModal = function (selectedQuestionId, challengeId, readOnly = false)
                         var toAppend = "<div class='tab-pane fade' id='uri-" + i + "-content' role='tabpanel' aria-labelledby='uri" + i + "-tab'> \
                                                     <input type='hidden' name='QuestionToAdd.Uris["+ i + "].Id' id='QuestionToAdd_Uris_" + i + "__Id' value='" + data.uris[i].id + "' /> \
                                                     <div class='input-group mb-3'> \
-                                                        <div class= 'input-group-prepend btn-group-toggle' data - toggle='buttons' > \
+                                                        <div class= 'input-group-prepend btn-group-toggle' data-toggle='buttons' > \
                                                             <span class='input-group-text'>"+ data.uris[i].callType + "</span> \
                                                             <input type='hidden' name='QuestionToAdd.Uris["+ i + "].CallType' id='QuestionToAdd_Uris_" + i + "__CallType' value='" + data.uris[i].callType + "' /> \
                                                         </div> \
@@ -556,7 +556,7 @@ var populateModalAddNew = function (selectedQuestionId, challengeId) {
                             var toAppend = "<div class='tab-pane fade' id='uri-" + i + "-content' role='tabpanel' aria-labelledby='uri" + i + "-tab'> \
                                                     <input type='hidden' name='QuestionToAdd.Uris["+ i + "].Id' id='QuestionToAdd_Uris_" + i + "__Id' value='" + data.uris[i].id + "' /> \
                                                     <div class='input-group mb-3'> \
-                                                        <div class= 'input-group-prepend btn-group-toggle' data - toggle='buttons' > \
+                                                        <div class= 'input-group-prepend btn-group-toggle' data-toggle='buttons' > \
                                                             <span class='input-group-text'>"+ data.uris[i].callType + "</span> \
                                                             <input type='hidden' name='QuestionToAdd.Uris["+ i + "].CallType' id='QuestionToAdd_Uris_" + i + "__CallType' value='" + data.uris[i].callType + "' /> \
                                                         </div> \
