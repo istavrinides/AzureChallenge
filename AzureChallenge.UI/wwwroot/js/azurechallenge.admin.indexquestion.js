@@ -18,16 +18,16 @@
     });
 
     $("#inputFilter").on('input', function () {
-        filterTable($("#onlyMine")[0].checked);
+        filterTable($("#showAll")[0].checked);
     });
 
-    $("#onlyMine").change(function () {
+    $("#showAll").change(function () {
         filterTable(this.checked);
     });
 
 });
 
-filterTable = function (onlyMine = false) {
+filterTable = function (showAll = false) {
 
     $("#questionsTable tbody tr").each(function () {
         if (!$(this).find("td.name").text().toLowerCase().includes($("#inputFilter").val().toLowerCase())
@@ -44,7 +44,7 @@ filterTable = function (onlyMine = false) {
             }
         }
         else {
-            if (onlyMine) {
+            if (!showAll) {
                 if ($(this).attr("data-mine") && $(this).attr("data-mine") === "True") {
                     $(this).show();
                 }

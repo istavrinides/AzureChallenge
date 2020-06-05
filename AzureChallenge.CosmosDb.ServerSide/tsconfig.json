@@ -1,9 +1,0 @@
-{
-  "include": [
-    "src/*.ts"
-  ],
-  "compilerOptions": {
-    "target": "ES2015",
-    "outFile": "output/serverside.js"
-  }
-}

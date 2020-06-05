@@ -79,6 +79,7 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
             public string Uri { get; set; }
             public string CallType { get; set; }
             public List<KVPair> UriParameters { get; set; }
+            public bool RequiresContributorAccess { get; set; }
         }
 
         public class AnswerList

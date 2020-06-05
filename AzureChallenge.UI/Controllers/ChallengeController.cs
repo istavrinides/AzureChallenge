@@ -306,10 +306,10 @@ namespace AzureChallenge.UI.Controllers
                 model.TournamentName = challengeResponse.Item2.Name;
                 model.ChallengeId = challengeId;
 
-                if(question.Uris.Any(u => u.Uri.Contains("Microsoft.DocumentDB") || u.Uri.Contains("documents.azure.com")))
+                if(question.Uris.Any(u => u.RequiresContributorAccess))
                 {
                     model.ShowWarning = true;
-                    model.WarningMessage = "Please make sure the Service Principal you have created has Contributor access to the Cosmos Db account";
+                    model.WarningMessage = "This question requires that the Service Principal you have created has Contributor access to the below Resource(s).";
                 }
             }
             else

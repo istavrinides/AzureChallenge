@@ -57,6 +57,9 @@ namespace AzureChallenge.Models.Questions
 
             [JsonProperty(PropertyName = "uriParameters")]
             public List<string> UriParameters { get; set; }
+            
+            [JsonProperty(PropertyName = "requiresContributorAccess")]
+            public bool RequiresContributorAccess { get; set; }
         }
 
         [JsonIgnore]

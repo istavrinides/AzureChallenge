@@ -1,3 +1,0 @@
-# AzureChallenge.CosmosDb.ServerSide
-
-

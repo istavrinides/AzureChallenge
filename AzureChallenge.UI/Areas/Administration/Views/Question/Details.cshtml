@@ -65,7 +65,7 @@
             <span>Discovered parameters:</span>
         </div>
         <div id="textParamsInputGroup" class="row col-md-12">
-            @for (int i = 0; i < Model.TextParameters.Count; i++)
+            @for (int i = 0; i < Model.TextParameters?.Count; i++)
             {
                 <input type="hidden" asp-for="@Model.TextParameters[i]" />
                 <span class="btn btn-info m-1">@Model.TextParameters[i]</span>
@@ -114,28 +114,32 @@
         <div class="col pl-0 pr-0 tab-content" id="uriTabContent">
             @for (int i = 0; i < Model.Uris.Count(); i++)
             {
-                <div class='tab-pane fade @(i == 0 ? "show active" : "")' id='uri-@(i)-content' role='tabpanel' aria-labelledby='uri-@(i)-tab'>
-                    <input type='hidden' asp-for='@Model.Uris[i].Id' />
-                    <div class='input-group mb-3'>
-                        <div class='input-group-prepend btn-group-toggle' data-toggle='buttons'>
-                            <span class="input-group-text">@Model.Uris[i].CallType</span>
-                        </div>
-                        <input asp-for='@Model.Uris[i].Uri' data-index="@i" class='form-control uriinput' readonly />
+            <div class='tab-pane fade @(i == 0 ? "show active" : "")' id='uri-@(i)-content' role='tabpanel' aria-labelledby='uri-@(i)-tab'>
+                <input type='hidden' asp-for='@Model.Uris[i].Id' />
+                <div class='input-group mb-3'>
+                    <div class='input-group-prepend btn-group-toggle' data-toggle='buttons'>
+                        <span class="input-group-text">@Model.Uris[i].CallType</span>
                     </div>
-                    <br />
-                    <div class='form-group'>
-                        <div class='col-md-12 pl-0'>
-                            <span>Discovered parameters:</span>
-                        </div>
-                        <div id='Uris_@(i)__Uri_params' class="row col-md-12">
-                            @for (int j = 0; j < Model.Uris[i].UriParameters.Count; j++)
-                            {
-                                <input type="hidden" asp-for="@Model.Uris[i].UriParameters[j]" />
-                                <span class='btn btn-info m-1'>@Model.Uris[i].UriParameters[j]</span>
-                            }
-                        </div>
+                    <input asp-for='@Model.Uris[i].Uri' data-index="@i" class='form-control uriinput' readonly />
+                </div>
+                <br />
+                <div class="input-group mb-3" style='padding-left: 20px'>
+                    <input asp-for="@Model.Uris[i].RequiresContributorAccess" class="form-check-input" />
+                    <label class="form-check-label" asp-for="@Model.Uris[i].RequiresContributorAccess">Requires elevated (Contributor) access to the resource</label>
+                </div>
+                <div class='form-group'>
+                    <div class='col-md-12 pl-0'>
+                        <span>Discovered parameters:</span>
+                    </div>
+                    <div id='Uris_@(i)__Uri_params' class="row col-md-12">
+                        @for (int j = 0; j < Model.Uris[i]?.UriParameters?.Count; j++)
+                        {
+                            <input type="hidden" asp-for="@Model.Uris[i].UriParameters[j]" />
+                            <span class='btn btn-info m-1'>@Model.Uris[i].UriParameters[j]</span>
+                        }
                     </div>
                 </div>
+            </div>
             }
         </div>
     </div>

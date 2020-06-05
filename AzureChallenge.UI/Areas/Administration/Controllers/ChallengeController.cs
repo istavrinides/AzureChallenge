@@ -150,7 +150,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     QuestionId = string.IsNullOrWhiteSpace(inputModel.QuestionToAdd.Id) ? Guid.NewGuid().ToString() : inputModel.QuestionToAdd.Id,
                     TargettedAzureService = inputModel.QuestionToAdd.TargettedAzureService,
                     Text = inputModel.QuestionToAdd.Text,
-                    TextParameters = inputModel.QuestionToAdd.TextParameters.ToDictionary(p => p.Key, p => p.Value),
+                    TextParameters = inputModel.QuestionToAdd.TextParameters?.ToDictionary(p => p.Key, p => p.Value) ?? new Dictionary<string, string>(),
                     ChallengeId = inputModel.QuestionToAdd.ChallengeId,
                     Uris = inputModel.QuestionToAdd.Uris
                                     .Select(p => new ACMQ.AssignedQuestion.UriList
@@ -158,11 +158,12 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                         CallType = p.CallType,
                                         Id = p.Id,
                                         Uri = p.Uri,
-                                        UriParameters = p.UriParameters.ToDictionary(q => q.Key, q => q.Value)
+                                        UriParameters = p.UriParameters?.ToDictionary(q => q.Key, q => q.Value) ?? new Dictionary<string, string>(),
+                                        RequiresContributorAccess = p.RequiresContributorAccess
                                     }
                                     ).ToList(),
                     Justification = inputModel.QuestionToAdd.Justification,
-                    UsefulLinks = inputModel.QuestionToAdd.UsefulLinks
+                    UsefulLinks = inputModel.QuestionToAdd.UsefulLinks ?? new List<string>()
                 };
 
                 List<ACMQ.QuestionLite> challengeQuestions = null;
@@ -307,7 +308,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                  CallType = p.CallType,
                                  Id = p.Id,
                                  Uri = p.Uri,
-                                 UriParameters = p.UriParameters.Select(q => new VM.AssignedQuestion.KVPair { Key = q.Key, Value = q.Value }).ToList()
+                                 UriParameters = p.UriParameters.Select(q => new VM.AssignedQuestion.KVPair { Key = q.Key, Value = q.Value }).ToList(),
+                                 RequiresContributorAccess = p.RequiresContributorAccess
                              }).ToList(),
                     Justification = result.Item2.Justification,
                     UsefulLinks = result.Item2.UsefulLinks ?? new List<string>()

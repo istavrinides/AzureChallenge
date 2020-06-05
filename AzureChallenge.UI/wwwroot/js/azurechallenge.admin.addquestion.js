@@ -245,6 +245,10 @@
                 </div > \
                 <small class='form-text text-muted'>Please enter the Uri for the API to call. Placeholders that will be replaced from below parameters should be wrapped inside curly braces {}.</small> \
                 <br /> \
+                <div class='input-group mb-3' style='padding-left: 20px'> \
+                    <input type='checkbox' name='Uris["+ lastIndex + "].RequiresContributorAccess' id='Uris_" + lastIndex + "__RequiresContributorAccess' class='form-check-input' value='true' /> \
+                    <label class='form-check-label' for='Uris_"+ lastIndex + "__RequiresContributorAccess'>Requires elevated (Contributor) access to the resource</label> \
+                </div > \
                 <div class='form-group'> \
                         <div class='col-md-12 pl-0' > \
                             <span>Discovered parameters:</span> \
@@ -311,5 +315,11 @@
                 $(this).attr('data-index', (thisIndex - 1));
             }
         });
+    });
+
+    $("form").submit(function () {
+        if ($(this).valid()) {
+            $("#waitModal").modal('show');
+        }
     });
 });
