@@ -118,7 +118,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                         UriParameters = u.UriParameters,
                         CallType = u.CallType,
                         Id = u.Id,
-                        Uri = u.Uri
+                        Uri = u.Uri,
+                        RequiresContributorAccess = u.RequiresContributorAccess
                     });
                 }
 
@@ -188,7 +189,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                         UriParameters = u.UriParameters,
                         CallType = u.CallType,
                         Id = u.Id,
-                        Uri = u.Uri
+                        Uri = u.Uri,
+                        RequiresContributorAccess = u.RequiresContributorAccess
                     });
                 }
 
@@ -200,12 +202,13 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Name = question.Name,
                     TargettedAzureService = question.TargettedAzureService,
                     Text = question.Text,
-                    TextParameters = question.TextParameters,
+                    TextParameters = question.TextParameters ?? new List<string>(),
                     Uris = uriParams,
                     AzureServicesList = azureServiceList,
                     AvailableParameters = new List<string>(),
                     Justification = question.Justification,
-                    UsefulLinks = question.UsefulLinks ?? new List<string>()
+                    UsefulLinks = question.UsefulLinks ?? new List<string>(),
+
                 };
 
                 // Get the list of global parameters (if exist)
@@ -375,6 +378,9 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
             }
 
+            if (model.TextParameters == null) model.TextParameters = new List<string>();
+            if (model.UsefulLinks == null) model.UsefulLinks = new List<string>();
+
             return View(model);
         }
 
@@ -432,10 +438,12 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     CallType = u.CallType,
                     Id = u.Id,
                     Uri = u.Uri,
-                    UriParameters = u.UriParameters
+                    UriParameters = u.UriParameters,
+                    RequiresContributorAccess = u.RequiresContributorAccess
                 });
 
-                paramList.AddRange(u.UriParameters);
+                if (u.UriParameters != null)
+                    paramList.AddRange(u.UriParameters);
             }
 
             var mapped = new ACMQ.Question()
@@ -450,10 +458,11 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 Uris = uriList,
                 Justification = model.Justification,
                 UsefulLinks = model.UsefulLinks,
-                Owner = model.Owner
+                Owner = model.Owner,
             };
 
-            paramList.AddRange(model.TextParameters);
+            if (model.TextParameters != null)
+                paramList.AddRange(model.TextParameters);
 
             // Get the global parameter list
             var globalParamsExisting = await globalParameterProvider.GetAllItemsAsync();

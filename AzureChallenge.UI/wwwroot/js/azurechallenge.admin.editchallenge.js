@@ -280,8 +280,10 @@ var populateModal = function (selectedQuestionId, challengeId, readOnly = false)
             // Clear any old links from previous modal loads
             $(".modal-hidden-urls").remove();
 
-            for (var i = 0; i < data.usefulLinks.length; i++) {
-                $("#hiddenParamGroup").append("<input type='hidden' class='modal-hidden modal-hidden-urls' name='QuestionToAdd.UsefulLinks[" + i + "]' id='QuestionToAdd_UsefulLinks_" + i + "_' value='" + data.usefulLinks[i] + "' />");
+            if (data.usefulLinks) {
+                for (var i = 0; i < data.usefulLinks.length; i++) {
+                    $("#hiddenParamGroup").append("<input type='hidden' class='modal-hidden modal-hidden-urls' name='QuestionToAdd.UsefulLinks[" + i + "]' id='QuestionToAdd_UsefulLinks_" + i + "_' value='" + data.usefulLinks[i] + "' />");
+                }
             }
 
             $.get("/Administration/Challenge/" + challengeId + "/GlobalParameters/Get")
@@ -340,6 +342,7 @@ var populateModal = function (selectedQuestionId, challengeId, readOnly = false)
 
                         var toAppend = "<div class='tab-pane fade' id='uri-" + i + "-content' role='tabpanel' aria-labelledby='uri" + i + "-tab'> \
                                                     <input type='hidden' name='QuestionToAdd.Uris["+ i + "].Id' id='QuestionToAdd_Uris_" + i + "__Id' value='" + data.uris[i].id + "' /> \
+                                                    <input type='hidden' name='QuestionToAdd.Uris["+ i + "].RequiresContributorAccess' id='QuestionToAdd_Uris_" + i + "__RequiresContributorAccess' value='" + data.uris[i].requiresContributorAccess + "' /> \
                                                     <div class='input-group mb-3'> \
                                                         <div class= 'input-group-prepend btn-group-toggle' data-toggle='buttons' > \
                                                             <span class='input-group-text'>"+ data.uris[i].callType + "</span> \
@@ -475,8 +478,10 @@ var populateModalAddNew = function (selectedQuestionId, challengeId) {
             // Clear any old links from previous modal loads
             $(".modal-hidden-urls").remove();
 
-            for (var i = 0; i < data.usefulLinks.length; i++) {
-                $("#hiddenParamGroup").append("<input type='hidden' class='modal-hidden modal-hidden-urls' name='QuestionToAdd.UsefulLinks[" + i + "]' id='QuestionToAdd_UsefulLinks_" + i + "_' value='" + data.usefulLinks[i] + "' />");
+            if (data.usefulLinks) {
+                for (var i = 0; i < data.usefulLinks.length; i++) {
+                    $("#hiddenParamGroup").append("<input type='hidden' class='modal-hidden modal-hidden-urls' name='QuestionToAdd.UsefulLinks[" + i + "]' id='QuestionToAdd_UsefulLinks_" + i + "_' value='" + data.usefulLinks[i] + "' />");
+                }
             }
 
             $.get("/Administration/Challenge/" + challengeId + "/GlobalParameters/Get")
@@ -497,47 +502,48 @@ var populateModalAddNew = function (selectedQuestionId, challengeId) {
                         var container = $("#textParamsInputGroup");
                         container.empty();
 
-                        for (var i = 0; i < data.textParameters.length; i++) {
-                            container.append("<div class='form-group col-6'> \
+                        if (data.textParameters) {
+                            for (var i = 0; i < data.textParameters.length; i++) {
+                                container.append("<div class='form-group col-6'> \
                                                     <label>"+ data.textParameters[i] + "</label> \
                                                     <input type='hidden' name='QuestionToAdd.TextParameters[" + i + "].Key' id='QuestionToAdd_TextParameters_" + i + "__Key' value='" + data.textParameters[i] + "' /> \
                                                   </div>");
 
-                            // Check if this is a global parameters
-                            if (globalParams.parameters) {
-                                globalParams.parameters.forEach(function (item) {
-                                    if (item.key === data.textParameters[i]) {
-                                        exists = true;
-                                        paramValue = item.value;
-                                        return;
-                                    }
-                                });
-                            }
-                            if (exists) {
-                                container.append("<div class='form-group col-6'> " + paramValue + " \
+                                // Check if this is a global parameters
+                                if (globalParams.parameters) {
+                                    globalParams.parameters.forEach(function (item) {
+                                        if (item.key === data.textParameters[i]) {
+                                            exists = true;
+                                            paramValue = item.value;
+                                            return;
+                                        }
+                                    });
+                                }
+                                if (exists) {
+                                    container.append("<div class='form-group col-6'> " + paramValue + " \
                                                     <input type='hidden' data-paramkey='"+ data.textParameters[i] + "' class='paramValue' value='" + paramValue + "' /> \
                                                     </div>");
-                            }
-                            else {
-                                if (data.textParameters[i].startsWith('Profile.')) {
-                                    // Get the value for the current user
-                                    var profileValue = $("#CurrentUserProfile_" + data.textParameters[i].substr(8)).val();
-                                    container.append("<div class='form-group col-6'>" + profileValue + " \
+                                }
+                                else {
+                                    if (data.textParameters[i].startsWith('Profile.')) {
+                                        // Get the value for the current user
+                                        var profileValue = $("#CurrentUserProfile_" + data.textParameters[i].substr(8)).val();
+                                        container.append("<div class='form-group col-6'>" + profileValue + " \
                                                             <input type='hidden' data-paramkey='"+ data.textParameters[i] + "' class='paramValue' value='" + profileValue + "' /> \
                                                             <span class='badge badge-warning' data-toggle='tooltip' data-placement='top' title='This is your value. Each user will automatically get their own based on their profile'>(note)</span> \
                                                           </div>");
-                                }
-                                else {
-                                    container.append("<div class='form-group col-6'> \
+                                    }
+                                    else {
+                                        container.append("<div class='form-group col-6'> \
                                                         <input class='form-control paramValue' data-paramkey='"+ data.textParameters[i] + "' name='QuestionToAdd.TextParameters[" + i + "].Value' id='QuestionToAdd_TextParameters_" + i + "__Value' required oninput='populatePreview();' /> \
                                                     </div>");
-                                    numOfEmptyInputsText += 1;
+                                        numOfEmptyInputsText += 1;
+                                    }
                                 }
+                                exists = false;
+                                paramValue = '';
                             }
-                            exists = false;
-                            paramValue = '';
                         }
-
 
                         if (numOfEmptyInputsText > 0)
                             $("#requiredInputsText").text(numOfEmptyInputsText);
@@ -555,6 +561,7 @@ var populateModalAddNew = function (selectedQuestionId, challengeId) {
 
                             var toAppend = "<div class='tab-pane fade' id='uri-" + i + "-content' role='tabpanel' aria-labelledby='uri" + i + "-tab'> \
                                                     <input type='hidden' name='QuestionToAdd.Uris["+ i + "].Id' id='QuestionToAdd_Uris_" + i + "__Id' value='" + data.uris[i].id + "' /> \
+                                                    <input type='hidden' name='QuestionToAdd.Uris["+ i + "].RequiresContributorAccess' id='QuestionToAdd_Uris_" + i + "__RequiresContributorAccess' value='" + data.uris[i].requiresContributorAccess + "' /> \
                                                     <div class='input-group mb-3'> \
                                                         <div class= 'input-group-prepend btn-group-toggle' data-toggle='buttons' > \
                                                             <span class='input-group-text'>"+ data.uris[i].callType + "</span> \
@@ -564,45 +571,47 @@ var populateModalAddNew = function (selectedQuestionId, challengeId) {
                                                     </div > \
                                                     <br /> \
                                                     <div class='form-group row'>";
+                            if (data.uris[i].uriParameters) {
+                                for (var j = 0; j < data.uris[i].uriParameters.length; j++) {
 
-                            for (var j = 0; j < data.uris[i].uriParameters.length; j++) {
-
-                                toAppend += "<div class='form-group col-6'> \
+                                    toAppend += "<div class='form-group col-6'> \
                                                     <label>"+ data.uris[i].uriParameters[j] + "</label> \
                                                     <input type='hidden' name='QuestionToAdd.Uris[" + i + "].UriParameters[" + j + "].Key' id='QuestionToAdd_Uris_" + i + "__UriParameters_" + j + "__Key' value='" + data.uris[i].uriParameters[j] + "' /> \
                                                  </div>";
 
-                                // Check if this is a global parameters
-                                if (globalParams.parameters) {
-                                    globalParams.parameters.forEach(function (item) {
-                                        if (item.key === data.uris[i].uriParameters[j]) {
-                                            exists = true;
-                                            paramValue = item.value;
-                                            return;
-                                        }
-                                    });
-                                }
-                                if (exists) {
-                                    toAppend += "<div class='form-group col-6'> " + paramValue + " \
+                                    // Check if this is a global parameters
+                                    if (globalParams.parameters) {
+                                        globalParams.parameters.forEach(function (item) {
+                                            if (item.key === data.uris[i].uriParameters[j]) {
+                                                exists = true;
+                                                paramValue = item.value;
+                                                return;
+                                            }
+                                        });
+                                    }
+                                    if (exists) {
+                                        toAppend += "<div class='form-group col-6'> " + paramValue + " \
                                                      </div>";
-                                }
-                                else {
-                                    if (data.uris[i].uriParameters[j].startsWith('Profile.')) {
-                                        // Get the value for the current user
-                                        var profileValue = $("#CurrentUserProfile_" + data.uris[i].uriParameters[j].substr(8)).val();
-                                        toAppend += "<div class='form-group col-6'>" + profileValue + " <span class='badge badge-warning' data-toggle='tooltip' data-placement='top' title='This is your value. Each user will automatically get their own based on their profile'>(note)</span></div>";
                                     }
                                     else {
-                                        toAppend += "<div class='form-group col-6'> \
+                                        if (data.uris[i].uriParameters[j].startsWith('Profile.')) {
+                                            // Get the value for the current user
+                                            var profileValue = $("#CurrentUserProfile_" + data.uris[i].uriParameters[j].substr(8)).val();
+                                            toAppend += "<div class='form-group col-6'>" + profileValue + " <span class='badge badge-warning' data-toggle='tooltip' data-placement='top' title='This is your value. Each user will automatically get their own based on their profile'>(note)</span></div>";
+                                        }
+                                        else {
+                                            toAppend += "<div class='form-group col-6'> \
                                                             <input class='form-control' name='QuestionToAdd.Uris[" + i + "].UriParameters[" + j + "].Value' id='QuestionToAdd_Uris_" + i + "__UriParameters_" + j + "__Value' required /> \
                                                          </div>";
-                                        numOfEmptyInputsUri += 1;
+                                            numOfEmptyInputsUri += 1;
+                                        }
                                     }
-                                }
 
-                                exists = false;
-                                paramValue = '';
+                                    exists = false;
+                                    paramValue = '';
+                                }
                             }
+
                             toAppend += "       </div> \
                                                 </div>";
                             $("#uriTabContent").append(toAppend);

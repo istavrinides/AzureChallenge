@@ -153,12 +153,16 @@
                         </div>
                         <small class='form-text text-muted'>Please enter the Uri for the API to call. Placeholders that will be replaced from below parameters should be wrapped inside curly braces {}.</small>
                         <br />
+                        <div class="input-group mb-3" style='padding-left: 20px'>
+                            <input asp-for="@Model.Uris[i].RequiresContributorAccess" class="form-check-input" />
+                            <label class="form-check-label" asp-for="@Model.Uris[i].RequiresContributorAccess">Requires elevated (Contributor) access to the resource</label>
+                        </div>
                         <div class='form-group'>
                             <div class='col-md-12 pl-0'>
                                 <span>Discovered parameters:</span>
                             </div>
                             <div id='Uris_@(i)__Uri_params' class="row col-md-12">
-                                @for (int j = 0; j < Model.Uris[i].UriParameters.Count; j++)
+                                @for (int j = 0; j < Model.Uris[i].UriParameters?.Count; j++)
                                 {
                                     <input type="hidden" asp-for="@Model.Uris[i].UriParameters[j]" />
                                     <span class='btn btn-info m-1'>@Model.Uris[i].UriParameters[j]</span>
@@ -173,7 +177,9 @@
             </div>
         </div>
     </div>
-    <button type="submit" class="btn btn-primary" data-toggle="modal" data-target="#waitModal">Submit</button>
+    <div class="pb-4">
+        <button type="submit" class="btn btn-primary" data-toggle="modal" data-target="#waitModal">Submit</button>
+    </div>
 
     <div class="modal" id="waitModal">
         <div class="modal-dialog modal-lg">

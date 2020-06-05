@@ -44,6 +44,7 @@ To keep the system as customizable as possible, questions are created in the sys
 - **Justification**: Message to show if the user successfully answers the question. Serves as a way to offer an explanation, usefulness etc.
 - **Useful links**: List of URLs that could help the user answer the question.
 - **Uri endpoints to call**: A list of URI's the backed will call to validate the question. URIs can be parameterized with placeholders exactly in the same manner as the question text.
+- **
 
 ### Challenges
 Challenges is the way we define

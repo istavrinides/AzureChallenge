@@ -3,7 +3,14 @@
     ViewData["Title"] = "Challenge list";
 }
 
-<h1>@ViewData["Title"]</h1>
+<div class="d-flex flex-row">
+    <div class="align-content-between w-100">
+        <span class="h1">@ViewData["Title"]</span>
+        <a asp-action="AddNew" class="float-right mt-2">
+            <button type="button" id="btnAddNew" class="btn btn-info float-right">Add new</button>
+        </a>
+    </div>
+</div>
 <hr />
 
 <form>
@@ -24,13 +31,6 @@
                     <th class="text-center" style="width:8.33%">Delete</th>
                 </tr>
             </thead>
-            <tfoot>
-                <tr>
-                    <td colspan="7">
-                        <button type="button" id="btnAddNew" class="btn btn-info float-right">Add new</button>
-                    </td>
-                </tr>
-            </tfoot>
             <tbody>
                 @foreach (var q in Model)
                 {
@@ -69,7 +69,7 @@
                         <td class="text-center">
                             @if (q.IsLocked)
                             {
-                                <img src="~/images/trash-2.svg" />
+                                <img src="~/images/trash-2.svg" class="svg-filter-disabled" />
                             }
                             else
                             {

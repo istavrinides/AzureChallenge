@@ -26,8 +26,8 @@
                 </th>
                 <th colspan="3">
                     <div class="d-flex flex-row p-2">
-                        <input type="checkbox" id="onlyMine" class="form-check-input" />
-                        <label class="form-check-label" for="onlyMine">Only show my questions</label>
+                        <input type="checkbox" id="showAll" class="form-check-input" />
+                        <label class="form-check-label" for="showAll">Show all questions</label>
                     </div>
                 </th>
             </tr>
@@ -46,50 +46,50 @@
         <tbody>
             @foreach (var questions in Model.GroupBy(p => p.TargettedAzureService).Select(p => new { Service = p.Key, Questions = p.ToList() }))
             {
-            <tr class="bg-ligth font-weight-bold" data-mine="@questions.Questions.Any(q => q.CanDelete)">
-                <td colspan="5">
-                    @questions.Service
-                </td>
-            </tr>
-            @foreach (var q in questions.Questions)
+                <tr class="bg-ligth font-weight-bold" data-mine="@questions.Questions.Any(q => q.CanDelete)">
+                    <td colspan="5">
+                        @questions.Service
+                    </td>
+                </tr>
+                @foreach (var q in questions.Questions)
                 {
-            <tr data-questionId="@q.Id" data-mine="@q.CanDelete">
-                <td class="name">
-                    @q.Name
-                </td>
-                <td class="description">
-                    @q.Description
-                </td>
-                <td class="text-center">
-                    <a asp-action="Details" asp-route-id="@q.Id">
-                        <img src="~/images/eye.svg" />
-                    </a>
-                </td>
-                <td class="text-center">
-                    @if (q.CanDelete)
+                    <tr data-questionId="@q.Id" data-mine="@q.CanDelete" style="@(q.CanDelete ? "" : "display:none")">
+                        <td class="name">
+                            @q.Name
+                        </td>
+                        <td class="description">
+                            @q.Description
+                        </td>
+                        <td class="text-center">
+                            <a asp-action="Details" asp-route-id="@q.Id">
+                                <img src="~/images/eye.svg" />
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            @if (q.CanDelete)
                             {
-                    <a asp-action="Edit" asp-controller="Question" asp-area="Administration" asp-route-id="@q.Id">
-                        <img src="~/images/edit.svg" style="width:24px" />
-                    </a>
+                                <a asp-action="Edit" asp-controller="Question" asp-area="Administration" asp-route-id="@q.Id">
+                                    <img src="~/images/edit.svg" style="width:24px" />
+                                </a>
                             }
                             else
                             {
-                    <img src="~/images/edit.svg" style="width:24px" class="svg-filter-disabled" data-toggle='tooltip' data-placement='top' title='Cannot edit questions you have not created.' />
+                                <img src="~/images/edit.svg" style="width:24px" class="svg-filter-disabled" data-toggle='tooltip' data-placement='top' title='Cannot edit questions you have not created.' />
                             }
-                </td>
-                <td class="text-center">
-                    @if (q.CanDelete)
+                        </td>
+                        <td class="text-center">
+                            @if (q.CanDelete)
                             {
-                    <a href="#" class="deleteQuestion" data-questionId="@q.Id">
-                        <img src="~/images/trash-2.svg" class="svg-filter-danger" />
-                    </a>
+                                <a href="#" class="deleteQuestion" data-questionId="@q.Id">
+                                    <img src="~/images/trash-2.svg" class="svg-filter-danger" />
+                                </a>
                             }
                             else
                             {
-                    <img src="~/images/trash.svg" class="svg-filter-disabled" data-toggle='tooltip' data-placement='top' title='Cannot delete questions you have not created.' />
+                                <img src="~/images/trash.svg" class="svg-filter-disabled" data-toggle='tooltip' data-placement='top' title='Cannot delete questions you have not created.' />
                             }
-                </td>
-            </tr>
+                        </td>
+                    </tr>
                 }
             }
         </tbody>
