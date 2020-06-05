@@ -83,17 +83,17 @@ When adding a question, you are essentially "hydrating" the question. In this ph
         }
     }
     ```
-    - A dot separated value with square brackets to denote a specific value in an array for a specific property. For example, for the below JSON, you would provide a path of **Path.To.Property[WantThis]** and check the value **Value**
+    - A dot separated value with square brackets to denote a specific value in an array for a specific property. For example, for the below JSON, you would provide a path of **Path.To.Property[MyProperty]** and check the value **Value**
     ```    
     {
         "Path": {
             "To": {
                 "Property": [
                     {
-                        "DontWantThis": "SomeValue"
+                        "MyProperty": "SomeValue"
                     },
                     {
-                        "WantThis": "Value"
+                        "MyProperty": "Value"
                     }
                 ]
             }
