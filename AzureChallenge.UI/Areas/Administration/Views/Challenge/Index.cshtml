@@ -1,14 +1,15 @@
-﻿@model IList<AzureChallenge.UI.Areas.Administration.Models.Challenges.IndexChallengeViewModel>
+﻿@model AzureChallenge.UI.Areas.Administration.Models.Challenges.IndexChallengeViewModel
 @{
     ViewData["Title"] = "Challenge list";
+}
+@section Styles{
+    <link href="~/lib/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" type="text/css" />
 }
 
 <div class="d-flex flex-row">
     <div class="align-content-between w-100">
         <span class="h1">@ViewData["Title"]</span>
-        <a asp-action="AddNew" class="float-right mt-2">
-            <button type="button" id="btnAddNew" class="btn btn-info float-right">Add new</button>
-        </a>
+        <button type="button" id="btnAddNew" class="btn btn-info float-right mt-2">Add new</button>
     </div>
 </div>
 <hr />
@@ -19,20 +20,21 @@
             <thead class="thead-dark">
                 <tr>
                     <th style="width:16.67%">
-                        @Html.DisplayNameFor(model => model[0].Name)
+                        @Html.DisplayNameFor(model => model.Challenges[0].Name)
                     </th>
                     <th style="width:41.68%">
-                        @Html.DisplayNameFor(model => model[0].Description)
+                        @Html.DisplayNameFor(model => model.Challenges[0].Description)
                     </th>
                     <th class="text-center" style="width:8.33%">Parameters</th>
                     <th class="text-center" style="width:8.33%">Edit</th>
                     <th class="text-center" style="width:8.33%">Copy</th>
                     <th class="text-center" style="width:8.33%">Locked?</th>
                     <th class="text-center" style="width:8.33%">Delete</th>
+                    <th class="text-center" style="width:8.33%">Import/Export</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var q in Model)
+                @foreach (var q in Model.Challenges)
                 {
                     <tr>
                         <td>
@@ -78,6 +80,11 @@
                                 </a>
                             }
                         </td>
+                        <td class="text-center">
+                            <a href="#" class="tableLinkImportExport" data-challengeId="@q.Id">
+                                <img src="~/images/import_export-24px.svg" style="width:24px" />
+                            </a>
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -94,13 +101,22 @@
                     <div id="modalInput" class="text-center">
                         <input type="hidden" name="Id" id="Id" />
                         <div class="row text-left">
-                            <div class="col-md-6">
-                                <label asp-for="@Model[0].Name"></label>
+                            <div class="col-md-12">
+                                <label asp-for="@Model.Challenges[0].Name"></label>
                                 <input name="Name" id="Name" required data-val="true" data-val-required="The Name field is required." class="form-control" />
                             </div>
-                            <div class="col-md-6">
-                                <label asp-for="@Model[0].Description"></label>
-                                <input name="Description" id="Description" required data-val="true" data-val-required="The Description field is required." class="form-control" />
+                            <div class="col-md-12">
+                                <label asp-for="@Model.Challenges[0].Description"></label>
+                                <textarea name="Description" id="Description" required data-val="true" data-val-required="The Description field is required." class="form-control"></textarea>
+                            </div>
+                            <div class="col-md-12">
+                                <label asp-for="@Model.AzureServiceCategory"></label>
+                                <select class="selectpicker" data-live-search="true" data-width="100%" id="categorySelector">
+                                    @foreach (var cat in Model.AzureServiceCategories)
+                                    {
+                                        <option>@cat</option>
+                                    }
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -122,14 +138,46 @@
         </div>
     </div>
 
+    <div class="modal" id="importExportModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import/Export challenge</h5>
+                </div>
+                <div class="modal-body">
+                    <div id="modalInputImportExport" class="text-center">
+                        <input type="hidden" name="Id" id="Id" />
+                        <div class="row">
+                            <div class="col-md-6 text-center">
+                                <button class="btn btn-primary" id="btnExport">Export challenge</button>
+                            </div>
+                            <div class="col-md-6">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="modalWaitingImportExport" class="text-center">
+                        <div id="modalWaitingMessage">
+                            Please wait while the challenge is exported...
+                        </div>
+                        <div>
+                            <img src="/images/wait.gif">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </form>
 
 @section Scripts
 {
     <environment include="Development">
+        <script src="~/lib/bootstrap-select/js/bootstrap-select.js"></script>
         <script src="~/js/azurechallenge.admin.indexchallenge.js"></script>
     </environment>
     <environment exclude="Development">
+        <script src="~/lib/bootstrap-select/js/bootstrap-select.min.js"></script>
         <script src="~/js/azurechallenge.admin.indexchallenge.min.js"></script>
     </environment>
     <partial name="_ValidationScriptsPartial" />

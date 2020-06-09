@@ -8,6 +8,7 @@ namespace AzureChallenge.UI.Models.ChallengeViewModels
     public class IndexViewModel
     {
         public List<Challenge> Challenges { get; set; }
+        public List<string> AzureServicesCategories { get; set; }
     }
 
     public class Challenge
@@ -20,6 +21,7 @@ namespace AzureChallenge.UI.Models.ChallengeViewModels
         public int TotalQuestions { get; set; }
         public bool IsComplete { get; set; }
         public bool IsUnderway { get; set; }
+        public string AzureCategory { get; set; }
     }
 
     public class QuestionViewModel

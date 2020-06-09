@@ -23,6 +23,13 @@ using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Azure.Cosmos.Linq;
 using AzureChallenge.Interfaces.Providers.Aggregates;
+using System.IO;
+using System.IO.Compression;
+using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
+using System.Net.Mime;
+using System.Net.Http;
+using System.Net.Cache;
 
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
@@ -65,7 +72,13 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         {
             var result = await challengeProvider.GetAllItemsAsync();
 
-            var model = mapper.Map<IList<VM.IndexChallengeViewModel>>(result.Item2);
+            var model = new IndexChallengeViewModel
+            {
+                Challenges = mapper.Map<IList<VM.ChallengeList>>(result.Item2)
+            };
+
+            model.AzureServiceCategories = AzureChallenge.UI.Models.AzureServicesCategoryMapping.CategoryName;
+            model.AzureServiceCategory = AzureChallenge.UI.Models.AzureServicesCategoryMapping.CategoryName[0];
 
             return View(model);
         }
@@ -106,7 +119,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     SubscriptionId = userProfile.SubscriptionId,
                     TenantId = userProfile.TenantId,
                     UserNameHashed = userProfile.UserNameHashed()
-                }
+                },
+                AzureServiceCategory = challenge.Item2.AzureServiceCategory
             };
 
             foreach (var q in questions.Item2)
@@ -449,7 +463,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                           Index = p.Index,
                                           Name = p.Name,
                                           NextQuestionId = p.NextQuestionId
-                                      }).ToList()
+                                      }).ToList(),
+                AzureServiceCategory = inputModel.AzureServiceCategory
             };
 
             var updateResult = await challengeProvider.AddItemAsync(challenge);
@@ -483,14 +498,15 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddNewChallenge(IndexChallengeViewModel inputModel)
+        public async Task<IActionResult> AddNewChallenge(IndexChallengeViewModelFromPost inputModel)
         {
             var challenge = new ACMT.ChallengeDetails
             {
                 Description = inputModel.Description,
                 Id = Guid.NewGuid().ToString(),
                 Name = inputModel.Name,
-                Questions = new List<ACMQ.QuestionLite>()
+                Questions = new List<ACMQ.QuestionLite>(),
+                AzureServiceCategory = inputModel.AzureServiceCategory
             };
 
             var response = await challengeProvider.AddItemAsync(challenge);
@@ -506,7 +522,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CopyChallenge(IndexChallengeViewModel inputModel)
+        public async Task<IActionResult> CopyChallenge(IndexChallengeViewModelFromPost inputModel)
         {
             var newChallengeId = Guid.NewGuid().ToString();
 
@@ -522,6 +538,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             challenge.Id = newChallengeId;
             challenge.IsLocked = false;
             challenge.IsPublic = false;
+            challenge.AzureServiceCategory = inputModel.AzureServiceCategory;
 
             // For each assigned question, change the id and associated id in the 
             foreach (var q in assignedQuestionOriginalResponse.Item2)
@@ -582,6 +599,61 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             }
 
             return Ok();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportChallenge(string challengeId)
+        {
+            // Get the challenge
+            var challenge = await challengeProvider.GetItemAsync(challengeId);
+            var challengeParameters = await globalParameterProvider.GetItemAsync(challengeId);
+            var assignedQuestions = await assignedQuestionProvider.GetItemsOfChallengeAsync(challengeId);
+
+            using (var zipMS = new MemoryStream())
+            {
+                using (var archive = new ZipArchive(zipMS, ZipArchiveMode.Create, true))
+                {
+
+                    // Write the challenge json definition
+                    var challengeEntry = archive.CreateEntry("challenge.json");
+                    using (var stream = challengeEntry.Open())
+                    using (var sr = new StreamWriter(stream))
+                    {
+                        sr.Write(JsonConvert.SerializeObject(challenge.Item2));
+                    }
+
+                    // Write the challenge parameters
+                    var challengeParamEntry = archive.CreateEntry("challengeParams.json");
+                    using (var stream = challengeParamEntry.Open())
+                    using (var sr = new StreamWriter(stream))
+                    {
+                        sr.Write(JsonConvert.SerializeObject(challengeParameters.Item2));
+                    }
+
+                    foreach (var aq in assignedQuestions.Item2)
+                    {
+                        // Write the assigned question
+                        var assignedQuestionEntry = archive.CreateEntry($"aq-{aq.QuestionId}.json");
+                        using (var stream = assignedQuestionEntry.Open())
+                        using (var sr = new StreamWriter(stream))
+                        {
+                            sr.Write(JsonConvert.SerializeObject(aq));
+                        }
+
+                        // Get and write the original question template
+                        var question = await questionProvider.GetItemAsync(aq.AssociatedQuestionId);
+                        var questionEntry = archive.CreateEntry($"q-{question.Item2.Id}.json");
+                        using (var stream = questionEntry.Open())
+                        using (var sr = new StreamWriter(stream))
+                        {
+                            sr.Write(JsonConvert.SerializeObject(question.Item2));
+                        }
+                    }
+                }
+
+
+                return File(zipMS.ToArray(), "application/octet-stream", $"{challenge.Item2.Name}.zip");
+            }
         }
     }
 }
