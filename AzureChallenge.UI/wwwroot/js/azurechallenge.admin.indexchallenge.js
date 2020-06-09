@@ -25,7 +25,7 @@
 
     $("#challengeTable .tableLinkDelete").on('click', function (e) {
         if (confirm("Are you sure?")) {
-            
+
             $(".modal-title").text('Delete challenge');
             $("#btnModalAdd").addClass('d-none');
             $("#btnModalCopy").addClass('d-none');
@@ -49,6 +49,22 @@
         }
     });
 
+    $("#challengeTable .tableLinkImportExport").on('click', function (e) {
+
+        $("#modalWaitingImportExport").addClass('d-none');
+        $("#modalInputImportExport").removeClass('d-none');
+        $("#importExportModal").modal('show');
+        $("#btnExport").attr("data-challengeId", $(this).attr('data-challengeId'));
+    });
+
+    $("#btnExport").on('click', function (e) {
+
+        $("#importExportModal").modal('hide');
+
+        window.open("/Administration/Challenge/ExportChallenge?challengeId=" + $(this).attr('data-challengeId'));
+
+    });
+
     $("#btnModalAdd").click(function () {
 
         var form = $('#form');
@@ -59,8 +75,9 @@
 
         var Name = $("#Name").val();
         var Description = $("#Description").val();
+        var AzureServiceCategory = $("#categorySelector").val();
 
-        if (!Name || !Description) {
+        if (!Name || !Description || !AzureServiceCategory) {
             return;
         }
 
@@ -70,7 +87,8 @@
 
         var model = {
             Name: Name,
-            Description: Description
+            Description: Description,
+            AzureServiceCategory: AzureServiceCategory
         };
 
         $.post("/Administration/Challenge/AddNewChallenge", model)

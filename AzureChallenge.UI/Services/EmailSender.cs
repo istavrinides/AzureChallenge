@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +15,13 @@ namespace AzureChallenge.UI.Services
 {
     public class EmailSender : IEmailSender
     {
-        public EmailSender(IOptions<AuthMessageSenderOptions> optionsAccessor)
+        private readonly IConfiguration configuration;
+
+        public EmailSender(IOptions<AuthMessageSenderOptions> optionsAccessor,
+                            IConfiguration configuration)
         {
             Options = optionsAccessor.Value;
+            this.configuration = configuration;
         }
 
         public AuthMessageSenderOptions Options { get; } //set only via Secret Manager
@@ -26,21 +33,16 @@ namespace AzureChallenge.UI.Services
 
         public async Task Execute(string subject, string message, string email)
         {
-            using(SmtpClient client = new SmtpClient("smtp.office365.com", 587))
+            var apiKey = configuration.GetSection("SendGrid_Api_Key").Value;
+            var client = new SendGridClient(apiKey);
+            var from = new EmailAddress("azchallenge-noreply@az-challenge.azurewebsites.net", "Example User 1");
+            List<EmailAddress> tos = new List<EmailAddress>
             {
-                client.EnableSsl = true;
-                client.DeliveryMethod = SmtpDeliveryMethod.Network;
-                client.UseDefaultCredentials = false;
-                client.Credentials = new NetworkCredential(Options.EmailUserName, Options.EmailPassword);
+                new EmailAddress(email)
+            };
 
-                MailMessage mailMessage = new MailMessage();
-                mailMessage.From = new MailAddress("az-challenge@outlook.com");
-                mailMessage.To.Add(email);
-                mailMessage.IsBodyHtml = true;
-                mailMessage.Body = message;
-                mailMessage.Subject = subject;
-                await client.SendMailAsync(mailMessage);
-            }
+            var msg = MailHelper.CreateSingleEmailToMultipleRecipients(from, tos, subject, "", message, false);
+            await client.SendEmailAsync(msg);
         }
     }
 }

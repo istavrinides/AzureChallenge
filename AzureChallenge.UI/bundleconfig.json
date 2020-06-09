@@ -81,5 +81,16 @@
 			"renameLocals": true
 		},
 		"sourceMap": false
+	},
+	{
+		"outputFileName": "wwwroot/js/azurechallenge.challenge.index.min.js",
+		"inputFiles": [
+			"wwwroot/js/azurechallenge.challenge.index.js"
+		],
+		"minify": {
+			"enabled": true,
+			"renameLocals": true
+		},
+		"sourceMap": false
 	}
 ]

@@ -27,5 +27,8 @@ namespace AzureChallenge.Models.Challenges
 
         [JsonProperty(PropertyName = "questions")]
         public List<QuestionLite> Questions { get; set; }
+
+        [JsonProperty(PropertyName = "azureCategory")]
+        public string AzureServiceCategory { get; set; }
     }
 }

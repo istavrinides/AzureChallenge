@@ -152,6 +152,21 @@ namespace AzureChallenge.UI
                     pattern: "{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapRazorPages();
             });
+
+            UpdateDatabase(app);
+        }
+
+        private static void UpdateDatabase(IApplicationBuilder app)
+        {
+            using (var serviceScope = app.ApplicationServices
+                .GetRequiredService<IServiceScopeFactory>()
+                .CreateScope())
+            {
+                using (var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
+                {
+                    context.Database.Migrate();
+                }
+            }
         }
 
         private static async Task<CosmosDbQuestionDataProvider> InitializeCosmosQuestionClientInstanceAsync(IConfigurationSection configurationSection)

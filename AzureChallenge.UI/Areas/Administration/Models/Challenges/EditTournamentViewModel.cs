@@ -33,6 +33,7 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
         public AssignedQuestion QuestionToAdd { get; set; }
 
         public UserProfile CurrentUserProfile { get; set; }
+        public string AzureServiceCategory { get; set; }
 
         public class UserProfile
         {

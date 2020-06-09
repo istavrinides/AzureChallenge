@@ -73,7 +73,8 @@ namespace AzureChallenge.UI.Controllers
                                         Name = c.Name,
                                         CurrentQuestionId = c.Questions.Where(q => q.Index == 0).FirstOrDefault()?.Id,
                                         IsComplete = false,
-                                        IsUnderway = false
+                                        IsUnderway = false,
+                                        AzureCategory = c.AzureServiceCategory
                                     })
                                     .ToList();
             }
@@ -166,7 +167,7 @@ namespace AzureChallenge.UI.Controllers
                     return StatusCode(404);
 
                 // Check if the challenge has questions
-                if(challengeResponse.Item2.Questions.Count > 0)
+                if (challengeResponse.Item2.Questions.Count > 0)
                 {
                     // Get the id of the first
                     var firstQuestion = challengeResponse.Item2.Questions.Where(q => q.Index == 0).FirstOrDefault();
@@ -306,7 +307,7 @@ namespace AzureChallenge.UI.Controllers
                 model.TournamentName = challengeResponse.Item2.Name;
                 model.ChallengeId = challengeId;
 
-                if(question.Uris.Any(u => u.RequiresContributorAccess))
+                if (question.Uris.Any(u => u.RequiresContributorAccess))
                 {
                     model.ShowWarning = true;
                     model.WarningMessage = "This question requires that the Service Principal you have created has Contributor access to the below Resource(s).";
