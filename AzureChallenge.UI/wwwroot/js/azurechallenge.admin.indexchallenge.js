@@ -50,19 +50,42 @@
         }
     });
 
-    $("#challengeTable .tableLinkImportExport").on('click', function (e) {
+    $("#challengeTable .tableLinkExport").on('click', function (e) {
 
-        $("#modalWaitingImportExport").addClass('d-none');
-        $("#modalInputImportExport").removeClass('d-none');
-        $("#importExportModal").modal('show');
+        $("#modalWaitingExport").addClass('d-none');
+        $("#modalInputExport").removeClass('d-none');
+        $("#exportModal").modal('show');
         $("#btnExport").attr("data-challengeId", $(this).attr('data-challengeId'));
+    });
+
+    $("#btnImportShowModal").on('click', function (e) {
+
+        $("#modalWaitingImport").addClass('d-none');
+        $("#modalInputImport").removeClass('d-none');
+        $("#importModal").modal('show');
     });
 
     $("#btnExport").on('click', function (e) {
 
-        $("#importExportModal").modal('hide');
+        $("#exportModal").modal('hide');
 
         window.open("/Administration/Challenge/ExportChallenge?challengeId=" + $(this).attr('data-challengeId'));
+
+    });
+
+    $("#btnImport").on('click', function (e) {
+
+        $("#modalWaitingImport").removeClass('d-none');
+        $("#modalInputImport").addClass('d-none');
+
+        $.post('/Administration/Challenge/ImportChallenge?uri=' + $("#fileSelector").val())
+            .done(function () {
+                location.reload(true);
+            })
+            .fail(function () {
+                alert("Challenge could not be imported.");
+                $("#importModal").modal('hide');
+            });
 
     });
 

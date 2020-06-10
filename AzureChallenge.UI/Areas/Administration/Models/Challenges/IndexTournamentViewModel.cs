@@ -14,6 +14,8 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
         public List<String> AzureServiceCategories { get; set; }
         [Display(Name = "Azure Service Category")]
         public string AzureServiceCategory { get; set; }
+        [Display(Name = "Available files")]
+        public List<KeyValuePair<string, string>> FilesAvailableForImport { get; set; }
     }
 
     public class ChallengeList
@@ -32,5 +34,11 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
         public string Description { get; set; }
         public bool IsLocked { get; set; }
         public string AzureServiceCategory { get; set; }
+    }
+
+    public class GitHubFiles
+    {
+        public string name { get; set; }
+        public string download_url { get; set; }
     }
 }

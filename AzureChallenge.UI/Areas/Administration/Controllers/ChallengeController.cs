@@ -31,6 +31,8 @@ using System.Net.Mime;
 using System.Net.Http;
 using System.Net.Cache;
 using System.Threading;
+using AutoMapper.Configuration.Annotations;
+using System.Net;
 
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
@@ -42,7 +44,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         private readonly IChallengeProvider<ACM.AzureChallengeResult, ACMT.ChallengeDetails> challengeProvider;
         private readonly IAssignedQuestionProvider<ACM.AzureChallengeResult, ACMQ.AssignedQuestion> assignedQuestionProvider;
         private readonly IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider;
-        private readonly IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> globalParameterProvider;
+        private readonly IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> challengeParameterProvider;
+        private readonly IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalParameters> globalParameterProvider;
         private readonly IAggregateProvider<ACM.AzureChallengeResult, ACMA.Aggregate> aggregateProvider;
         private readonly IMapper mapper;
         private readonly IConfiguration configuration;
@@ -51,7 +54,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         public ChallengeController(IChallengeProvider<ACM.AzureChallengeResult, ACMT.ChallengeDetails> challengeProvider,
                                     IAssignedQuestionProvider<ACM.AzureChallengeResult, ACMQ.AssignedQuestion> assignedQuestionProvider,
                                     IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider,
-                                    IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> globalParameterProvider,
+                                    IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> challengeParameterProvider,
+                                    IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalParameters> globalParameterProvider,
                                     IAggregateProvider<ACM.AzureChallengeResult, ACMA.Aggregate> aggregateProvider,
                                     IMapper mapper,
                                     IConfiguration configuration,
@@ -60,6 +64,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             this.challengeProvider = challengeProvider;
             this.assignedQuestionProvider = assignedQuestionProvider;
             this.questionProvider = questionProvider;
+            this.challengeParameterProvider = challengeParameterProvider;
             this.globalParameterProvider = globalParameterProvider;
             this.aggregateProvider = aggregateProvider;
             this.mapper = mapper;
@@ -80,6 +85,21 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
             model.AzureServiceCategories = AzureChallenge.UI.Models.AzureServicesCategoryMapping.CategoryName;
             model.AzureServiceCategory = AzureChallenge.UI.Models.AzureServicesCategoryMapping.CategoryName[0];
+            model.FilesAvailableForImport = new List<KeyValuePair<string, string>>();
+
+            // Get the list of available import files from the public GitHub repo
+            using (var client = new HttpClient())
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/istavrinides/AzureChallenge/contents/Exports");
+                request.Headers.Add("User-Agent", "AzChallenge");
+                var response = await client.SendAsync(request);
+                List<GitHubFiles> filesInRepo = JsonConvert.DeserializeObject<List<GitHubFiles>>(await response.Content.ReadAsStringAsync());
+
+                foreach (var file in filesInRepo)
+                {
+                    model.FilesAvailableForImport.Add(new KeyValuePair<string, string>(file.download_url, file.name));
+                }
+            }
 
             return View(model);
         }
@@ -237,7 +257,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     challenge.Questions.Add(newChallengeQuestion);
 
                     // Get the global parameters for the challenge
-                    var globalParamsResponse = await globalParameterProvider.GetItemAsync(assignedQuestion.ChallengeId);
+                    var globalParamsResponse = await challengeParameterProvider.GetItemAsync(assignedQuestion.ChallengeId);
                     var globalParams = globalParamsResponse.Item2;
 
                     // Check if the parameter is global and it exists in the global parameters list
@@ -271,7 +291,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                         }
                     }
 
-                    await globalParameterProvider.AddItemAsync(globalParams);
+                    await challengeParameterProvider.AddItemAsync(globalParams);
 
                     var addQuestionResult = await assignedQuestionProvider.AddItemAsync(assignedQuestion);
                     if (addQuestionResult.Success)
@@ -385,7 +405,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 var assignedQuestionResponse = await assignedQuestionProvider.GetItemAsync(questionId);
                 var assignedQuestion = assignedQuestionResponse.Item2;
                 // Get the global parameters for the challenge
-                var globalParamsResponse = await globalParameterProvider.GetItemAsync(challengeId);
+                var globalParamsResponse = await challengeParameterProvider.GetItemAsync(challengeId);
                 var globalParams = globalParamsResponse.Item2;
 
                 // Check if the parameter is global and it exists in the global parameters list
@@ -403,7 +423,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     }
                 }
 
-                await globalParameterProvider.AddItemAsync(globalParams);
+                await challengeParameterProvider.AddItemAsync(globalParams);
 
                 // Now remove the question
                 challengeQuestions.RemoveAt(questionIndex);
@@ -517,7 +537,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             if (response.Success)
             {
                 // Add a new global parameter object for the Challenge
-                await globalParameterProvider.AddItemAsync(new ACMP.GlobalChallengeParameters() { ChallengeId = challenge.Id });
+                await challengeParameterProvider.AddItemAsync(new ACMP.GlobalChallengeParameters() { ChallengeId = challenge.Id });
                 return Ok();
             }
 
@@ -532,7 +552,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             // Get the copy-from challenge, assigned questions and global parameters
             var challegeOriginalResponse = await challengeProvider.GetItemAsync(inputModel.Id);
             var assignedQuestionOriginalResponse = await assignedQuestionProvider.GetItemsOfChallengeAsync(inputModel.Id);
-            var globalParametersOriginalReponse = await globalParameterProvider.GetItemAsync(inputModel.Id);
+            var globalParametersOriginalReponse = await challengeParameterProvider.GetItemAsync(inputModel.Id);
 
             // Change the challenge name, description and id
             var challenge = challegeOriginalResponse.Item2;
@@ -567,7 +587,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
             // Add the challenge
             await challengeProvider.AddItemAsync(challenge);
-            await globalParameterProvider.AddItemAsync(globalParametersOriginalReponse.Item2);
+            await challengeParameterProvider.AddItemAsync(globalParametersOriginalReponse.Item2);
 
             // For each question, add it
             foreach (var q in assignedQuestionOriginalResponse.Item2)
@@ -588,7 +608,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             var challengeResponse = await challengeProvider.GetItemAsync(challengeId);
 
             await challengeProvider.DeleteItemAsync(challengeId);
-            await globalParameterProvider.DeleteItemAsync(challengeId);
+            await challengeParameterProvider.DeleteItemAsync(challengeId);
             await assignedQuestionProvider.DeleteAllItemsOfChallenge(challengeId);
 
             if (challengeResponse.Item2.IsPublic)
@@ -612,55 +632,205 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         {
             // Get the challenge
             var challenge = await challengeProvider.GetItemAsync(challengeId);
-            var challengeParameters = await globalParameterProvider.GetItemAsync(challengeId);
+            var challengeParameters = await challengeParameterProvider.GetItemAsync(challengeId);
+            var globalParameters = await globalParameterProvider.GetAllItemsAsync();
             var assignedQuestions = await assignedQuestionProvider.GetItemsOfChallengeAsync(challengeId);
 
-            using (var zipMS = new MemoryStream())
-            {
-                using (var archive = new ZipArchive(zipMS, ZipArchiveMode.Create, true))
+            if(challenge.Item1.Success && challenge.Item2 != null
+                && challengeParameters.Item1.Success && challengeParameters.Item2 != null && challengeParameters.Item2.Parameters != null && challengeParameters.Item2.Parameters.Count > 0
+                && globalParameters.Item1.Success && globalParameters.Item2 != null && globalParameters.Item2.Count == 1
+                && assignedQuestions.Item1.Success && assignedQuestions.Item2 != null && assignedQuestions.Item2.Count > 0)
                 {
 
-                    // Write the challenge json definition
-                    var challengeEntry = archive.CreateEntry("challenge.json");
-                    using (var stream = challengeEntry.Open())
-                    using (var sr = new StreamWriter(stream))
+                using (var zipMS = new MemoryStream())
+                {
+                    using (var archive = new ZipArchive(zipMS, ZipArchiveMode.Create, true))
                     {
-                        sr.Write(JsonConvert.SerializeObject(challenge.Item2));
-                    }
 
-                    // Write the challenge parameters
-                    var challengeParamEntry = archive.CreateEntry("challengeParams.json");
-                    using (var stream = challengeParamEntry.Open())
-                    using (var sr = new StreamWriter(stream))
-                    {
-                        sr.Write(JsonConvert.SerializeObject(challengeParameters.Item2));
-                    }
-
-                    foreach (var aq in assignedQuestions.Item2)
-                    {
-                        // Write the assigned question
-                        var assignedQuestionEntry = archive.CreateEntry($"aq-{aq.QuestionId}.json");
-                        using (var stream = assignedQuestionEntry.Open())
+                        // Write the challenge json definition
+                        var challengeEntry = archive.CreateEntry("challenge.json");
+                        using (var stream = challengeEntry.Open())
                         using (var sr = new StreamWriter(stream))
                         {
-                            sr.Write(JsonConvert.SerializeObject(aq));
+                            sr.Write(JsonConvert.SerializeObject(challenge.Item2));
                         }
 
-                        // Get and write the original question template
-                        var question = await questionProvider.GetItemAsync(aq.AssociatedQuestionId);
-                        var questionEntry = archive.CreateEntry($"q-{question.Item2.Id}.json");
-                        using (var stream = questionEntry.Open())
+                        // Write the challenge parameters
+                        var challengeParamEntry = archive.CreateEntry("challengeParams.json");
+                        using (var stream = challengeParamEntry.Open())
                         using (var sr = new StreamWriter(stream))
                         {
-                            question.Item2.Owner = null;
-                            sr.Write(JsonConvert.SerializeObject(question.Item2));
+                            sr.Write(JsonConvert.SerializeObject(challengeParameters.Item2));
+                        }
+
+                        // Write the global parameters
+                        var globalParamEntry = archive.CreateEntry("globalParams.json");
+                        using (var stream = globalParamEntry.Open())
+                        using (var sr = new StreamWriter(stream))
+                        {
+                            // There is only one
+                            sr.Write(JsonConvert.SerializeObject(globalParameters.Item2[0]));
+                        }
+
+                        foreach (var aq in assignedQuestions.Item2)
+                        {
+                            // Write the assigned question
+                            var assignedQuestionEntry = archive.CreateEntry($"aq-{aq.QuestionId}.json");
+                            using (var stream = assignedQuestionEntry.Open())
+                            using (var sr = new StreamWriter(stream))
+                            {
+                                sr.Write(JsonConvert.SerializeObject(aq));
+                            }
+
+                            // Get and write the original question template
+                            var question = await questionProvider.GetItemAsync(aq.AssociatedQuestionId);
+                            var questionEntry = archive.CreateEntry($"q-{question.Item2.Id}.json");
+                            using (var stream = questionEntry.Open())
+                            using (var sr = new StreamWriter(stream))
+                            {
+                                question.Item2.Owner = null;
+                                sr.Write(JsonConvert.SerializeObject(question.Item2));
+                            }
+                        }
+                    }
+
+
+                    return File(zipMS.ToArray(), "application/octet-stream", $"{challenge.Item2.Name}.zip");
+                }
+            }
+            else
+            {
+                return StatusCode(500);
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ImportChallenge(string uri)
+        {
+            try
+            {
+                using (var webClient = new WebClient())
+                {
+                    using (var zipMS = new MemoryStream(webClient.DownloadData(uri)))
+                    {
+                        using (var archive = new ZipArchive(zipMS, ZipArchiveMode.Read))
+                        {
+                            // Add the challenge
+                            var challengeEntry = archive.Entries.Where(p => p.Name == "challenge.json").FirstOrDefault();
+                            using (var challengeStream = challengeEntry.Open())
+                            {
+                                using (var challengeSR = new StreamReader(challengeStream))
+                                {
+                                    var challengeDoc = JsonConvert.DeserializeObject<ACMT.ChallengeDetails>(await challengeSR.ReadToEndAsync());
+
+                                    // Check if we already have this one defined (same id). if so, don't allow import
+                                    var doesChallengeExist = await challengeProvider.GetItemAsync(challengeDoc.Id);
+
+                                    if (doesChallengeExist.Item1.Success && doesChallengeExist.Item2 != null)
+                                    {
+                                        return StatusCode(409);
+                                    }
+
+                                    // Challenge should be unlocked and private to start with
+                                    challengeDoc.IsLocked = false;
+                                    challengeDoc.IsPublic = false;
+
+                                    await challengeProvider.AddItemAsync(challengeDoc);
+                                }
+                            }
+
+                            // Add the challenge parameters
+                            var challengeParamsEntry = archive.Entries.Where(p => p.Name == "challengeParams.json").FirstOrDefault();
+                            using (var challengeParamsStream = challengeParamsEntry.Open())
+                            {
+                                using (var challengeParamsSR = new StreamReader(challengeParamsStream))
+                                {
+                                    var paramDoc = JsonConvert.DeserializeObject<ACMP.GlobalChallengeParameters>(await challengeParamsSR.ReadToEndAsync());
+                                    await challengeParameterProvider.AddItemAsync(paramDoc);
+                                }
+                            }
+
+                            // Append the global parameters
+                            var globalParamsEntry = archive.Entries.Where(p => p.Name == "globalParams.json").FirstOrDefault();
+                            using (var globalParamsStream = globalParamsEntry.Open())
+                            {
+                                using (var globalParamsSR = new StreamReader(globalParamsStream))
+                                {
+                                    var paramDoc = JsonConvert.DeserializeObject<ACMP.GlobalParameters>(await globalParamsSR.ReadToEndAsync());
+
+                                    // Get the current global parameter entry
+                                    var globalParameters = await globalParameterProvider.GetAllItemsAsync();
+
+                                    // Check if it exists
+                                    if (globalParameters.Item1.Success)
+                                    {
+                                        if (globalParameters.Item2.Count > 0)
+                                        {
+                                            // There is only one, check if it has parameters
+                                            if (globalParameters.Item2[0].Parameters != null)
+                                            {
+                                                globalParameters.Item2[0].Parameters.AddRange(paramDoc.Parameters);
+                                            }
+                                            else
+                                            {
+                                                globalParameters.Item2[0].Parameters = new List<string>();
+                                                globalParameters.Item2[0].Parameters.AddRange(paramDoc.Parameters);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            globalParameters.Item2.Add(paramDoc);
+                                        }
+
+                                        await globalParameterProvider.AddItemAsync(globalParameters.Item2[0]);
+                                    }
+                                    else
+                                    {
+                                        await globalParameterProvider.AddItemAsync(paramDoc);
+                                    }
+
+                                }
+                            }
+
+                            // Add the assigned questions
+                            var assignedQuestionEntries = archive.Entries.Where(p => p.Name.StartsWith("aq-")).ToList();
+                            foreach (var aq in assignedQuestionEntries)
+                            {
+                                using (var aqStream = aq.Open())
+                                {
+                                    using (var aqSR = new StreamReader(aqStream))
+                                    {
+                                        var aqDoc = JsonConvert.DeserializeObject<ACMQ.AssignedQuestion>(await aqSR.ReadToEndAsync());
+                                        await assignedQuestionProvider.AddItemAsync(aqDoc);
+                                    }
+                                }
+                            }
+
+                            // Add the question templates
+                            var questionEntries = archive.Entries.Where(p => p.Name.StartsWith("q-")).ToList();
+                            foreach (var q in questionEntries)
+                            {
+                                using (var qStream = q.Open())
+                                {
+                                    using (var qSR = new StreamReader(qStream))
+                                    {
+                                        var qDoc = JsonConvert.DeserializeObject<ACMQ.Question>(await qSR.ReadToEndAsync());
+                                        // Need to assigned owner
+                                        qDoc.Owner = User.Identity.Name;
+                                        await questionProvider.AddItemAsync(qDoc);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-
-
-                return File(zipMS.ToArray(), "application/octet-stream", $"{challenge.Item2.Name}.zip");
             }
+            catch(Exception ex)
+            {
+                return StatusCode(500);
+            }
+
+            return Ok();
         }
     }
 }

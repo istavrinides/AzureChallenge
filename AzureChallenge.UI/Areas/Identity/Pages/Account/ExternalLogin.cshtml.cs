@@ -22,17 +22,20 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<AzureChallengeUIUser> _signInManager;
         private readonly UserManager<AzureChallengeUIUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IEmailSender _emailSender;
         private readonly ILogger<ExternalLoginModel> _logger;
 
         public ExternalLoginModel(
             SignInManager<AzureChallengeUIUser> signInManager,
             UserManager<AzureChallengeUIUser> userManager,
+            RoleManager<IdentityRole> roleManager,
             ILogger<ExternalLoginModel> logger,
             IEmailSender emailSender)
         {
             _signInManager = signInManager;
             _userManager = userManager;
+            _roleManager = roleManager;
             _logger = logger;
             _emailSender = emailSender;
         }
@@ -130,6 +133,9 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
+                // If it's the first user, skip the email validation and add them to the Admin role
+                var isFirstUser = _userManager.Users.Count() == 0;
+
                 var user = new AzureChallengeUIUser { UserName = Input.Email, Email = Input.Email };
                 var result = await _userManager.CreateAsync(user);
                 if (result.Succeeded)
@@ -155,6 +161,14 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account
                         // If account confirmation is required, we need to show the link if we don't have a real email sender
                         if (_userManager.Options.SignIn.RequireConfirmedAccount)
                         {
+                            if (isFirstUser)
+                            {
+                                if (!(await _roleManager.RoleExistsAsync("Administrator")))
+                                {
+                                    await _roleManager.CreateAsync(new IdentityRole("Administrator"));
+                                }
+                                await _userManager.AddToRoleAsync(user, "Administrator");
+                            }
                             return RedirectToPage("./RegisterConfirmation", new { Email = Input.Email });
                         }
 
