@@ -30,6 +30,7 @@ using Microsoft.AspNetCore.Http;
 using System.Net.Mime;
 using System.Net.Http;
 using System.Net.Cache;
+using System.Threading;
 
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
@@ -202,7 +203,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Description = inputModel.Description,
                     Id = inputModel.Id,
                     Name = inputModel.Name,
-                    Questions = challengeQuestions
+                    Questions = challengeQuestions,
+                    AzureServiceCategory = inputModel.AzureServiceCategory
                 };
 
                 // Check if this is an update to an existing challenge question
@@ -350,7 +352,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Description = challengeResponse.Item2.Description,
                     Id = challengeResponse.Item2.Id,
                     Name = challengeResponse.Item2.Name,
-                    Questions = challengeResponse.Item2.Questions
+                    Questions = challengeResponse.Item2.Questions,
+                    AzureServiceCategory = challengeResponse.Item2.AzureServiceCategory
                 };
 
                 var challengeQuestions = challenge.Questions;
@@ -572,6 +575,9 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 await assignedQuestionProvider.AddItemAsync(q);
             }
 
+            // Add some delay so that the database can commit the copy. Otherwise, doesn't appear on the refresh...
+            Task.Delay(1000).Wait();
+
             return Ok();
 
         }
@@ -646,6 +652,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                         using (var stream = questionEntry.Open())
                         using (var sr = new StreamWriter(stream))
                         {
+                            question.Item2.Owner = null;
                             sr.Write(JsonConvert.SerializeObject(question.Item2));
                         }
                     }
