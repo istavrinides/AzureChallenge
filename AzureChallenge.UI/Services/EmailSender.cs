@@ -35,7 +35,7 @@ namespace AzureChallenge.UI.Services
         {
             var apiKey = configuration.GetSection("SendGrid_Api_Key").Value;
             var client = new SendGridClient(apiKey);
-            var from = new EmailAddress("azchallenge-noreply@az-challenge.azurewebsites.net", "Example User 1");
+            var from = new EmailAddress("azchallenge-noreply@az-challenge.azurewebsites.net", "Az Challenge (do not reply)");
             List<EmailAddress> tos = new List<EmailAddress>
             {
                 new EmailAddress(email)

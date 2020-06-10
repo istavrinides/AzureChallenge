@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using AzureChallenge.UI.Areas.Identity.Data;
+using AzureChallenge.UI.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -22,17 +23,20 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<AzureChallengeUIUser> _signInManager;
         private readonly UserManager<AzureChallengeUIUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
 
         public RegisterModel(
             UserManager<AzureChallengeUIUser> userManager,
             SignInManager<AzureChallengeUIUser> signInManager,
+            RoleManager<IdentityRole> roleManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _roleManager = roleManager;
             _logger = logger;
             _emailSender = emailSender;
         }
@@ -75,6 +79,9 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
+                // If it's the first user, skip the email validation and add them to the Admin role
+                var isFirstUser = _userManager.Users.Count() == 0;
+
                 var user = new AzureChallengeUIUser { UserName = Input.Email, Email = Input.Email };
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
@@ -94,10 +101,32 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
+                        if (isFirstUser)
+                        {
+                            if (!(await _roleManager.RoleExistsAsync("Administrator")))
+                            {
+                                await _roleManager.CreateAsync(new IdentityRole("Administrator"));
+                            }
+                            await _userManager.ConfirmEmailAsync(user, code);
+                            await _signInManager.SignInAsync(user, isPersistent: false);
+                            await _userManager.AddToRoleAsync(user, "Administrator");
+                            return LocalRedirect(returnUrl);
+                        }
                         return RedirectToPage("RegisterConfirmation", new { email = Input.Email });
                     }
                     else
                     {
+                        if (isFirstUser)
+                        {
+                            if (!(await _roleManager.RoleExistsAsync("Administrator")))
+                            {
+                                await _roleManager.CreateAsync(new IdentityRole("Administrator"));
+                            }
+                            await _userManager.ConfirmEmailAsync(user, code);
+                            await _signInManager.SignInAsync(user, isPersistent: false);
+                            await _userManager.AddToRoleAsync(user, "Administrator");
+                            return LocalRedirect(returnUrl);
+                        }
                         await _signInManager.SignInAsync(user, isPersistent: false);
                         return LocalRedirect(returnUrl);
                     }

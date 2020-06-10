@@ -9,6 +9,7 @@
 <div class="d-flex flex-row">
     <div class="align-content-between w-100">
         <span class="h1">@ViewData["Title"]</span>
+        <button type="button" id="btnImportShowModal" class="btn btn-info float-right mt-2 ml-3">Import</button>
         <button type="button" id="btnAddNew" class="btn btn-info float-right mt-2">Add new</button>
     </div>
 </div>
@@ -22,7 +23,7 @@
                     <th style="width:16.67%">
                         @Html.DisplayNameFor(model => model.Challenges[0].Name)
                     </th>
-                    <th style="width:41.68%">
+                    <th style="width:33.35%">
                         @Html.DisplayNameFor(model => model.Challenges[0].Description)
                     </th>
                     <th class="text-center" style="width:8.33%">Parameters</th>
@@ -30,7 +31,7 @@
                     <th class="text-center" style="width:8.33%">Copy</th>
                     <th class="text-center" style="width:8.33%">Locked?</th>
                     <th class="text-center" style="width:8.33%">Delete</th>
-                    <th class="text-center" style="width:8.33%">Import/Export</th>
+                    <th class="text-center" style="width:8.33%">Export</th>
                 </tr>
             </thead>
             <tbody>
@@ -81,8 +82,8 @@
                             }
                         </td>
                         <td class="text-center">
-                            <a href="#" class="tableLinkImportExport" data-challengeId="@q.Id">
-                                <img src="~/images/import_export-24px.svg" style="width:24px" />
+                            <a href="#" class="tableLinkExport" data-challengeId="@q.Id">
+                                <img src="~/images/export.svg" style="width:24px" />
                             </a>
                         </td>
                     </tr>
@@ -138,26 +139,63 @@
         </div>
     </div>
 
-    <div class="modal" id="importExportModal">
+    <div class="modal" id="exportModal">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Import/Export challenge</h5>
+                    <h5 class="modal-title">Export challenge</h5>
                 </div>
                 <div class="modal-body">
-                    <div id="modalInputImportExport" class="text-center">
+                    <div id="modalInputExport" class="text-center">
                         <input type="hidden" name="Id" id="Id" />
                         <div class="row">
-                            <div class="col-md-6 text-center">
+                            <div class="col-md-12 text-center">
                                 <button class="btn btn-primary" id="btnExport">Export challenge</button>
-                            </div>
-                            <div class="col-md-6">
                             </div>
                         </div>
                     </div>
-                    <div id="modalWaitingImportExport" class="text-center">
+                    <div id="modalWaitingExport" class="text-center">
                         <div id="modalWaitingMessage">
                             Please wait while the challenge is exported...
+                        </div>
+                        <div>
+                            <img src="/images/wait.gif">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="importModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import challenge</h5>
+                </div>
+                <div class="modal-body">
+                    <div id="modalInputImport" class="text-center">
+                        <input type="hidden" name="Id" id="Id" />
+                        <div class="row align-content-center">
+                            <div class="col-2">
+                                <label asp-for="@Model.FilesAvailableForImport"></label>
+                            </div>
+                            <div class="col-7">
+                                <select class="selectpicker" data-live-search="true" data-width="100%" id="fileSelector">
+                                    @foreach (var file in Model.FilesAvailableForImport)
+                                    {
+                                        <option value="@file.Key">@file.Value</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <button class="btn btn-primary" id="btnImport">Import challenge</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="modalWaitingImport" class="text-center">
+                        <div id="modalWaitingMessage">
+                            Please wait while the challenge is imported...
                         </div>
                         <div>
                             <img src="/images/wait.gif">
