@@ -13,6 +13,7 @@
 
     $("#challengeTable .tableLinkCopy").on('click', function () {
         $("#Id").val($(this).attr('data-challengeId'));
+        $("#categorySelector").selectpicker('val', $(this).attr('data-category'));
         $(".modal-title").text('Copy challenge');
         $("#btnModalAdd").addClass('d-none');
         $("#btnModalCopy").removeClass('d-none');
@@ -112,8 +113,9 @@
 
         var Name = $("#Name").val();
         var Description = $("#Description").val();
+        var AzureServiceCategory = $("#categorySelector").val();
 
-        if (!Name || !Description) {
+        if (!Name || !Description || !AzureServiceCategory) {
             return;
         }
 
@@ -124,7 +126,8 @@
         var model = {
             Name: Name,
             Description: Description,
-            Id: $("#Id").val()
+            Id: $("#Id").val(),
+            AzureServiceCategory: AzureServiceCategory
         };
 
         $.post("/Administration/Challenge/CopyChallenge", model)
