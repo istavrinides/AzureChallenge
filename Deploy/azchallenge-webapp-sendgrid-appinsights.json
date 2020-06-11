@@ -52,7 +52,7 @@
             }
         },
         "cosmosDbKey_rid": {
-            "type": "string",
+            "type": "string"
         },
         "sqlDbConnectionString_secret_name": {
             "type": "string",
@@ -182,8 +182,8 @@
             "location": "[parameters('location')]",
             "apiVersion": "2018-11-01",
             "dependsOn": [
-                "[concat('Microsoft.Web/serverfarms', parameters('webAppName'))]",
-                "[concat('Microsoft.Insights/components', parameters('appInsightsName'))]"
+                "[concat('Microsoft.Web/serverfarms/', parameters('webAppName'))]",
+                "[concat('Microsoft.Insights/components/', parameters('appInsightsName'))]"
             ],
             "tags": {
                 "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('webAppName'))]": "Resource",
@@ -244,7 +244,7 @@
                         },
                         {
                             "name": "Authentication:Facebook:AppSecret",
-                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('facebookId_secret_name'),'/',parameters('facebookSecret_rid'), ')')]",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('facebookSecret_secret_name'),'/',parameters('facebookSecret_rid'), ')')]",
                             "slotSetting": false
                         },
                         {
@@ -300,6 +300,14 @@
                         {
                             "name": "SendGrid_Api_Key",
                             "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('sendGridAPIKey_secret_name'),'/',parameters('sendGridAPIKey_rid'), ')')]",
+                            "slotSetting": false
+                        }
+                    ],
+                    "connectionStrings": [
+                        {
+                            "name": "DefaultConnection",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('sqlDbConnectionString_secret_name'),'/',parameters('sqlDbConnectionString_rid'),')')]",
+                            "type": "SQLAzure",
                             "slotSetting": false
                         }
                     ]
