@@ -302,25 +302,6 @@
                     "enabled": true
                 }
             }
-        },
-        {
-            "type": "Microsoft.KeyVault/vaults/accessPolicies",
-            "name": "[concat(parameters('keyvaultName'), '/add')]",
-            "apiVersion": "2019-09-01",
-            "properties": {
-                "accessPolicies": [
-                    {
-                        "tenantId": "[subscription().tenantId]",
-                        "objectId": "[parameters('webAppPrincipalId')]",
-                        "permissions": {
-                            "secrets": [
-                                "Get",
-                                "List"
-                            ]
-                        }
-                    }
-                ]
-            }
         }
     ]
 }
