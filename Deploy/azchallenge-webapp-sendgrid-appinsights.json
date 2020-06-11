@@ -1,0 +1,343 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "webAppName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The name of the Web App"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "sendGridPassword": {
+            "type": "securestring",
+            "minLength": 8,
+            "metadata": {
+                "description": "The Send Grid account password"
+            }
+        },
+        "sendGridUser": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Send Grid username."
+            }
+        },
+        "keyvaultName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Key Vault name"
+            }
+        },
+        "appInsightsName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Key Vault name"
+            }
+        },
+        "cosmosDbKey_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Cosmos Db Key secret name"
+            }
+        },
+        "cosmosDbKey_rid": {
+            "type": "string",
+        },
+        "sqlDbConnectionString_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The SQL Db Connection String secret name"
+            }
+        },
+        "sqlDbConnectionString_rid": {
+            "type": "string"
+        },
+        "facebookId_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Facebook Id secret name"
+            }
+        },
+        "facebookId_rid": {
+            "type": "string"
+        },
+        "facebookSecret_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Facebook Secret secret name"
+            }
+        },
+        "facebookSecret_rid": {
+            "type": "string"
+        },
+        "googleId_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Google Id secret name"
+            }
+        },
+        "googleId_rid": {
+            "type": "string"
+        },
+        "googleSecret_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Google Secret secret name"
+            }
+        },
+        "googleSecret_rid": {
+            "type": "string"
+        },
+        "microsoftId_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Microsoft Id secret name"
+            }
+        },
+        "microsoftId_rid": {
+            "type": "string"
+        },
+        "microsoftSecret_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Microsoft Secret secret name"
+            }
+        },
+        "microsoftSecret_rid": {
+            "type": "string"
+        },
+        "sendGridAPIKey_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The SendGrid API Key secret name"
+            }
+        },
+        "sendGridAPIKey_rid": {
+            "type": "string"
+        }
+    },
+    "variables": {
+    },
+    "resources": [
+        {
+            "name": "[parameters('appInsightsName')]",
+            "type": "Microsoft.Insights/components",
+            "apiVersion": "2015-05-01",
+            "location": "[parameters('location')]",
+            "tags": {
+            },
+            "kind": "web",
+            "properties": {
+                "Application_Type": "web"
+            }
+        },
+        {
+            "name": "[parameters('webAppName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[parameters('location')]",
+            "apiVersion": "2019-08-01",
+            "dependsOn": [
+            ],
+            "sku": {
+                "name": "S1",
+                "tier": "Standard",
+                "size": "S1",
+                "family": "S",
+                "capacity": 1
+            },
+            "kind": "app",
+            "properties": {
+                "perSiteScaling": false,
+                "maximumElasticWorkerCount": 1,
+                "isSpot": false,
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "targetWorkerCount": 0,
+                "targetWorkerSizeId": 0
+            }
+        },
+        {
+            "name": "[parameters('webAppName')]",
+            "type": "Microsoft.Web/sites",
+            "location": "[parameters('location')]",
+            "apiVersion": "2018-11-01",
+            "dependsOn": [
+                "[concat('Microsoft.Web/serverfarms', parameters('webAppName'))]",
+                "[concat('Microsoft.Insights/components', parameters('appInsightsName'))]"
+            ],
+            "tags": {
+                "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('webAppName'))]": "Resource",
+                "displayName": "Web App"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(parameters('webAppName'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(parameters('webAppName'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('webAppName'))]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(concat('Microsoft.Insights/components/', parameters('appInsightsName'))).InstrumentationKey]",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "APPINSIGHTS_PROFILERFEATURE_VERSION",
+                            "value": "1.0.0",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
+                            "value": "~2",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "ASPNETCORE_HOSTINGSTARTUP__KEYVAULT__CONFIGURATIONENABLED",
+                            "value": "true",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "ASPNETCORE_HOSTINGSTARTUP__KEYVAULT__CONFIGURATIONVAULT",
+                            "value": "[concat('https://', parameters('keyvaultName'), '.vault.azure.net/')]",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "Authentication:Facebook:AppId",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('facebookId_secret_name'),'/',parameters('facebookId_rid'), ')')]",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "Authentication:Facebook:AppSecret",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('facebookId_secret_name'),'/',parameters('facebookSecret_rid'), ')')]",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "Authentication:Google:ClientId",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('googleId_secret_name'),'/',parameters('googleId_rid'), ')')]",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "Authentication:Google:ClientSecret",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('googleSecret_secret_name'),'/',parameters('googleSecret_rid'), ')')]",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "Authentication:Microsoft:ClientId",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('microsoftId_secret_name'),'/',parameters('microsoftId_rid'), ')')]",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "Authentication:Microsoft:ClientSecret",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('microsoftSecret_secret_name'),'/',parameters('microsoftSecret_rid'), ')')]",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "CosmosDb:Account",
+                            "value": "https://azurechallengecosmos.documents.azure.com:443/",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "CosmosDb:ContainerName",
+                            "value": "resources",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "CosmosDb:DatabaseName",
+                            "value": "azurechallenge",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "CosmosDb:Key",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('cosmosDbKey_secret_name'),'/',parameters('cosmosDbKey_rid'), ')')]",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "DiagnosticServices_EXTENSION_VERSION",
+                            "value": "~3",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "Endpoints:AzureServicesEnpoint",
+                            "value": "https://docs.microsoft.com/en-us/rest/api/rest-products.json",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "SendGrid_Api_Key",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('sendGridAPIKey_secret_name'),'/',parameters('sendGridAPIKey_rid'), ')')]",
+                            "slotSetting": false
+                        }
+                    ]
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 0,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": false,
+                "redundancyMode": "None"
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[parameters('sendGridUser')]",
+            "type": "Sendgrid.Email/accounts",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-01-01",
+            "plan": {
+                "name": "free",
+                "publisher": "Sendgrid",
+                "product": "sendgrid_azure",
+                "promotionCode": ""
+            },
+            "properties": {
+                "password": "[parameters('sendgridPassword')]",
+                "acceptMarketingEmails": false,
+                "email": ""
+            }
+        }
+    ],
+    "outputs": {
+        "webAppPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Web/sites', parameters('webAppName')),'2019-08-01', 'full').identity.principalId]",
+            "type": "string"
+        }
+    }
+}
