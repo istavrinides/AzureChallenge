@@ -51,6 +51,20 @@
                 "description": "The SQL Server name"
             }
         },
+        "sqlServerAdminLogin": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The SQL Server admin user name"
+            }
+        },
+        "sqlServerAdminLoginPassword": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The SQL Server admin password"
+            }
+        },
         "sqlDatabaseName": {
             "type": "string",
             "minLength": 1,
@@ -185,7 +199,7 @@
                 "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
             ],
             "properties": {
-                "value": "[concat('Server=tcp:',reference(concat('Microsoft.Sql/servers/', parameters('sqlserverName'))).fullyQualifiedDomainName,',1433;Initial Catalog=',parameters('sqlDatabaseName'),';Persist Security Info=False;User ID=',reference(parameters('sqlserverName')).administratorLogin,';Password=',reference(parameters('sqlserverName')).administratorLoginPassword,';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+                "value": "[concat('Server=tcp:',reference(concat('Microsoft.Sql/servers/', parameters('sqlserverName'))).fullyQualifiedDomainName,',1433;Initial Catalog=',parameters('sqlDatabaseName'),';Persist Security Info=False;User ID=',parameters('sqlServerAdminLogin'),';Password=',parameters('sqlServerAdminLoginPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
                 "attributes": {
                     "enabled": true
                 }
