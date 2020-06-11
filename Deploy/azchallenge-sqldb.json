@@ -1,0 +1,98 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sqlServerAdminLogin": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The SQL server admin username."
+            }
+        },
+        "sqlServerAdminLoginPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The SQL server admin password"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "sqlServerName": {
+            "type": "string",
+            "metadata": {
+                "description": "The SQL Server name."
+            }
+        },
+        "sqlDatabaseName": {
+            "type": "string",
+            "metadata": {
+                "description": "The SQL Database name."
+            }
+        }
+    },
+    "variables": {
+    },
+    "resources": [
+        {
+            "name": "[parameters('sqlServerName')]",
+            "type": "Microsoft.Sql/servers",
+            "location": "[parameters('location')]",
+            "apiVersion": "2019-06-01-preview",
+            "kind": "v12.0",
+            "dependsOn": [
+            ],
+            "tags": {
+                "displayName": "SQL Server"
+            },
+            "properties": {
+                "administratorLogin": "[parameters('sqlServerAdminLogin')]",
+                "administratorLoginPassword": "[parameters('sqlServerAdminLoginPassword')]",
+                "version": "12.0"
+            },
+            "resources": [
+                {
+                    "name": "[concat(parameters('sqlServerName'), '/AllowAllWindowsAzureIps')]",
+                    "type": "Microsoft.Sql/servers/firewallRules",
+                    "location": "[parameters('location')]",
+                    "apiVersion": "2015-05-01-preview",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers/', parameters('sqlServerName'))]"
+                    ],
+                    "properties": {
+                        "startIpAddress": "0.0.0.0",
+                        "endIpAddress": "0.0.0.0"
+                    }
+                },
+                {
+                    "name": "[concat(parameters('sqlServerName'),'/', parameters('sqlDatabaseName'))]",
+                    "type": "Microsoft.Sql/servers/databases",
+                    "location": "[parameters('location')]",
+                    "apiVersion": "2019-06-01-preview",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]"
+                    ],
+                    "sku": {
+                        "name": "S1"
+                    },
+                    "tags": {
+                        "displayName": "SQL Database"
+                    },
+                    "properties": {
+                        "collation": "SQL_Latin1_General_CP1_CI_AS",
+                        "maxSizeBytes": 1073741824,
+                        "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+                        "zoneRedundant": false,
+                        "readScale": "Disabled",
+                        "readReplicaCount": 0,
+                        "storageAccountType": "GRS"
+                    }
+                }
+            ]
+        }
+    ]
+}

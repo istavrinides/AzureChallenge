@@ -1,0 +1,312 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "databaseAccountName": {
+            "type": "string",
+            "minLength": 3,
+            "metadata": {
+                "description": "The Azure Cosmos DB database account name."
+            }
+        },
+        "webAppName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The name of the Web App"
+            }
+        },
+        "cosmosDbMasterKey": {
+            "type": "securestring",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Cosmos Db Master Key"
+            }
+        },
+        "webAppPrincipalId": {
+            "type": "securestring",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Azure Web App Principal Id"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "keyvaultName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Azure Key Vault name"
+            }
+        },
+        "sqlServerName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The SQL Server name"
+            }
+        },
+        "sqlDatabaseName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The SQL Database name"
+            }
+        },
+        "cosmosDbKey_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Cosmos Db Key secret name"
+            }
+        },
+        "sqlDbConnectionString_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The SQL Db Connection String secret name"
+            }
+        },
+        "facebookId_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Facebook Id secret name"
+            }
+        },
+        "facebookSecret_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Facebook Secret secret name"
+            }
+        },
+        "googleId_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Google Id secret name"
+            }
+        },
+        "googleSecret_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Google Secret secret name"
+            }
+        },
+        "microsoftId_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Microsoft Id secret name"
+            }
+        },
+        "microsoftSecret_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Microsoft Secret secret name"
+            }
+        },
+        "sendGridAPIKey_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The SendGrid API Key secret name"
+            }
+        }
+    },
+    "variables": {
+    },
+    "resources": [
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "2016-10-01",
+            "name": "[parameters('keyvaultName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]",
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccountName'))]"
+            ],
+            "properties": {
+                "sku": {
+                    "family": "A",
+                    "name": "Standard"
+                },
+                "tenantId": "[subscription().tenantId]",
+                "accessPolicies": [
+                    {
+                        "tenantId": "[subscription().tenantId]",
+                        "objectId": "[reference(resourceId('Microsoft.Web/sites', parameters('webAppName')),'2019-08-01', 'full').identity.principalId]",
+                        "permissions": {
+                            "keys": [
+                            ],
+                            "secrets": [
+                                "Get",
+                                "List"
+                            ],
+                            "certificates": [
+                            ]
+                        }
+                    }
+                ],
+                "enabledForDeployment": true,
+                "enabledForDiskEncryption": true,
+                "enabledForTemplateDeployment": true
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "name": "[concat(parameters('keyvaultName'), '/', parameters('cosmosDbKey_secret_name'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+            ],
+            "properties": {
+                "value": "[parameters('cosmosDbMasterKey')]",
+                "attributes": {
+                    "enabled": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "name": "[concat(parameters('keyvaultName'), '/', parameters('sqlDbConnectionString_secret_name'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+            ],
+            "properties": {
+                "value": "[concat('Server=tcp:',reference(parameters('sqlServerName')).fullyQualifiedDomainName,',1433;Initial Catalog=',parameters('sqlDatabaseName'),';Persist Security Info=False;User ID=',reference(parameters('sqlserverName')).administratorLogin,';Password=',reference(parameters('sqlserverName')).administratorLoginPassword,';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+                "attributes": {
+                    "enabled": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "name": "[concat(parameters('keyvaultName'), '/', parameters('facebookId_secret_name'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+            ],
+            "properties": {
+                "attributes": {
+                    "enabled": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "name": "[concat(parameters('keyvaultName'), '/', parameters('facebookSecret_secret_name'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+            ],
+            "properties": {
+                "attributes": {
+                    "enabled": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "name": "[concat(parameters('keyvaultName'), '/', parameters('googleId_secret_name') )]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+            ],
+            "properties": {
+                "attributes": {
+                    "enabled": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "name": "[concat(parameters('keyvaultName'), '/', parameters('googleSecret_secret_name'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+            ],
+            "properties": {
+                "attributes": {
+                    "enabled": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "name": "[concat(parameters('keyvaultName'), '/', parameters('microsoftId_secret_name'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+            ],
+            "properties": {
+                "attributes": {
+                    "enabled": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "name": "[concat(parameters('keyvaultName'), '/', parameters('microsoftSecret_secret_name'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+            ],
+            "properties": {
+                "attributes": {
+                    "enabled": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "name": "[concat(parameters('keyvaultName'), '/', parameters('sendGridAPIKey_secret_name'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+            ],
+            "properties": {
+                "attributes": {
+                    "enabled": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+            "name": "[concat(parameters('keyvaultName'), '/add')]",
+            "apiVersion": "2019-09-01",
+            "properties": {
+                "accessPolicies": [
+                    {
+                        "tenantId": "[subscription().tenantId]",
+                        "objectId": "[parameters('webAppPrincipalId')]",
+                        "permissions": {
+                            "secrets": [
+                                "Get",
+                                "List"
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
