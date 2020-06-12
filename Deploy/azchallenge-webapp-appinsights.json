@@ -177,11 +177,11 @@
             "location": "[parameters('location')]",
             "apiVersion": "2018-11-01",
             "dependsOn": [
-                "[concat('Microsoft.Web/serverfarms/', parameters('webAppName'))]",
-                "[concat('Microsoft.Insights/components/', parameters('appInsightsName'))]",
+                "[resourceId('Microsoft.Web/serverfarms', parameters('webAppName'))]",
+                "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]",
                 "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]",
-                "[concat('Microsoft.KeyVault/vaults/secrets/', parameters('keyvaultName'), '/', parameters('cosmosDbKey_secret_name'))]",
-                "[concat('Microsoft.KeyVault/vaults/secrets/', parameters('keyvaultName'), '/', parameters('sqlDbConnectionString_secret_name'))]"
+                "[resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyvaultName'), parameters('cosmosDbKey_secret_name'))]",
+                "[resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyvaultName'), parameters('sqlDbConnectionString_secret_name'))]"
             ],
             "tags": {
                 "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('webAppName'))]": "Resource",
@@ -212,7 +212,7 @@
                     "appSettings": [
                         {
                             "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                            "value": "[reference(concat('Microsoft.Insights/components/', parameters('appInsightsName'))).InstrumentationKey]",
+                            "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName'))).InstrumentationKey]",
                             "slotSetting": false
                         },
                         {
