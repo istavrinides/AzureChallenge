@@ -249,12 +249,12 @@
                         },
                         {
                             "name": "Authentication:Facebook:AppId",
-                            "value": "Invalid",
+                            "value": "Invalid - Please Change",
                             "slotSetting": false
                         },
                         {
                             "name": "Authentication:Facebook:AppSecret",
-                            "value": "Invalid",
+                            "value": "Invalid - Please Change",
                             "slotSetting": false
                         },
                         {
@@ -264,22 +264,27 @@
                         },
                         {
                             "name": "Authentication:Google:ClientId",
-                            "value": "Invalid",
+                            "value": "Invalid - Please Change",
                             "slotSetting": false
                         },
                         {
                             "name": "Authentication:Google:ClientSecret",
-                            "value": "Invalid",
+                            "value": "Invalid - Please Change",
                             "slotSetting": false
                         },
                         {
                             "name": "Authentication:Microsoft:ClientId",
-                            "value": "Invliad",
+                            "value": "Invalid - Please Change",
                             "slotSetting": false
                         },
                         {
                             "name": "Authentication:Microsoft:ClientSecret",
-                            "value": "Invalid",
+                            "value": "Invalid - Please Change",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "SendGrid_Api_Key",
+                            "value": "Invalid - Please Change",
                             "slotSetting": false
                         },
                         {
