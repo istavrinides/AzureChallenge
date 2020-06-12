@@ -223,6 +223,10 @@
                             "slotSetting": false
                         },
                         {
+                            "name": "PROJECT",
+                            "value": "src/AzureChallenge.UI/AzureChallenge.UI.csproj",
+                            "slotSetting": false
+                        },{
                             "name": "APPINSIGHTS_PROFILERFEATURE_VERSION",
                             "value": "1.0.0",
                             "slotSetting": false
@@ -337,6 +341,20 @@
                 "redundancyMode": "None"
             },
             "resources": [
+                {
+                    "type": "sourcecontrols",
+                    "apiVersion": "2018-02-01",
+                    "name": "web",
+                    "location": "[parameters('location')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', parameters('webAppName'))]"
+                    ],
+                    "properties": {
+                        "repoUrl": "https://github.com/istavrinides/AzureChallenge.git",
+                        "branch": "master",
+                        "isManualIntegration": true
+                    }
+                }
             ]
         }
     ],
