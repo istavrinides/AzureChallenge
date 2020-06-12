@@ -152,8 +152,6 @@
             "name": "[parameters('keyvaultName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]",
-                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccountName'))]"
             ],
             "properties": {
                 "sku": {
