@@ -292,7 +292,7 @@
                         },
                         {
                             "name": "CosmosDb:Key",
-                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('cosmosDbKey_secret_name')).secretUriWithVersion, ')')]",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('cosmosDbKey_secret_name'))).secretUriWithVersion, ')')]",
                             "slotSetting": false
                         },
                         {
@@ -309,7 +309,7 @@
                     "connectionStrings": [
                         {
                             "name": "DefaultConnection",
-                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('sqlDbConnectionString_secret_name')).secretUriWithVersion, ')')]",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('sqlDbConnectionString_secret_name'))).secretUriWithVersion, ')')]",
                             "type": "SQLAzure",
                             "slotSetting": false
                         }
