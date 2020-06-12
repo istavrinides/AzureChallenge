@@ -9,13 +9,6 @@
                 "description": "The Cosmos Db Master Key"
             }
         },
-        "webAppPrincipalId": {
-            "type": "securestring",
-            "minLength": 1,
-            "metadata": {
-                "description": "The Azure Web App Principal Id"
-            }
-        },
         "location": {
             "type": "string",
             "defaultValue": "[resourceGroup().location]",
@@ -139,20 +132,6 @@
                 },
                 "tenantId": "[subscription().tenantId]",
                 "accessPolicies": [
-                    {
-                        "tenantId": "[subscription().tenantId]",
-                        "objectId": "[parameters('webAppPrincipalId')]",
-                        "permissions": {
-                            "keys": [
-                            ],
-                            "secrets": [
-                                "Get",
-                                "List"
-                            ],
-                            "certificates": [
-                            ]
-                        }
-                    }
                 ],
                 "enabledForDeployment": true,
                 "enabledForDiskEncryption": true,
