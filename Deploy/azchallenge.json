@@ -169,12 +169,6 @@
           },
           "sqlDbConnectionString_secret_name": {
             "value": "[variables('sqlDbConnectionString_secret_name')]"
-          },
-          "cosmosDbSecretUri":{
-            "value": "[reference('linkedTemplate-keyvault').outputs.CosmosSecretUri.value]"
-          },
-          "sqlDbSecretUri":{
-            "value": "[reference('linkedTemplate-keyvault').outputs.SQLSecretUri.value]"
           }
         }
       }
