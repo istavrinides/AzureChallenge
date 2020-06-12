@@ -159,8 +159,8 @@
             "dependsOn": [
                 "[concat('Microsoft.Web/serverfarms/', parameters('webAppName'))]",
                 "[concat('Microsoft.Insights/components/', parameters('appInsightsName'))]",
-                "[concat(parameters('keyvaultName'), '/', parameters('cosmosDbKey_secret_name'))]",
-                "[concat(parameters('keyvaultName'), '/', parameters('sqlDbConnectionString_secret_name'))]"
+                "[concat('Microsoft.KeyVault/vaults/secrets/', parameters('keyvaultName'), '/', parameters('cosmosDbKey_secret_name'))]",
+                "[concat('Microsoft.KeyVault/vaults/secrets/', parameters('keyvaultName'), '/', parameters('sqlDbConnectionString_secret_name'))]"
             ],
             "tags": {
                 "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('webAppName'))]": "Resource",
