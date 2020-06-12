@@ -56,21 +56,9 @@
     "sqlDatabaseName": "AzureChallengeDb",
     "appInsightsName": "[concat(uniqueString(resourceGroup().id), 'appinsight')]",
     "cosmosDbKey_secret_name": "AzChallengeCosmosKey",
-    "cosmosDbKey_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('cosmosDbKey_secret_name'))]",
+    "cosmosDbKey_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('cosmosDbKey_secret_name')).secretUri]",
     "sqlDbConnectionString_secret_name": "AzChallengeDbConn",
-    "sqlDbConnectionString_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('sqlDbConnectionString_secret_name'))]",
-    "facebookId_secret_name": "AzChallengeFacebookId",
-    "facebookId_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('facebookId_secret_name'))]",
-    "facebookSecret_secret_name": "AzChallengeFacebookSecret",
-    "facebookSecret_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('facebookSecret_secret_name'))]",
-    "googleId_secret_name": "AzChallengeGoogleId",
-    "googleId_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('googleId_secret_name'))]",
-    "googleSecret_secret_name": "AzChallengeGoogleSecret",
-    "googleSecret_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('googleSecret_secret_name'))]",
-    "microsoftId_secret_name": "AzChallengeMicrosoftId",
-    "microsoftId_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('microsoftId_secret_name'))]",
-    "microsoftSecret_secret_name": "AzChallengeMicrosoftSecret",
-    "microsoftSecret_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('microsoftSecret_secret_name'))]"
+    "sqlDbConnectionString_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('sqlDbConnectionString_secret_name')).secretUri]"
   },
   "resources": [
     {
@@ -165,24 +153,6 @@
           },
           "sqlDbConnectionString_secret_name": {
             "value": "[variables('sqlDbConnectionString_secret_name')]"
-          },
-          "facebookId_secret_name": {
-            "value": "[variables('facebookId_secret_name')]"
-          },
-          "facebookSecret_secret_name": {
-            "value": "[variables('facebookSecret_secret_name')]"
-          },
-          "googleId_secret_name": {
-            "value": "[variables('googleId_secret_name')]"
-          },
-          "googleSecret_secret_name": {
-            "value": "[variables('googleSecret_secret_name')]"
-          },
-          "microsoftId_secret_name": {
-            "value": "[variables('microsoftId_secret_name')]"
-          },
-          "microsoftSecret_secret_name": {
-            "value": "[variables('microsoftSecret_secret_name')]"
           }
         }
       }
@@ -225,42 +195,6 @@
           },
           "sqlDbConnectionString_rid": {
             "value": "[variables('sqlDbConnectionString_rid')]"
-          },
-          "facebookId_secret_name": {
-            "value": "[variables('facebookId_secret_name')]"
-          },
-          "facebookId_rid": {
-            "value": "[variables('facebookId_rid')]"
-          },
-          "facebookSecret_secret_name": {
-            "value": "[variables('facebookSecret_secret_name')]"
-          },
-          "facebookSecret_rid": {
-            "value": "[variables('facebookSecret_rid')]"
-          },
-          "googleId_secret_name": {
-            "value": "[variables('googleId_secret_name')]"
-          },
-          "googleId_rid": {
-            "value": "[variables('googleId_rid')]"
-          },
-          "googleSecret_secret_name": {
-            "value": "[variables('googleSecret_secret_name')]"
-          },
-          "googleSecret_rid": {
-            "value": "[variables('googleSecret_rid')]"
-          },
-          "microsoftId_secret_name": {
-            "value": "[variables('microsoftId_secret_name')]"
-          },
-          "microsoftId_rid": {
-            "value": "[variables('microsoftId_rid')]"
-          },
-          "microsoftSecret_secret_name": {
-            "value": "[variables('microsoftSecret_secret_name')]"
-          },
-          "microsoftSecret_rid": {
-            "value": "[variables('microsoftSecret_rid')]"
           }
         }
       }

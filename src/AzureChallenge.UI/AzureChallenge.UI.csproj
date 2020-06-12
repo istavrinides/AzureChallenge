@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <UserSecretsId>aspnet-AzureChallenge.UI-7CA5B91E-884C-4C4D-AD32-28F074AA62AB</UserSecretsId>
     <ApplicationInsightsResourceId>/subscriptions/fd50e94d-af5d-4589-8991-fed07e756d85/resourcegroups/AzureChallengeResourceGroup/providers/Microsoft.Insights/components/az-challenge-app-insights</ApplicationInsightsResourceId>
+    <UserSecretsId>bffdf1be-5a90-474f-b010-26494e6f08b9</UserSecretsId>
   </PropertyGroup>
 
 

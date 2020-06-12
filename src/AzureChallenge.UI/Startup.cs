@@ -74,18 +74,27 @@ namespace AzureChallenge.UI
             {
                 microsoftoptions.ClientId = Configuration["Authentication:Microsoft:ClientId"];
                 microsoftoptions.ClientSecret = Configuration["Authentication:Microsoft:ClientSecret"];
-            }).AddFacebook(facebookOptions =>
-            {
-                facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
-                facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecret"];
-            }).AddGoogle(options =>
-            {
-                IConfigurationSection googleAuthNSection =
-                    Configuration.GetSection("Authentication:Google");
-
-                options.ClientId = googleAuthNSection["ClientId"];
-                options.ClientSecret = googleAuthNSection["ClientSecret"];
             });
+
+            if (bool.Parse(Configuration["Authentication:Facebook:Enabled"]))
+            {
+                services.AddAuthentication().AddFacebook(facebookOptions =>
+                {
+                    facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
+                    facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecret"];
+                });
+            }
+            if (bool.Parse(Configuration["Authentication:Google:Enabled"]))
+            {
+                services.AddAuthentication().AddGoogle(options =>
+                {
+                    IConfigurationSection googleAuthNSection =
+                        Configuration.GetSection("Authentication:Google");
+
+                    options.ClientId = googleAuthNSection["ClientId"];
+                    options.ClientSecret = googleAuthNSection["ClientSecret"];
+                });
+            }
 
             services.AddTransient<IEmailSender, EmailSender>();
             services.Configure<AuthMessageSenderOptions>(Configuration);

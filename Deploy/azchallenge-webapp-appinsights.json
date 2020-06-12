@@ -49,66 +49,6 @@
         },
         "sqlDbConnectionString_rid": {
             "type": "string"
-        },
-        "facebookId_secret_name": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "The Facebook Id secret name"
-            }
-        },
-        "facebookId_rid": {
-            "type": "string"
-        },
-        "facebookSecret_secret_name": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "The Facebook Secret secret name"
-            }
-        },
-        "facebookSecret_rid": {
-            "type": "string"
-        },
-        "googleId_secret_name": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "The Google Id secret name"
-            }
-        },
-        "googleId_rid": {
-            "type": "string"
-        },
-        "googleSecret_secret_name": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "The Google Secret secret name"
-            }
-        },
-        "googleSecret_rid": {
-            "type": "string"
-        },
-        "microsoftId_secret_name": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "The Microsoft Id secret name"
-            }
-        },
-        "microsoftId_rid": {
-            "type": "string"
-        },
-        "microsoftSecret_secret_name": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "The Microsoft Secret secret name"
-            }
-        },
-        "microsoftSecret_rid": {
-            "type": "string"
         }
     },
     "variables": {
@@ -214,33 +154,43 @@
                             "slotSetting": false
                         },
                         {
+                            "name": "Authentication:Facebook:Enable",
+                            "value": false,
+                            "slotSetting": false
+                        },
+                        {
                             "name": "Authentication:Facebook:AppId",
-                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('facebookId_secret_name'),'/',parameters('facebookId_rid'), ')')]",
+                            "value": "Invalid",
                             "slotSetting": false
                         },
                         {
                             "name": "Authentication:Facebook:AppSecret",
-                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('facebookSecret_secret_name'),'/',parameters('facebookSecret_rid'), ')')]",
+                            "value": "Invalid",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "Authentication:Google:Enable",
+                            "value": false,
                             "slotSetting": false
                         },
                         {
                             "name": "Authentication:Google:ClientId",
-                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('googleId_secret_name'),'/',parameters('googleId_rid'), ')')]",
+                            "value": "Invalid",
                             "slotSetting": false
                         },
                         {
                             "name": "Authentication:Google:ClientSecret",
-                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('googleSecret_secret_name'),'/',parameters('googleSecret_rid'), ')')]",
+                            "value": "Invalid",
                             "slotSetting": false
                         },
                         {
                             "name": "Authentication:Microsoft:ClientId",
-                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('microsoftId_secret_name'),'/',parameters('microsoftId_rid'), ')')]",
+                            "value": "Invliad",
                             "slotSetting": false
                         },
                         {
                             "name": "Authentication:Microsoft:ClientSecret",
-                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('microsoftSecret_secret_name'),'/',parameters('microsoftSecret_rid'), ')')]",
+                            "value": "Invalid",
                             "slotSetting": false
                         },
                         {
