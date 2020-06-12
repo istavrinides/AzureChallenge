@@ -37,9 +37,6 @@
                 "description": "The Cosmos Db Key secret name"
             }
         },
-        "cosmosDbKey_rid": {
-            "type": "string"
-        },
         "sqlDbConnectionString_secret_name": {
             "type": "string",
             "minLength": 1,
@@ -47,9 +44,6 @@
                 "description": "The SQL Db Connection String secret name"
             }
         },
-        "sqlDbConnectionString_rid": {
-            "type": "string"
-        }
     },
     "variables": {
     },
@@ -210,7 +204,7 @@
                         },
                         {
                             "name": "CosmosDb:Key",
-                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('cosmosDbKey_secret_name'),'/',parameters('cosmosDbKey_rid'), ')')]",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyvaultName'), parameters('cosmosDbKey_secret_name'))).secretUriWithVersion, ')')]",
                             "slotSetting": false
                         },
                         {
@@ -227,7 +221,7 @@
                     "connectionStrings": [
                         {
                             "name": "DefaultConnection",
-                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', parameters('keyvaultName'),'.vault.azure.net/secrets/',parameters('sqlDbConnectionString_secret_name'),'/',parameters('sqlDbConnectionString_rid'),')')]",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=https://', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyvaultName'), parameters('sqlDbConnectionString_secret_name'))).secretUriWithVersion, ')')]",
                             "type": "SQLAzure",
                             "slotSetting": false
                         }

@@ -167,14 +167,8 @@
           "cosmosDbKey_secret_name": {
             "value": "[variables('cosmosDbKey_secret_name')]"
           },
-          "cosmosDbKey_rid": {
-            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('cosmosDbKey_secret_name'))).secretUriWithVersion]"
-          },
           "sqlDbConnectionString_secret_name": {
             "value": "[variables('sqlDbConnectionString_secret_name')]"
-          },
-          "sqlDbConnectionString_rid": {
-            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('sqlDbConnectionString_secret_name'))).secretUriWithVersion]"
           }
         }
       }
