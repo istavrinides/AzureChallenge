@@ -198,6 +198,7 @@
                 "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
             ],
             "properties": {
+                "value": "Needs to change",
                 "attributes": {
                     "enabled": true
                 }
@@ -212,6 +213,7 @@
                 "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
             ],
             "properties": {
+                "value": "Needs to change",
                 "attributes": {
                     "enabled": true
                 }
@@ -226,6 +228,7 @@
                 "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
             ],
             "properties": {
+                "value": "Needs to change",
                 "attributes": {
                     "enabled": true
                 }
@@ -240,6 +243,7 @@
                 "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
             ],
             "properties": {
+                "value": "Needs to change",
                 "attributes": {
                     "enabled": true
                 }
@@ -254,6 +258,7 @@
                 "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
             ],
             "properties": {
+                "value": "Needs to change",
                 "attributes": {
                     "enabled": true
                 }
@@ -268,6 +273,7 @@
                 "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
             ],
             "properties": {
+                "value": "Needs to change",
                 "attributes": {
                     "enabled": true
                 }
@@ -282,6 +288,7 @@
                 "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
             ],
             "properties": {
+                "value": "Needs to change",
                 "attributes": {
                     "enabled": true
                 }
