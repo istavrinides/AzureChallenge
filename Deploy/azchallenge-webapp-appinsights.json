@@ -2,6 +2,13 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "CosmosDbDatabaseAccountName": {
+            "type": "string",
+            "minLength": 3,
+            "metadata": {
+                "description": "The Azure Cosmos DB database account name."
+            }
+        },
         "webAppName": {
             "type": "string",
             "minLength": 1,
@@ -277,7 +284,7 @@
                         },
                         {
                             "name": "CosmosDb:Account",
-                            "value": "https://azurechallengecosmos.documents.azure.com:443/",
+                            "value": "[concat('https://', parameters('CosmosDbDatabaseAccountName') ,'.documents.azure.com:443/')]",
                             "slotSetting": false
                         },
                         {
@@ -309,7 +316,7 @@
                     "connectionStrings": [
                         {
                             "name": "DefaultConnection",
-                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('sqlDbConnectionString_secret_name'))).secretUriWithVersion, ')')]",
+                            "connectionString": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('sqlDbConnectionString_secret_name'))).secretUriWithVersion, ')')]",
                             "type": "SQLAzure",
                             "slotSetting": false
                         }

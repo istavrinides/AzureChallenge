@@ -28,6 +28,8 @@ After successfully deploying the template, you will need to manually configure t
          3. You will need to set the Azure Web App appSettings called `Authentication:Google:ClientId` and `Authentication:Google:ClientSecret` with the respective values obtain from adding Google API.
 4. Then you will need to get the web application, build and deploy:
     ```
-    git pull https://github.com/istavrinides/AzureChallenge.git
+    git clone https://github.com/istavrinides/AzureChallenge.git
+    cd AzureChallenge
     dotnet build
+    Deploy with your tool/method of choice
     ```
