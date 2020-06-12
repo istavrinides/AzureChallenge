@@ -51,6 +51,13 @@
                 "description": "The SQL Server name"
             }
         },
+        "databaseFQDN": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The SQL Server FQDN"
+            }
+        },
         "sqlServerAdminLogin": {
             "type": "string",
             "minLength": 1,
@@ -157,7 +164,7 @@
                 "accessPolicies": [
                     {
                         "tenantId": "[subscription().tenantId]",
-                        "objectId": "[reference(resourceId('Microsoft.Web/sites', parameters('webAppName')),'2019-08-01', 'full').identity.principalId]",
+                        "objectId": "[parameters('webAppPrincipalId')]",
                         "permissions": {
                             "keys": [
                             ],
@@ -199,7 +206,7 @@
                 "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
             ],
             "properties": {
-                "value": "[concat('Server=tcp:',reference(concat('Microsoft.Sql/servers/', parameters('sqlserverName'))).fullyQualifiedDomainName,',1433;Initial Catalog=',parameters('sqlDatabaseName'),';Persist Security Info=False;User ID=',parameters('sqlServerAdminLogin'),';Password=',parameters('sqlServerAdminLoginPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+                "value": "[concat('Server=tcp:',parameters('databaseFQDN'),',1433;Initial Catalog=',parameters('sqlDatabaseName'),';Persist Security Info=False;User ID=',parameters('sqlServerAdminLogin'),';Password=',parameters('sqlServerAdminLoginPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
                 "attributes": {
                     "enabled": true
                 }

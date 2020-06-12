@@ -94,5 +94,11 @@
                 }
             ]
         }
-    ]
+    ],
+	"outputs": {
+		"databaseFQDN": {
+			"value": "[reference(concat('Microsoft.Sql/servers/', parameters('sqlserverName'))).fullyQualifiedDomainName]",
+			"type" : "string"
+		}
+	}
 }
