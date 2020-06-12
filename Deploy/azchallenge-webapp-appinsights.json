@@ -112,7 +112,7 @@
                 ],
                 "enabledForDeployment": true,
                 "enabledForDiskEncryption": true,
-                "enabledForTemplateDeployment": true,
+                "enabledForTemplateDeployment": true
             }
         },
         {
