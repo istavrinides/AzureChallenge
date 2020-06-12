@@ -95,34 +95,11 @@
     },
     {
       "apiVersion": "2019-10-01",
-      "name": "linkedTemplate-keyvault",
-      "type": "Microsoft.Resources/deployments",
-      "dependsOn": [
-        "linkedTemplate-cosmosdb"
-      ],
-      "properties": {
-        "mode": "incremental",
-        "templateLink": {
-          "uri": "[uri(deployment().properties.templateLink.uri, 'azchallenge-keyvault.json')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "location": {
-            "value": "[variables('location')]"
-          },
-          "keyvaultName": {
-            "value": "[variables('keyvaultName')]"
-          }
-        }
-      }
-    },
-    {
-      "apiVersion": "2019-10-01",
       "name": "linkedTemplate-webapp-appinsights",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "linkedTemplate-sqldb",
-        "linkedTemplate-keyvault"
+        "linkedTemplate-cosmosdb"
       ],
       "properties": {
         "mode": "incremental",
