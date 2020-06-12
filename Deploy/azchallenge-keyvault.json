@@ -2,13 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "cosmosDbMasterKey": {
-            "type": "securestring",
-            "minLength": 1,
-            "metadata": {
-                "description": "The Cosmos Db Master Key"
-            }
-        },
         "location": {
             "type": "string",
             "defaultValue": "[resourceGroup().location]",
@@ -21,48 +14,6 @@
             "minLength": 1,
             "metadata": {
                 "description": "The Azure Key Vault name"
-            }
-        },
-        "databaseFQDN": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "The SQL Server FQDN"
-            }
-        },
-        "sqlServerAdminLogin": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "The SQL Server admin user name"
-            }
-        },
-        "sqlServerAdminLoginPassword": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "The SQL Server admin password"
-            }
-        },
-        "sqlDatabaseName": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "The SQL Database name"
-            }
-        },
-        "cosmosDbKey_secret_name": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "The Cosmos Db Key secret name"
-            }
-        },
-        "sqlDbConnectionString_secret_name": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "The SQL Db Connection String secret name"
             }
         }
     },
@@ -87,36 +38,6 @@
                 "enabledForDeployment": true,
                 "enabledForDiskEncryption": true,
                 "enabledForTemplateDeployment": true
-            }
-        },
-        {
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "apiVersion": "2016-10-01",
-            "name": "[concat(parameters('keyvaultName'), '/', parameters('cosmosDbKey_secret_name'))]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
-            ],
-            "properties": {
-                "value": "[parameters('cosmosDbMasterKey')]",
-                "attributes": {
-                    "enabled": true
-                }
-            }
-        },
-        {
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "apiVersion": "2016-10-01",
-            "name": "[concat(parameters('keyvaultName'), '/', parameters('sqlDbConnectionString_secret_name'))]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
-            ],
-            "properties": {
-                "value": "[concat('Server=tcp:',parameters('databaseFQDN'),',1433;Initial Catalog=',parameters('sqlDatabaseName'),';Persist Security Info=False;User ID=',parameters('sqlServerAdminLogin'),';Password=',parameters('sqlServerAdminLoginPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
-                "attributes": {
-                    "enabled": true
-                }
             }
         }
     ]

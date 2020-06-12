@@ -107,32 +107,11 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
-          "sqlServerAdminLogin": {
-            "value": "[parameters('sqlServerAdminLogin')]"
-          },
-          "sqlServerAdminLoginPassword": {
-            "value": "[parameters('sqlServerAdminLoginPassword')]"
-          },
-          "databaseFQDN": {
-            "value": "[reference('linkedTemplate-sqldb').outputs.databaseFQDN.value]"
-          },
           "location": {
             "value": "[variables('location')]"
           },
-          "cosmosDbMasterKey": {
-            "value": "[reference('linkedTemplate-cosmosdb').outputs.cosmosDbMasterKey.value]"
-          },
           "keyvaultName": {
             "value": "[variables('keyvaultName')]"
-          },
-          "sqlDatabaseName": {
-            "value": "[variables('sqlDatabaseName')]"
-          },
-          "cosmosDbKey_secret_name": {
-            "value": "[variables('cosmosDbKey_secret_name')]"
-          },
-          "sqlDbConnectionString_secret_name": {
-            "value": "[variables('sqlDbConnectionString_secret_name')]"
           }
         }
       }
@@ -169,6 +148,21 @@
           },
           "sqlDbConnectionString_secret_name": {
             "value": "[variables('sqlDbConnectionString_secret_name')]"
+          },
+          "sqlDatabaseName": {
+            "value": "[variables('sqlDatabaseName')]"
+          },
+          "sqlServerAdminLogin": {
+            "value": "[parameters('sqlServerAdminLogin')]"
+          },
+          "sqlServerAdminLoginPassword": {
+            "value": "[parameters('sqlServerAdminLoginPassword')]"
+          },
+          "databaseFQDN": {
+            "value": "[reference('linkedTemplate-sqldb').outputs.databaseFQDN.value]"
+          },
+          "cosmosDbMasterKey": {
+            "value": "[reference('linkedTemplate-cosmosdb').outputs.cosmosDbMasterKey.value]"
           }
         }
       }

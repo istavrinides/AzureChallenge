@@ -43,6 +43,41 @@
             "metadata": {
                 "description": "The SQL Db Connection String secret name"
             }
+        },
+        "cosmosDbMasterKey": {
+            "type": "securestring",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Cosmos Db Master Key"
+            }
+        },
+        "databaseFQDN": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The SQL Server FQDN"
+            }
+        },
+        "sqlServerAdminLogin": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The SQL Server admin user name"
+            }
+        },
+        "sqlServerAdminLoginPassword": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The SQL Server admin password"
+            }
+        },
+        "sqlDatabaseName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The SQL Database name"
+            }
         }
     },
     "variables": {
@@ -58,6 +93,36 @@
             "kind": "web",
             "properties": {
                 "Application_Type": "web"
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "name": "[concat(parameters('keyvaultName'), '/', parameters('cosmosDbKey_secret_name'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+            ],
+            "properties": {
+                "value": "[parameters('cosmosDbMasterKey')]",
+                "attributes": {
+                    "enabled": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "name": "[concat(parameters('keyvaultName'), '/', parameters('sqlDbConnectionString_secret_name'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+            ],
+            "properties": {
+                "value": "[concat('Server=tcp:',parameters('databaseFQDN'),',1433;Initial Catalog=',parameters('sqlDatabaseName'),';Persist Security Info=False;User ID=',parameters('sqlServerAdminLogin'),';Password=',parameters('sqlServerAdminLoginPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+                "attributes": {
+                    "enabled": true
+                }
             }
         },
         {
@@ -93,7 +158,9 @@
             "apiVersion": "2018-11-01",
             "dependsOn": [
                 "[concat('Microsoft.Web/serverfarms/', parameters('webAppName'))]",
-                "[concat('Microsoft.Insights/components/', parameters('appInsightsName'))]"
+                "[concat('Microsoft.Insights/components/', parameters('appInsightsName'))]",
+                "[concat(parameters('keyvaultName'), '/', parameters('cosmosDbKey_secret_name'))]",
+                "[concat(parameters('keyvaultName'), '/', parameters('sqlDbConnectionString_secret_name'))]"
             ],
             "tags": {
                 "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('webAppName'))]": "Resource",
