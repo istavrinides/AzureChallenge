@@ -2,10 +2,9 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "databaseAccountName": {
+    "CosmosDbDatabaseAccountName": {
       "type": "string",
       "minLength": 3,
-      "defaultValue": "iostavritestsrv",
       "metadata": {
         "description": "The Azure Cosmos DB database account name."
       }
@@ -13,7 +12,6 @@
     "sqlServerAdminLogin": {
       "type": "string",
       "minLength": 1,
-      "defaultValue": "iostavri",
       "metadata": {
         "description": "The SQL server admin username."
       }
@@ -27,26 +25,8 @@
     "webAppName": {
       "type": "string",
       "minLength": 1,
-      "defaultValue": "iostavritestweb",
       "metadata": {
         "description": "The name of the Web App"
-      }
-    },
-    "documentDBOfferType": {
-      "type": "string",
-      "defaultValue": "Standard",
-      "allowedValues": [
-        "Standard"
-      ],
-      "metadata": {
-        "description": "The Azure Cosmos DB offer type"
-      }
-    },
-    "location": {
-      "type": "string",
-      "defaultValue": "[resourceGroup().location]",
-      "metadata": {
-        "description": "Location for all resources."
       }
     }
   },
@@ -56,9 +36,9 @@
     "sqlDatabaseName": "AzureChallengeDb",
     "appInsightsName": "[concat(uniqueString(resourceGroup().id), 'appinsight')]",
     "cosmosDbKey_secret_name": "AzChallengeCosmosKey",
-    "cosmosDbKey_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('cosmosDbKey_secret_name')).secretUri]",
     "sqlDbConnectionString_secret_name": "AzChallengeDbConn",
-    "sqlDbConnectionString_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('sqlDbConnectionString_secret_name')).secretUri]"
+    "documentDBOfferType": "Standard",
+    "location": "[resourceGroup().location]"
   },
   "resources": [
     {
@@ -73,13 +53,13 @@
         },
         "parameters": {
           "databaseAccountName": {
-            "value": "[parameters('databaseAccountName')]"
+            "value": "[parameters('CosmosDbDatabaseAccountName')]"
           },
           "documentDBOfferType": {
-            "value": "[parameters('documentDBOfferType')]"
+            "value": "[variables('documentDBOfferType')]"
           },
           "location": {
-            "value": "[parameters('location')]"
+            "value": "[variables('location')]"
           }
         }
       }
@@ -102,7 +82,7 @@
             "value": "[parameters('sqlServerAdminLoginPassword')]"
           },
           "location": {
-            "value": "[parameters('location')]"
+            "value": "[variables('location')]"
           },
           "sqlServerName": {
             "value": "[variables('sqlServerName')]"
@@ -137,7 +117,7 @@
             "value": "[reference('linkedTemplate-sqldb').outputs.databaseFQDN.value]"
           },
           "location": {
-            "value": "[parameters('location')]"
+            "value": "[variables('location')]"
           },
           "cosmosDbMasterKey": {
             "value": "[reference('linkedTemplate-cosmosdb').outputs.cosmosDbMasterKey.value]"
@@ -176,7 +156,7 @@
             "value": "[parameters('webAppName')]"
           },
           "location": {
-            "value": "[parameters('location')]"
+            "value": "[variables('location')]"
           },
           "keyvaultName": {
             "value": "[variables('keyvaultName')]"
@@ -188,13 +168,13 @@
             "value": "[variables('cosmosDbKey_secret_name')]"
           },
           "cosmosDbKey_rid": {
-            "value": "[variables('cosmosDbKey_rid')]"
+            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('cosmosDbKey_secret_name'))).secretUriWithVersion]"
           },
           "sqlDbConnectionString_secret_name": {
             "value": "[variables('sqlDbConnectionString_secret_name')]"
           },
           "sqlDbConnectionString_rid": {
-            "value": "[variables('sqlDbConnectionString_rid')]"
+            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('sqlDbConnectionString_secret_name'))).secretUriWithVersion]"
           }
         }
       }
