@@ -1,0 +1,43 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "webAppPrincipalId": {
+            "type": "securestring",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Azure Web App Principal Id"
+            }
+        },
+        "keyvaultName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Azure Key Vault name"
+            }
+        }
+    },
+    "variables": {
+    },
+    "resources": [
+        {
+            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+            "name": "[concat(parameters('keyvaultName'), '/add')]",
+            "apiVersion": "2019-09-01",
+            "properties": {
+                "accessPolicies": [
+                    {
+                        "tenantId": "[subscription().tenantId]",
+                        "objectId": "[parameters('webAppPrincipalId')]",
+                        "permissions": {
+                            "secrets": [
+                                "Get",
+                                "List"
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
