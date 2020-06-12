@@ -1,0 +1,292 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "databaseAccountName": {
+      "type": "string",
+      "minLength": 3,
+      "defaultValue": "iostavritestsrv",
+      "metadata": {
+        "description": "The Azure Cosmos DB database account name."
+      }
+    },
+    "sqlServerAdminLogin": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "iostavri",
+      "metadata": {
+        "description": "The SQL server admin username."
+      }
+    },
+    "sqlServerAdminLoginPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The SQL server admin password"
+      }
+    },
+    "webAppName": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "iostavritestweb",
+      "metadata": {
+        "description": "The name of the Web App"
+      }
+    },
+    "documentDBOfferType": {
+      "type": "string",
+      "defaultValue": "Standard",
+      "allowedValues": [
+        "Standard"
+      ],
+      "metadata": {
+        "description": "The Azure Cosmos DB offer type"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    }
+  },
+  "variables": {
+    "sqlServerName": "[concat(uniquestring(resourceGroup().id), 'sqlserver')]",
+    "keyvaultName": "[concat(uniqueString(resourceGroup().id), 'keyvault')]",
+    "sqlDatabaseName": "AzureChallengeDb",
+    "appInsightsName": "[concat(uniqueString(resourceGroup().id), 'appinsight')]",
+    "cosmosDbKey_secret_name": "AzChallengeCosmosKey",
+    "cosmosDbKey_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('cosmosDbKey_secret_name'))]",
+    "sqlDbConnectionString_secret_name": "AzChallengeDbConn",
+    "sqlDbConnectionString_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('sqlDbConnectionString_secret_name'))]",
+    "facebookId_secret_name": "AzChallengeFacebookId",
+    "facebookId_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('facebookId_secret_name'))]",
+    "facebookSecret_secret_name": "AzChallengeFacebookSecret",
+    "facebookSecret_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('facebookSecret_secret_name'))]",
+    "googleId_secret_name": "AzChallengeGoogleId",
+    "googleId_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('googleId_secret_name'))]",
+    "googleSecret_secret_name": "AzChallengeGoogleSecret",
+    "googleSecret_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('googleSecret_secret_name'))]",
+    "microsoftId_secret_name": "AzChallengeMicrosoftId",
+    "microsoftId_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('microsoftId_secret_name'))]",
+    "microsoftSecret_secret_name": "AzChallengeMicrosoftSecret",
+    "microsoftSecret_rid": "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyvaultName'), variables('microsoftSecret_secret_name'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2019-10-01",
+      "name": "linkedTemplate-cosmosdb",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[uri(deployment().properties.templateLink.uri, 'azchallenge-cosmosdb.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "databaseAccountName": {
+            "value": "[parameters('databaseAccountName')]"
+          },
+          "documentDBOfferType": {
+            "value": "[parameters('documentDBOfferType')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2019-10-01",
+      "name": "linkedTemplate-sqldb",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[uri(deployment().properties.templateLink.uri, 'azchallenge-sqldb.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "sqlServerAdminLogin": {
+            "value": "[parameters('sqlServerAdminLogin')]"
+          },
+          "sqlServerAdminLoginPassword": {
+            "value": "[parameters('sqlServerAdminLoginPassword')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "sqlServerName": {
+            "value": "[variables('sqlServerName')]"
+          },
+          "sqlDatabaseName": {
+            "value": "[variables('sqlDatabaseName')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2019-10-01",
+      "name": "linkedTemplate-keyvault",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "linkedTemplate-cosmosdb"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[uri(deployment().properties.templateLink.uri, 'azchallenge-keyvault.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "sqlServerAdminLogin": {
+            "value": "[parameters('sqlServerAdminLogin')]"
+          },
+          "sqlServerAdminLoginPassword": {
+            "value": "[parameters('sqlServerAdminLoginPassword')]"
+          },
+          "databaseFQDN": {
+            "value": "[reference('linkedTemplate-sqldb').outputs.databaseFQDN.value]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "cosmosDbMasterKey": {
+            "value": "[reference('linkedTemplate-cosmosdb').outputs.cosmosDbMasterKey.value]"
+          },
+          "keyvaultName": {
+            "value": "[variables('keyvaultName')]"
+          },
+          "sqlDatabaseName": {
+            "value": "[variables('sqlDatabaseName')]"
+          },
+          "cosmosDbKey_secret_name": {
+            "value": "[variables('cosmosDbKey_secret_name')]"
+          },
+          "sqlDbConnectionString_secret_name": {
+            "value": "[variables('sqlDbConnectionString_secret_name')]"
+          },
+          "facebookId_secret_name": {
+            "value": "[variables('facebookId_secret_name')]"
+          },
+          "facebookSecret_secret_name": {
+            "value": "[variables('facebookSecret_secret_name')]"
+          },
+          "googleId_secret_name": {
+            "value": "[variables('googleId_secret_name')]"
+          },
+          "googleSecret_secret_name": {
+            "value": "[variables('googleSecret_secret_name')]"
+          },
+          "microsoftId_secret_name": {
+            "value": "[variables('microsoftId_secret_name')]"
+          },
+          "microsoftSecret_secret_name": {
+            "value": "[variables('microsoftSecret_secret_name')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2019-10-01",
+      "name": "linkedTemplate-webapp-appinsights",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "linkedTemplate-sqldb",
+        "linkedTemplate-keyvault"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[uri(deployment().properties.templateLink.uri, 'azchallenge-webapp-appinsights.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "webAppName": {
+            "value": "[parameters('webAppName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "keyvaultName": {
+            "value": "[variables('keyvaultName')]"
+          },
+          "appInsightsName": {
+            "value": "[variables('appInsightsName')]"
+          },
+          "cosmosDbKey_secret_name": {
+            "value": "[variables('cosmosDbKey_secret_name')]"
+          },
+          "cosmosDbKey_rid": {
+            "value": "[variables('cosmosDbKey_rid')]"
+          },
+          "sqlDbConnectionString_secret_name": {
+            "value": "[variables('sqlDbConnectionString_secret_name')]"
+          },
+          "sqlDbConnectionString_rid": {
+            "value": "[variables('sqlDbConnectionString_rid')]"
+          },
+          "facebookId_secret_name": {
+            "value": "[variables('facebookId_secret_name')]"
+          },
+          "facebookId_rid": {
+            "value": "[variables('facebookId_rid')]"
+          },
+          "facebookSecret_secret_name": {
+            "value": "[variables('facebookSecret_secret_name')]"
+          },
+          "facebookSecret_rid": {
+            "value": "[variables('facebookSecret_rid')]"
+          },
+          "googleId_secret_name": {
+            "value": "[variables('googleId_secret_name')]"
+          },
+          "googleId_rid": {
+            "value": "[variables('googleId_rid')]"
+          },
+          "googleSecret_secret_name": {
+            "value": "[variables('googleSecret_secret_name')]"
+          },
+          "googleSecret_rid": {
+            "value": "[variables('googleSecret_rid')]"
+          },
+          "microsoftId_secret_name": {
+            "value": "[variables('microsoftId_secret_name')]"
+          },
+          "microsoftId_rid": {
+            "value": "[variables('microsoftId_rid')]"
+          },
+          "microsoftSecret_secret_name": {
+            "value": "[variables('microsoftSecret_secret_name')]"
+          },
+          "microsoftSecret_rid": {
+            "value": "[variables('microsoftSecret_rid')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2019-10-01",
+      "name": "linkedTemplate-keyvault-accesspolicy",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "linkedTemplate-webapp-appinsights"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[uri(deployment().properties.templateLink.uri, 'azchallenge-keyvault-accesspolicy.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "webAppPrincipalId": {
+            "value": "[reference('linkedTemplate-webapp-appinsights').outputs.webAppPrincipalId.value]"
+          },
+          "keyvaultName": {
+            "value": "[variables('keyvaultName')]"
+          }
+        }
+      }
+    }
+  ]
+}

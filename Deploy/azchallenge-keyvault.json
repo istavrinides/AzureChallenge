@@ -106,13 +106,6 @@
             "metadata": {
                 "description": "The Microsoft Secret secret name"
             }
-        },
-        "sendGridAPIKey_secret_name": {
-            "type": "string",
-            "minLength": 1,
-            "metadata": {
-                "description": "The SendGrid API Key secret name"
-            }
         }
     },
     "variables": {
@@ -247,21 +240,6 @@
             "type": "Microsoft.KeyVault/vaults/secrets",
             "apiVersion": "2016-10-01",
             "name": "[concat(parameters('keyvaultName'), '/', parameters('microsoftSecret_secret_name'))]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
-            ],
-            "properties": {
-                "value": "Needs to change",
-                "attributes": {
-                    "enabled": true
-                }
-            }
-        },
-        {
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "apiVersion": "2016-10-01",
-            "name": "[concat(parameters('keyvaultName'), '/', parameters('sendGridAPIKey_secret_name'))]",
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
