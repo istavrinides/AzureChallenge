@@ -247,7 +247,7 @@
                             "slotSetting": false
                         },
                         {
-                            "name": "Authentication:Facebook:Enable",
+                            "name": "Authentication:Facebook:Enabled",
                             "value": false,
                             "slotSetting": false
                         },
@@ -262,7 +262,7 @@
                             "slotSetting": false
                         },
                         {
-                            "name": "Authentication:Google:Enable",
+                            "name": "Authentication:Google:Enabled",
                             "value": false,
                             "slotSetting": false
                         },

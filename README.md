@@ -10,6 +10,7 @@ The architecture of the application consists of:
 - An Azure Web App hosted in an Azure App Service instance.
 - An Azure SQL Database hosting the authentication database.
 - An Azure Cosmos Db Core API Database that hosts all the web application data.
+To deploy the web application in your own Azure Subscription, please see the instructions [here](https://github.com/istavrinides/AzureChallenge/tree/master/Deploy)
 
 ## How to use it
 The web application has the following main functional sections:
