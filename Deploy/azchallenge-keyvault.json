@@ -119,5 +119,15 @@
                 }
             }
         }
-    ]
+    ],
+    "outputs": {
+        "CosmosSecretUri":{
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyvaultName'), parameters('cosmosDbKey_secret_name'))).secretUriWithVersion]"
+        },
+        "SQLSecretUri":{
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyvaultName'), parameters('sqlDbConnectionString_secret_name'))).secretUriWithVersion]"
+        }
+    }
 }
