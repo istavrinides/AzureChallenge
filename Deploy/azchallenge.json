@@ -131,14 +131,8 @@
           "cosmosDbKey_secret_name": {
             "value": "[variables('cosmosDbKey_secret_name')]"
           },
-          "cosmosDbSecretUri":{
-            "value": "[reference('linkedTemplate-keyvault').outputs.CosmosSecretUri.value]"
-          },
           "sqlDbConnectionString_secret_name": {
             "value": "[variables('sqlDbConnectionString_secret_name')]"
-          },
-          "sqlDbSecretUri":{
-            "value": "[reference('linkedTemplate-keyvault').outputs.SQLSecretUri.value]"
           }
         }
       }
@@ -175,6 +169,12 @@
           },
           "sqlDbConnectionString_secret_name": {
             "value": "[variables('sqlDbConnectionString_secret_name')]"
+          },
+          "cosmosDbSecretUri":{
+            "value": "[reference('linkedTemplate-keyvault').outputs.CosmosSecretUri.value]"
+          },
+          "sqlDbSecretUri":{
+            "value": "[reference('linkedTemplate-keyvault').outputs.SQLSecretUri.value]"
           }
         }
       }
