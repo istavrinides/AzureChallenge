@@ -14,6 +14,7 @@ using AzureChallenge.Models.Challenges;
 using AzureChallenge.Models.Parameters;
 using AzureChallenge.Models.Questions;
 using AzureChallenge.Models.Users;
+using ACMA = AzureChallenge.Models.Aggregates;
 using AzureChallenge.Providers;
 using AzureChallenge.UI.Areas.Identity.Data;
 using AzureChallenge.UI.Models.ChallengeViewModels;
@@ -31,19 +32,21 @@ namespace AzureChallenge.UI.Controllers
     [Authorize]
     public class ChallengeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<ChallengeController> _logger;
         private readonly UserManager<AzureChallengeUIUser> _userManager;
         private readonly IUserChallengesProvider<AzureChallengeResult, UserChallenges> userChallengesProvider;
         private readonly IAssignedQuestionProvider<AzureChallengeResult, AssignedQuestion> assignedQuestionProvider;
         private readonly IChallengeProvider<AzureChallengeResult, ChallengeDetails> challengesProvider;
         private readonly IParameterProvider<AzureChallengeResult, GlobalChallengeParameters> parametersProvider;
+        private readonly IAggregateProvider<AzureChallengeResult, ACMA.Aggregate> aggregateProvider;
         private readonly IMapper mapper;
 
-        public ChallengeController(ILogger<HomeController> logger,
+        public ChallengeController(ILogger<ChallengeController> logger,
                               IUserChallengesProvider<AzureChallengeResult, UserChallenges> userChallengesProvider,
                               IAssignedQuestionProvider<AzureChallengeResult, AssignedQuestion> assignedQuestionProvider,
                               IChallengeProvider<AzureChallengeResult, ChallengeDetails> challengesProvider,
                               IParameterProvider<AzureChallengeResult, GlobalChallengeParameters> parametersProvider,
+                              IAggregateProvider<AzureChallengeResult, ACMA.Aggregate> aggregateProvider,
                               IMapper mapper,
                               UserManager<AzureChallengeUIUser> userManager)
         {
@@ -51,6 +54,7 @@ namespace AzureChallenge.UI.Controllers
             this.assignedQuestionProvider = assignedQuestionProvider;
             this.challengesProvider = challengesProvider;
             this.parametersProvider = parametersProvider;
+            this.aggregateProvider = aggregateProvider;
             this.mapper = mapper;
             _logger = logger;
             _userManager = userManager;
@@ -148,7 +152,7 @@ namespace AzureChallenge.UI.Controllers
 
         [HttpGet]
         [Route("Challenge/Join")]
-        public async Task<IActionResult> JoinPrivateChallenge()
+        public IActionResult JoinPrivateChallenge()
         {
             var model = new JoinPrivateChallengeViewModel();
 
@@ -162,6 +166,7 @@ namespace AzureChallenge.UI.Controllers
             if (ModelState.IsValid)
             {
                 var challengeResponse = await challengesProvider.GetItemAsync(inputModel.ChallengeId);
+                var aggregateReponse = await aggregateProvider.GetItemAsync(inputModel.ChallengeId);
 
                 if (!challengeResponse.Item1.Success || challengeResponse.Item1.IsError)
                     return StatusCode(404);
@@ -171,6 +176,33 @@ namespace AzureChallenge.UI.Controllers
                 {
                     // Get the id of the first
                     var firstQuestion = challengeResponse.Item2.Questions.Where(q => q.Index == 0).FirstOrDefault();
+
+                    if (aggregateReponse.Item1.Success)
+                    {
+                        var agg =
+                           aggregateReponse.Item2 ??
+                           new ACMA.Aggregate()
+                           {
+                               Id = inputModel.ChallengeId,
+                               ChallengeUsers = new ACMA.ChallengeAggregateUsers() { Finished = 0, Started = 0 }
+                           };
+
+                        agg.ChallengeUsers.Started += 1;
+                        await aggregateProvider.AddItemAsync(agg);
+                    }
+                    else
+                    {
+                        // Doesn't exist
+                        var agg = new ACMA.Aggregate()
+                        {
+                            Id = inputModel.ChallengeId,
+                            ChallengeUsers = new ACMA.ChallengeAggregateUsers() { Finished = 0, Started = 0 }
+                        };
+
+                        agg.ChallengeUsers.Started += 1;
+                        await aggregateProvider.AddItemAsync(agg);
+                    }
+
 
                     return RedirectToAction("StartChallenge", new { challengeId = challengeResponse.Item2.Id, questionId = firstQuestion.Id });
                 }
@@ -190,6 +222,7 @@ namespace AzureChallenge.UI.Controllers
             var user = await _userManager.GetUserAsync(User);
             var userChallengeResponse = await userChallengesProvider.GetItemAsync(user.Id);
             var challengeResponse = await challengesProvider.GetItemAsync(challengeId);
+            var aggregateReponse = await aggregateProvider.GetItemAsync(challengeId);
 
             if (!userChallengeResponse.Item1.IsError)
             {
@@ -217,6 +250,32 @@ namespace AzureChallenge.UI.Controllers
                         });
 
                     await userChallengesProvider.AddItemAsync(userChallenge);
+
+                    if (aggregateReponse.Item1.Success)
+                    {
+                        var agg =
+                           aggregateReponse.Item2 ??
+                           new ACMA.Aggregate()
+                           {
+                               Id = challengeId,
+                               ChallengeUsers = new ACMA.ChallengeAggregateUsers() { Finished = 0, Started = 0 }
+                           };
+
+                        agg.ChallengeUsers.Started += 1;
+                        await aggregateProvider.AddItemAsync(agg);
+                    }
+                    else
+                    {
+                        // Doesn't exist
+                        var agg = new ACMA.Aggregate()
+                        {
+                            Id = challengeId,
+                            ChallengeUsers = new ACMA.ChallengeAggregateUsers() { Finished = 0, Started = 0 }
+                        };
+
+                        agg.ChallengeUsers.Started += 1;
+                        await aggregateProvider.AddItemAsync(agg);
+                    }
                 }
                 else
                 {
@@ -322,7 +381,7 @@ namespace AzureChallenge.UI.Controllers
         }
 
         [Route("Challenge/{challengeId}/Congratulations")]
-        public async Task<IActionResult> Completed(string challengeId)
+        public IActionResult Completed(string challengeId)
         {
             return View();
         }
@@ -350,6 +409,12 @@ namespace AzureChallenge.UI.Controllers
                     // End of challenge
                     if (nextQuestionId == null)
                     {
+                        var aggregateReponse = await aggregateProvider.GetItemAsync(challengeId);
+
+                        aggregateReponse.Item2.ChallengeUsers.Finished += 1;
+                        aggregateReponse.Item2.ChallengeUsers.Started -= 1;
+                        await aggregateProvider.AddItemAsync(aggregateReponse.Item2);
+
                         challenge.Completed = true;
                         challenge.endTimeUTC = DateTime.Now.ToUniversalTime();
                     }

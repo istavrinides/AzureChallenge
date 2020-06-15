@@ -93,6 +93,14 @@
         "js/bootstrap-toggle.min.js",
         "css/bootstrap-toggle.min.css"
       ]
+    },
+    {
+      "library": "chartist@0.11.4",
+      "destination": "wwwroot/lib/chartist/"
+    },
+    {
+      "library": "chartist-plugin-legend@0.6.2",
+      "destination": "wwwroot/lib/chartist-plugin-legend/"
     }
   ]
 }

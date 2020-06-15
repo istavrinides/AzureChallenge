@@ -1,0 +1,70 @@
+﻿@model AzureChallenge.UI.Areas.Administration.Models.Challenges.AnalyticsTournamentViewModel
+@{
+    ViewData["Title"] = "Analytics";
+}
+@section Styles{
+    <environment include="Development">
+        <link href="~/lib/chartist/chartist.min.css" rel="stylesheet" />
+        <link href="~/css/azurechallenge.admin.analyticschallenge.css" rel="stylesheet" />
+    </environment>
+    <environment exclude="Development">
+        <link href="~/lib/chartist/chartist.min.css" rel="stylesheet" />
+        <link href="~/css/azurechallenge.admin.analyticschallenge.min.css" rel="stylesheet" />
+    </environment>
+}
+
+
+<input type="hidden" asp-for="Finished" />
+<input type="hidden" asp-for="Started" />
+
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header text-center font-weight-bold">
+                # Users Finished/Started
+            </div>
+            <div class="card-body text-center">
+                @if (Model.Started + Model.Finished == 0)
+                {
+                    <div class="card-title p-1" style="font-size:45px">
+                        None started
+                    </div>
+                }
+                else
+                {
+                    <div class="ct-chart ct-golden-section" id="numOfUsersChart"></div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header text-center font-weight-bold">
+                Total # Users
+            </div>
+            <div class="card-body text-center">
+                <div class="card-title p-1" style="font-size:95px">
+                    @(Model.Finished + Model.Started)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts
+{
+    <environment include="Development">
+        <script src="~/lib/chartist/chartist.js"></script>
+        <script src="~/lib/chartist-plugin-legend/chartist-plugin-legend.js"></script>
+        <script src="~/js/azurechallenge.admin.analyticschallenge.js"></script>
+    </environment>
+    <environment exclude="Development">
+        <script src="~/lib/chartist/chartist.min.js"></script>
+        <script src="~/lib/chartist-plugin-legend/chartist-plugin-legend.min.js"></script>
+        <script src="~/js/azurechallenge.admin.analyticschallenge.min.js"></script>
+    </environment>
+    <partial name="_ValidationScriptsPartial" />
+
+}

@@ -16,6 +16,7 @@ using ACMP = AzureChallenge.Models.Parameters;
 using AzureChallenge.Models.Profile;
 using System.Xml.Linq;
 using System.Net;
+using Microsoft.Extensions.Logging;
 
 namespace AzureChallenge.Providers
 {
@@ -25,16 +26,19 @@ namespace AzureChallenge.Providers
         private readonly IAzureAuthProvider authProvider;
         private readonly IRESTProvider restProvider;
         private readonly IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> parametersProvider;
+        private readonly ILogger<AssignedQuestionProvider> _logger;
 
         public AssignedQuestionProvider(IDataProvider<AzureChallengeResult, AssignedQuestion> dataProvider,
                                         IAzureAuthProvider authProvider,
                                         IRESTProvider restProvider,
-                                        IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> parametersProvider)
+                                        IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> parametersProvider,
+                                        ILogger<AssignedQuestionProvider> logger)
         {
             this.dataProvider = dataProvider;
             this.authProvider = authProvider;
             this.restProvider = restProvider;
             this.parametersProvider = parametersProvider;
+            this._logger = logger;
         }
 
         public async Task<(AzureChallengeResult, AssignedQuestion)> GetItemAsync(string id)
@@ -121,6 +125,7 @@ namespace AzureChallenge.Providers
                     }
                     catch (Exception ex)
                     {
+                        _logger.LogError(ex.ToString());
                         correctAnswers.Add(new KeyValuePair<string, bool>("Could not complete authorization step. Please check the values in your profile", false));
                         return correctAnswers;
                     }
@@ -157,6 +162,7 @@ namespace AzureChallenge.Providers
                     }
                     catch (Exception ex)
                     {
+                        _logger.LogError(ex.ToString());
                         correctAnswers = new List<KeyValuePair<string, bool>>();
                         correctAnswers.Add(new KeyValuePair<string, bool>("Calling one of the APIs to check your answer failed. Either the resource requested has not been created or is still being created. Try in a while.", false));
                         return correctAnswers;
@@ -203,6 +209,7 @@ namespace AzureChallenge.Providers
                                 }
                                 catch (Exception ex)
                                 {
+                                    _logger.LogError(ex.ToString());
                                     correctAnswers = new List<KeyValuePair<string, bool>>();
                                     correctAnswers.Add(new KeyValuePair<string, bool>("Calling one of the APIs to check your answer failed. Either the resource requested has not been created or is still being created. Try in a while.", false));
                                     return correctAnswers;

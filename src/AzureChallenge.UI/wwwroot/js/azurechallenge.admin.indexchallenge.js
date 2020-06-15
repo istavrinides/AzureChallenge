@@ -1,5 +1,7 @@
 ﻿$(document).ready(function () {
 
+    $('[data-toggle="tooltip"]').tooltip()
+
     $("#btnAddNew").click(function () {
         $(".modal-title").text('Add new challenge');
         $("#btnModalAdd").removeClass('d-none');

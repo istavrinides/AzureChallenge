@@ -33,6 +33,7 @@ using System.Net.Cache;
 using System.Threading;
 using AutoMapper.Configuration.Annotations;
 using System.Net;
+using Microsoft.Extensions.Logging;
 
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
@@ -41,6 +42,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
     [Authorize(Roles = "Administrator")]
     public class ChallengeController : Controller
     {
+        private readonly ILogger<ChallengeController> _logger;
         private readonly IChallengeProvider<ACM.AzureChallengeResult, ACMT.ChallengeDetails> challengeProvider;
         private readonly IAssignedQuestionProvider<ACM.AzureChallengeResult, ACMQ.AssignedQuestion> assignedQuestionProvider;
         private readonly IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider;
@@ -51,7 +53,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         private readonly IConfiguration configuration;
         private readonly UserManager<AzureChallengeUIUser> userManager;
 
-        public ChallengeController(IChallengeProvider<ACM.AzureChallengeResult, ACMT.ChallengeDetails> challengeProvider,
+        public ChallengeController(ILogger<ChallengeController> logger,
+                                    IChallengeProvider<ACM.AzureChallengeResult, ACMT.ChallengeDetails> challengeProvider,
                                     IAssignedQuestionProvider<ACM.AzureChallengeResult, ACMQ.AssignedQuestion> assignedQuestionProvider,
                                     IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider,
                                     IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> challengeParameterProvider,
@@ -61,6 +64,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                     IConfiguration configuration,
                                     UserManager<AzureChallengeUIUser> userManager)
         {
+            this._logger = logger;
             this.challengeProvider = challengeProvider;
             this.assignedQuestionProvider = assignedQuestionProvider;
             this.questionProvider = questionProvider;
@@ -496,20 +500,31 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             if (inputModel.IsPublic != inputModel.OldIsPublic)
             {
                 // We only have one, so just get via the Partition search
-                var aggregatesReponse = await aggregateProvider.GetAllItemsAsync();
+                var aggregatesReponse = await aggregateProvider.GetItemAsync("00000000-0000-0000-0000-000000000000");
 
                 if (aggregatesReponse.Item1.Success)
                 {
                     var agg =
-                        aggregatesReponse.Item2.Count() > 0 ?
-                            aggregatesReponse.Item2[0] :
-                            new ACMA.Aggregate()
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                Challenge = new ACMA.ChallengeAggregate() { TotalPublic = 0 }
-                            };
+                        aggregatesReponse.Item2 ??
+                        new ACMA.Aggregate()
+                        {
+                            Id = "00000000-0000-0000-0000-000000000000",
+                            ChallengeTotals = new ACMA.ChallengeAggregateTotals() { TotalPublic = 0 }
+                        };
 
-                    agg.Challenge.TotalPublic += inputModel.IsPublic ? 1 : agg.Challenge.TotalPublic > 0 ? -1 : 0;
+                    agg.ChallengeTotals.TotalPublic += inputModel.IsPublic ? 1 : agg.ChallengeTotals.TotalPublic > 0 ? -1 : 0;
+                    await aggregateProvider.AddItemAsync(agg);
+                }
+                else
+                {
+                    // Doesn't exists 
+                    var agg = new ACMA.Aggregate()
+                    {
+                        Id = "00000000-0000-0000-0000-000000000000",
+                        ChallengeTotals = new ACMA.ChallengeAggregateTotals() { TotalPublic = 0 }
+                    };
+
+                    agg.ChallengeTotals.TotalPublic += inputModel.IsPublic ? 1 : agg.ChallengeTotals.TotalPublic > 0 ? -1 : 0;
                     await aggregateProvider.AddItemAsync(agg);
                 }
             }
@@ -614,13 +629,13 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             if (challengeResponse.Item2.IsPublic)
             {
                 // We only have one, so just get via the Partition search
-                var aggregatesReponse = await aggregateProvider.GetAllItemsAsync();
+                var aggregatesReponse = await aggregateProvider.GetItemAsync("00000000-0000-0000-0000-000000000000");
 
                 if (aggregatesReponse.Item1.Success)
                 {
-                    aggregatesReponse.Item2[0].Challenge.TotalPublic -= 1;
+                    aggregatesReponse.Item2.ChallengeTotals.TotalPublic -= 1;
 
-                    await aggregateProvider.AddItemAsync(aggregatesReponse.Item2[0]);
+                    await aggregateProvider.AddItemAsync(aggregatesReponse.Item2);
                 }
             }
 
@@ -636,11 +651,11 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             var globalParameters = await globalParameterProvider.GetAllItemsAsync();
             var assignedQuestions = await assignedQuestionProvider.GetItemsOfChallengeAsync(challengeId);
 
-            if(challenge.Item1.Success && challenge.Item2 != null
+            if (challenge.Item1.Success && challenge.Item2 != null
                 && challengeParameters.Item1.Success && challengeParameters.Item2 != null && challengeParameters.Item2.Parameters != null && challengeParameters.Item2.Parameters.Count > 0
                 && globalParameters.Item1.Success && globalParameters.Item2 != null && globalParameters.Item2.Count == 1
                 && assignedQuestions.Item1.Success && assignedQuestions.Item2 != null && assignedQuestions.Item2.Count > 0)
-                {
+            {
 
                 using (var zipMS = new MemoryStream())
                 {
@@ -825,12 +840,55 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 return StatusCode(500);
             }
 
             return Ok();
+        }
+
+        [HttpGet]
+        [Route("Administration/Challenge/{challengeId}/Analytics")]
+        public async Task<IActionResult> Analytics(string challengeId)
+        {
+            var aggregatesReponse = await aggregateProvider.GetItemAsync(challengeId);
+            var model = new AnalyticsTournamentViewModel();
+
+            if (aggregatesReponse.Item1.Success)
+            {
+                var agg =
+                    aggregatesReponse.Item2 ??
+                    new ACMA.Aggregate()
+                    {
+                        Id = challengeId,
+                        ChallengeUsers = new ACMA.ChallengeAggregateUsers() { Finished = 0, Started = 0 }
+                    };
+
+                if (aggregatesReponse.Item2 == null)
+                    await aggregateProvider.AddItemAsync(agg);
+                else
+                {
+                    model.Finished = aggregatesReponse.Item2.ChallengeUsers.Finished;
+                    model.Started = aggregatesReponse.Item2.ChallengeUsers.Started;
+                }
+
+            }
+            else
+            {
+                // No aggregate defined
+                var agg = new ACMA.Aggregate
+                {
+                    Id = challengeId,
+                    ChallengeUsers = new ACMA.ChallengeAggregateUsers() { Finished = 0, Started = 0 }
+                };
+
+
+                await aggregateProvider.AddItemAsync(agg);
+            }
+
+            return View(model);
         }
     }
 }

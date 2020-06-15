@@ -12,13 +12,24 @@ namespace AzureChallenge.Models.Aggregates
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
-        [JsonProperty(PropertyName = "challenge")]
-        public ChallengeAggregate Challenge { get; set; }
+        [JsonProperty(PropertyName = "challengeTotals")]
+        public ChallengeAggregateTotals ChallengeTotals { get; set; }
+
+        [JsonProperty(PropertyName = "challengeUsers")]
+        public ChallengeAggregateUsers ChallengeUsers { get; set; }
     }
 
-    public class ChallengeAggregate
+    public class ChallengeAggregateTotals
     {
         [JsonProperty(PropertyName = "totalPublic")]
         public int TotalPublic { get; set; }
+    }
+
+    public class ChallengeAggregateUsers
+    {
+        [JsonProperty(PropertyName = "started")]
+        public int Started { get; set; }
+        [JsonProperty(PropertyName = "finished")]
+        public int Finished { get; set; }
     }
 }

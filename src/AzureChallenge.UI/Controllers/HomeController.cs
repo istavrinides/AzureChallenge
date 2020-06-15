@@ -41,13 +41,13 @@ namespace AzureChallenge.UI.Controllers
             var model = new IndexViewModel { AvailableChallenges = 0, UnfinishedChallenges = 0 };
 
             var user = await _userManager.GetUserAsync(User);
-            var aggregateResponse = await aggregateProvider.GetAllItemsAsync();
+            var aggregateResponse = await aggregateProvider.GetItemAsync("00000000-0000-0000-0000-000000000000");
 
             if (aggregateResponse.Item1.Success)
             {
-                if (aggregateResponse.Item2 != null && aggregateResponse.Item2.Count > 0)
+                if (aggregateResponse.Item2 != null)
                 {
-                    model.AvailableChallenges = aggregateResponse.Item2[0].Challenge.TotalPublic;
+                    model.AvailableChallenges = aggregateResponse.Item2.ChallengeTotals.TotalPublic;
                 }
             }
             if (user != null)

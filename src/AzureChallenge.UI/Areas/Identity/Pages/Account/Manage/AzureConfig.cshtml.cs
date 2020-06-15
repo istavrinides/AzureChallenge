@@ -9,6 +9,7 @@ using AzureChallenge.UI.Areas.Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
 namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
@@ -20,19 +21,22 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
         private readonly IRESTProvider restProvider;
         private readonly IAzureAuthProvider azureAuthProvider;
         private readonly IMapper mapper;
+        private readonly ILogger<AzureConfigModel> _logger;
 
         public AzureConfigModel(
             UserManager<AzureChallengeUIUser> userManager,
             SignInManager<AzureChallengeUIUser> signInManager,
             IRESTProvider restProvider,
             IAzureAuthProvider azureAuthProvider,
-            IMapper mapper)
+            IMapper mapper,
+            ILogger<AzureConfigModel> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             this.restProvider = restProvider;
             this.azureAuthProvider = azureAuthProvider;
             this.mapper = mapper;
+            this._logger = logger;
         }
 
         [BindProperty]
@@ -127,6 +131,7 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account.Manage
             }
             catch(Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 StatusMessage = "Error: Please make sure the Service Principal you have created has at least Read permissions on the subscription.";
                 return RedirectToPage();
             }

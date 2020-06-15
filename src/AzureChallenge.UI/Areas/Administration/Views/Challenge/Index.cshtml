@@ -3,7 +3,12 @@
     ViewData["Title"] = "Challenge list";
 }
 @section Styles{
-    <link href="~/lib/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" type="text/css" />
+    <environment include="Development">
+        <link href="~/lib/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" type="text/css" />
+    </environment>
+    <environment exclude="Development">
+        <link href="~/lib/bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet" type="text/css" />
+    </environment>
 }
 
 <div class="d-flex flex-row">
@@ -20,10 +25,10 @@
         <table class="table table-responsive-md table-hover" id="challengeTable">
             <thead class="thead-dark">
                 <tr>
-                    <th style="width:16.67%">
+                    <th style="width:33.36%">
                         @Html.DisplayNameFor(model => model.Challenges[0].Name)
                     </th>
-                    <th style="width:33.35%">
+                    <th style="width:8.33%">
                         @Html.DisplayNameFor(model => model.Challenges[0].Description)
                     </th>
                     <th class="text-center" style="width:8.33%">Parameters</th>
@@ -32,6 +37,7 @@
                     <th class="text-center" style="width:8.33%">Locked?</th>
                     <th class="text-center" style="width:8.33%">Delete</th>
                     <th class="text-center" style="width:8.33%">Export</th>
+                    <th class="text-center" style="width:8.33%">Analytics</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,8 +47,8 @@
                         <td>
                             @q.Name
                         </td>
-                        <td>
-                            @q.Description
+                        <td class="text-center">
+                            <img src="~/images/chat.svg" data-toggle="tooltip" data-placement="top" title="@q.Description" style="cursor:help" />
                         </td>
                         <td class="text-center">
                             <a asp-action="Index" asp-controller="Parameter" asp-area="Administration" asp-route-challengeId="@q.Id">
@@ -84,6 +90,11 @@
                         <td class="text-center">
                             <a href="#" class="tableLinkExport" data-challengeId="@q.Id">
                                 <img src="~/images/export.svg" style="width:24px" />
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <a asp-action="Analytics" asp-area="Administration" asp-controller="Challenge" asp-route-challengeId="@q.Id">
+                                <img src="~/images/analytics.svg" style="width:24px" />
                             </a>
                         </td>
                     </tr>

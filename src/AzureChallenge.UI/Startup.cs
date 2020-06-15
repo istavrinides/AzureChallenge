@@ -36,6 +36,7 @@ using AzureChallenge.Interfaces.Providers.Aggregates;
 using AzureChallenge.Models.Users;
 using AzureChallenge.Interfaces.Providers.Users;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace AzureChallenge.UI
 {

@@ -3,9 +3,16 @@
     ViewData["Title"] = $"Edit {Model.Name} Challenge";
 }
 @section Styles{
-    <link href="~/lib/bootstrap-slider/css/bootstrap-slider.css" rel="stylesheet" type="text/css" />
-    <link href="~/lib/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" type="text/css" />
-    <link href="~/lib/bootstrap-toggle/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    <environment include="Development">
+        <link href="~/lib/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" type="text/css" />
+        <link href="~/lib/bootstrap-slider/css/bootstrap-slider.css" rel="stylesheet" type="text/css" />
+        <link href="~/lib/bootstrap-toggle/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    </environment>
+    <environment exclude="Development">
+        <link href="~/lib/bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet" type="text/css" />
+        <link href="~/lib/bootstrap-slider/css/bootstrap-slider.min.css" rel="stylesheet" type="text/css" />
+        <link href="~/lib/bootstrap-toggle/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    </environment>
     <style>
         .form-border {
             padding: 1rem;

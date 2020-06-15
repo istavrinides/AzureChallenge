@@ -56,13 +56,17 @@ Challenges is the way we define
 Creating a Challenge requires the following information:
 - **Name**
 - **Description**
+- **Azure Service Category**: Used for grouping/filtering.
 
 In the challenge screen, you have the following capabilities:
+- Description of the challenge
 - Navigate to the challenge parameters screen
 - Edit the challenge (more below)
 - Copy the challenge: creates an exact copy of the challenge (preferably with a diffent name). The result is a Private, Unlocked challenge
 - Locked status shows that at least one user has started the Challenge
 - Delete: deletes the challenge (if not locked/started by someone)
+- Export the challenge as a .zip file
+- Challenge Analytics
 
 Once created, you will need to **edit** the challenge. In the edit page, you will have the following options:
 - Change the challenge to Public or Private. Public challenges are visible to any use in the Challenge list page, Private challenges require the creator of the challenge to provide a unique code to the participants. This is useful if we want to limit participation in a challenge.
@@ -70,6 +74,8 @@ Once created, you will need to **edit** the challenge. In the edit page, you wil
 - Change the ordering of the questions
 - Edit, View or Delete a question
 - Check a question: This validates the question definition (including substitution with the placeholder values) against the current user's profile (so the user setting up the challenge should have their Profile set up).
+
+You can also Import challenges that have been defined in the [public repo](https://github.com/istavrinides/AzureChallenge/tree/master/Exports). You can submit your exported challenge as a PR, it will be evaluated and potentially added to the repo. For custom challenge import, you will need to change the web application code so that it will point to a different location.
 
 When adding a question, you are essentially "hydrating" the question. In this phase, we are leveraging the defined question template to add the specific paramaters/placeholder values for the specific challenge/question. When adding (or editing) a question, you need to do the following in the modal that will be shown:
 - Fill in any parameter values. If a Global parameter has been defined in the Challenge parameters or defined in a previous question, that value will be used.
@@ -104,6 +110,63 @@ When adding a question, you are essentially "hydrating" the question. In this ph
         }
     }
     ```
+
+## Configuration
+The following values need to be set in your local development environment:
+```
+{
+ "APPINSIGHTS_INSTRUMENTATIONKEY": "",
+  "ConnectionStrings": {
+    "DefaultConnection": ""
+  },
+  "Authentication": {
+    "Microsoft": {
+      "ClientId": "",
+      "ClientSecret": ""
+    },
+    "Facebook": {
+      "Enabled": false,
+      "AppId": "",
+      "AppSecret": ""
+    },
+    "Google": {
+      "Enabled": false,
+      "ClientId": "",
+      "ClientSecret": ""
+    }
+  },
+  "AllowedHosts": "*",
+  "CosmosDb": {
+    "Account": "",
+    "Key": "",
+    "DatabaseName": "azurechallenge",
+    "ContainerName": "resources"
+  },
+  "Endpoints": {
+    "AzureServicesEnpoint": "https://docs.microsoft.com/en-us/rest/api/rest-products.json"
+  },
+  "SendGrid_Api_Key": ""
+}
+```
+
+## OSS Libraries/components used
+- [material.io](https://material.io/) icons
+- [Bootstrap](https://getbootstrap.com/)
+- [bootstrap-select](https://developer.snapappointments.com/bootstrap-select/)
+- [bootstrap-slider](https://seiyria.com/bootstrap-slider/)
+- [Bootstrap Toggle](https://www.bootstraptoggle.com/)
+- [chartist.js](http://gionkunz.github.io/chartist-js/)
+- [chartist-plugin-legend](https://github.com/CodeYellowBV/chartist-plugin-legend)
+- [jquery](https://jquery.com/)
+- [jquery validation](https://jqueryvalidation.org/)
+- [jquery-validation-bootstrap-tooltip](http://thrilleratplay.github.io/jquery-validation-bootstrap-tooltip/)
+- [jquery-validation-unobtrusive](https://github.com/aspnet/jquery-validation-unobtrusive)
+- [jquery-validation-unobtrusive-bootstrap](https://github.com/brecons/jquery-validation-unobtrusive-bootstrap)
+- [popper.js](https://popper.js.org/)
+- [qrcode.js](https://davidshimjs.github.io/qrcodejs/)
+- [tribute](https://zurb.github.io/tribute/example/)
+- [ASP.NET Core](https://github.com/dotnet/aspnetcore)
+
 ## License
 Copyright (c) 2020 Ioannis Stavrinides
 
