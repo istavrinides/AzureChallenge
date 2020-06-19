@@ -51,6 +51,13 @@
                 "description": "The SQL Db Connection String secret name"
             }
         },
+        "signalR_secret_name": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Azure SignalR secret name"
+            }
+        },
         "cosmosDbMasterKey": {
             "type": "securestring",
             "minLength": 1,
@@ -63,6 +70,13 @@
             "minLength": 1,
             "metadata": {
                 "description": "The SQL Server FQDN"
+            }
+        },
+        "signalRConnString": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Azure SignalR Connection String"
             }
         },
         "sqlServerAdminLogin": {
@@ -132,6 +146,21 @@
             ],
             "properties": {
                 "value": "[parameters('cosmosDbMasterKey')]",
+                "attributes": {
+                    "enabled": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "name": "[concat(parameters('keyvaultName'), '/', parameters('signalR_secret_name'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+            ],
+            "properties": {
+                "value": "[parameters('signalRConnString')]",
                 "attributes": {
                     "enabled": true
                 }
@@ -309,6 +338,11 @@
                         {
                             "name": "CosmosDb:Key",
                             "value": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('cosmosDbKey_secret_name'))).secretUriWithVersion, ')')]",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "Azure:SignalR:ConnectionString",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('signalR_secret_name'))).secretUriWithVersion, ')')]",
                             "slotSetting": false
                         },
                         {

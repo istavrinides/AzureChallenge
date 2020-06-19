@@ -1,0 +1,62 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "signalRName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "The Azure SignalR Service Name"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        }
+    },
+    "variables": {
+    },
+    "resources": [
+        {
+            "type": "Microsoft.SignalRService/signalR",
+            "name": "[parameters('signalRName')]",
+            "apiVersion": "2018-10-01",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Free_F1",
+                "tier": "Free",
+                "size": "F1",
+                "capacity": 1
+            },
+            "properties": {
+                "hostNamePrefix": "[parameters('signalRName')]",
+                "features": [
+                    {
+                        "flag": "ServiceMode",
+                        "value": "Default",
+                        "properties": {}
+                    },
+                    {
+                        "flag": "EnableConnectivityLogs",
+                        "value": "True",
+                        "properties": {}
+                    }
+                ],
+                "cors": {
+                    "allowedOrigins": [
+                        "*"
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "signalRConnString": {
+            "value": "[listKeys(resourceId('Microsoft.SignalRService/SignalR', parameters('signalRName')), providers('Microsoft.SignalRService','SignalR').apiVersions[0]).primaryConnectionString]",
+            "type": "string"
+        }
+    }
+}

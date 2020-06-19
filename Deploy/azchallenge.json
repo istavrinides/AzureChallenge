@@ -33,10 +33,12 @@
   "variables": {
     "sqlServerName": "[concat(uniquestring(resourceGroup().id), 'sqlserver')]",
     "keyvaultName": "[concat(uniqueString(resourceGroup().id), 'keyvault')]",
+    "signalRName": "[concat(uniqueString(resourceGroup().id), 'signalr')]",
     "sqlDatabaseName": "AzureChallengeDb",
     "appInsightsName": "[concat(uniqueString(resourceGroup().id), 'appinsight')]",
     "cosmosDbKey_secret_name": "AzChallengeCosmosKey",
     "sqlDbConnectionString_secret_name": "AzChallengeDbConn",
+    "signalR_secret_name": "AzSignalRKey",
     "documentDBOfferType": "Standard",
     "location": "[resourceGroup().location]"
   },
@@ -95,11 +97,32 @@
     },
     {
       "apiVersion": "2019-10-01",
+      "name": "linkedTemplate-signalr",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[uri(deployment().properties.templateLink.uri, 'azchallenge-signalr.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "signalRName": {
+            "value": "[variables('signalRName')]"
+          },
+          "location": {
+            "value": "[variables('location')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2019-10-01",
       "name": "linkedTemplate-webapp-appinsights",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "linkedTemplate-sqldb",
-        "linkedTemplate-cosmosdb"
+        "linkedTemplate-cosmosdb",
+        "linkedTemplate-signalr"
       ],
       "properties": {
         "mode": "incremental",
@@ -129,6 +152,9 @@
           "sqlDbConnectionString_secret_name": {
             "value": "[variables('sqlDbConnectionString_secret_name')]"
           },
+          "signalR_secret_name": {
+            "value": "[variables('signalR_secret_name')]"
+          },
           "sqlDatabaseName": {
             "value": "[variables('sqlDatabaseName')]"
           },
@@ -143,6 +169,9 @@
           },
           "cosmosDbMasterKey": {
             "value": "[reference('linkedTemplate-cosmosdb').outputs.cosmosDbMasterKey.value]"
+          },
+          "signalRConnString": {
+            "value": "[reference('linkedTemplate-signalr').outputs.signalRConnString.value]"
           }
         }
       }
