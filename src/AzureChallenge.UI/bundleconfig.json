@@ -98,5 +98,16 @@
 			"renameLocals": true
 		},
 		"sourceMap": false
+	},
+	{
+		"outputFileName": "wwwroot/js/azurechallenge.admin.analyticschallenge.min.js",
+		"inputFiles": [
+			"wwwroot/js/azurechallenge.admin.analyticschallenge.js"
+		],
+		"minify": {
+			"enabled": true,
+			"renameLocals": true
+		},
+		"sourceMap": false
 	}
 ]

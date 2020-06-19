@@ -101,7 +101,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
                 foreach (var file in filesInRepo)
                 {
-                    model.FilesAvailableForImport.Add(new KeyValuePair<string, string>(file.download_url, file.name));
+                    if (file.name.EndsWith(".zip"))
+                        model.FilesAvailableForImport.Add(new KeyValuePair<string, string>(file.download_url, file.name));
                 }
             }
 

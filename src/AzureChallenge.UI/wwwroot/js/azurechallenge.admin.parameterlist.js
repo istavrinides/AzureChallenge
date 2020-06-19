@@ -29,7 +29,7 @@
         }
 
         // Find the last index to insert to
-        var lastIndex = 0;
+        var lastIndex = -1;
         var found = false;
         $("input.paramBagName").each(function () {
             var thisIndex = parseInt($(this).attr("data-index"));
@@ -40,7 +40,8 @@
         });
 
         // If it's not the first, increment by 1 since we want the next index
-        if (found)
+        // Or if not found and we only have one
+        if (found || (!found && lastIndex === 0))
             lastIndex += 1
 
         // Get the hidden field container
