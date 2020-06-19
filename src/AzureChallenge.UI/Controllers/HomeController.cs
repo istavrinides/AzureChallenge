@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Identity;
 using AzureChallenge.UI.Areas.Identity.Data;
 using AzureChallenge.Interfaces.Providers.Users;
 using AzureChallenge.Models.Users;
+using Microsoft.AspNetCore.Diagnostics;
 
 namespace AzureChallenge.UI.Controllers
 {
@@ -39,6 +40,8 @@ namespace AzureChallenge.UI.Controllers
         public async Task<IActionResult> Index()
         {
             var model = new IndexViewModel { AvailableChallenges = 0, UnfinishedChallenges = 0 };
+
+            throw new Exception("Test");
 
             var user = await _userManager.GetUserAsync(User);
             var aggregateResponse = await aggregateProvider.GetItemAsync("00000000-0000-0000-0000-000000000000");
@@ -73,6 +76,13 @@ namespace AzureChallenge.UI.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
+            var exceptionHandlerPathFeature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+
+            if(exceptionHandlerPathFeature != null)
+            {
+                _logger.LogError(exceptionHandlerPathFeature.Error.ToString());
+            }
+            
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }

@@ -9,6 +9,7 @@ This will deploy the following resources:
 - Azure Web App (Windows) that hosts the ASP.NET Core web application
 - Azure App Insights instance
 - Azure Cosmos Db that serves as the web application database
+- Azure SignalR Service. Used in Challenge analytics to get a live view of how many users have completed each question (aggregated)
 
 After successfully deploying the template, you will need to manually configure the following services and follow the below steps:
 1. [Deploy a SendGrid Account](https://docs.microsoft.com/en-us/azure/sendgrid-dotnet-how-to-send-email)

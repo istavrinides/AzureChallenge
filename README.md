@@ -8,8 +8,11 @@ We assume that everyone participating in the challenge has an Azure Subscription
 ## Architecture
 The architecture of the application consists of:
 - An Azure Web App hosted in an Azure App Service instance.
+- Azure Key Vault to hold the secrets used
+- Azure App Insights instance
 - An Azure SQL Database hosting the authentication database.
 - An Azure Cosmos Db Core API Database that hosts all the web application data.
+- Azure SignalR Service. Used in Challenge analytics to get a live view of how many users have completed each question (aggregated)
 To deploy the web application in your own Azure Subscription, please see the instructions [here](https://github.com/istavrinides/AzureChallenge/tree/master/Deploy)
 
 ## How to use it
