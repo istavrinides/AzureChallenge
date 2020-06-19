@@ -9,68 +9,70 @@ $(document).ready(function () {
 
     configureChart(started, finished);
 
-    rawData.forEach(function (item) {
-        var parsed = item.split(':');
+    if (rawData) {
+        rawData.forEach(function (item) {
+            var parsed = item.split(':');
 
-        var itemDate = new Date(parseInt(parsed[2]), parseInt(parsed[3]) - 1, parseInt(parsed[4]));
+            var itemDate = new Date(parseInt(parsed[2]), parseInt(parsed[3]) - 1, parseInt(parsed[4]));
 
-        var fiveDaysAgo = new Date();
-        fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 6);
+            var fiveDaysAgo = new Date();
+            fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 6);
 
-        if (itemDate >= fiveDaysAgo) {
+            if (itemDate >= fiveDaysAgo) {
 
-            var index = parseInt(parsed[1]);
+                var index = parseInt(parsed[1]);
 
-            if (questionData[index]) {
-                questionData[index].push(parsed[0]);
-            }
-            else {
-                questionData[index] = [parsed[0]];
-            }
-        }
-
-    });
-
-    chartSeries = Array.from(Array(questionData.length), (e, i) => questionData[i] ? questionData[i].length : 0);
-
-    new Chartist.Bar('#questionCompletionChart', {
-        labels: Array.from(Array(chartSeries.length), (e, i) => i + 1),
-        series: [chartSeries]
-    }, {
-        seriesBarDistance: 10,
-        horizontalBars: true,
-        reverseData: true,
-        axisY: {
-            offset: 20,
-            showLabel: true
-        },
-        axisX: {
-            onlyInteger: true,
-            showLabel: true
-        },
-        plugins: [
-            Chartist.plugins.ctAxisTitle({
-                axisX: {
-                    axisTitle: "Number of users completed",
-                    axisClass: "ct-axis-title",
-                    offset: {
-                        x: 0,
-                        y: 30
-                    },
-                    textAnchor: "middle"
-                },
-                axisY: {
-                    axisTitle: "Question Index",
-                    axisClass: "ct-axis-title",
-                    offset: {
-                        x: 0,
-                        y: -1
-                    },
-                    flipTitle: false
+                if (questionData[index]) {
+                    questionData[index].push(parsed[0]);
                 }
-            })
-        ]
-    });
+                else {
+                    questionData[index] = [parsed[0]];
+                }
+            }
+
+        });
+
+        chartSeries = Array.from(Array(questionData.length), (e, i) => questionData[i] ? questionData[i].length : 0);
+
+        new Chartist.Bar('#questionCompletionChart', {
+            labels: Array.from(Array(chartSeries.length), (e, i) => i + 1),
+            series: [chartSeries]
+        }, {
+            seriesBarDistance: 10,
+            horizontalBars: true,
+            reverseData: true,
+            axisY: {
+                offset: 20,
+                showLabel: true
+            },
+            axisX: {
+                onlyInteger: true,
+                showLabel: true
+            },
+            plugins: [
+                Chartist.plugins.ctAxisTitle({
+                    axisX: {
+                        axisTitle: "Number of users completed",
+                        axisClass: "ct-axis-title",
+                        offset: {
+                            x: 0,
+                            y: 30
+                        },
+                        textAnchor: "middle"
+                    },
+                    axisY: {
+                        axisTitle: "Question Index",
+                        axisClass: "ct-axis-title",
+                        offset: {
+                            x: 0,
+                            y: -1
+                        },
+                        flipTitle: false
+                    }
+                })
+            ]
+        });
+    }
 
 });
 

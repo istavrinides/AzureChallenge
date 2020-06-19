@@ -6,12 +6,6 @@
 		]
 	},
 	{
-		"outputFileName": "wwwroot/css/azurechallenge.admin.analyticschallenge.min.css",
-		"inputFiles": [
-			"wwwroot/css/azurechallenge.admin.analyticschallenge.css"
-		]
-	},
-	{
 		"outputFileName": "wwwroot/js/site.min.js",
 		"inputFiles": [
 			"wwwroot/js/site.js"
@@ -78,31 +72,9 @@
 		"sourceMap": false
 	},
 	{
-		"outputFileName": "wwwroot/js/azurechallenge.challenge.question.min.js",
-		"inputFiles": [
-			"wwwroot/js/azurechallenge.challenge.question.js"
-		],
-		"minify": {
-			"enabled": true,
-			"renameLocals": true
-		},
-		"sourceMap": false
-	},
-	{
 		"outputFileName": "wwwroot/js/azurechallenge.challenge.index.min.js",
 		"inputFiles": [
 			"wwwroot/js/azurechallenge.challenge.index.js"
-		],
-		"minify": {
-			"enabled": true,
-			"renameLocals": true
-		},
-		"sourceMap": false
-	},
-	{
-		"outputFileName": "wwwroot/js/azurechallenge.admin.analyticschallenge.min.js",
-		"inputFiles": [
-			"wwwroot/js/azurechallenge.admin.analyticschallenge.js"
 		],
 		"minify": {
 			"enabled": true,
