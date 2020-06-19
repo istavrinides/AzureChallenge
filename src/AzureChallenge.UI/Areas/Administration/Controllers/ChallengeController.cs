@@ -855,7 +855,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         public async Task<IActionResult> Analytics(string challengeId)
         {
             var aggregatesReponse = await aggregateProvider.GetItemAsync(challengeId);
-            var model = new AnalyticsTournamentViewModel();
+            var model = new AnalyticsTournamentViewModel() { ChallengeId = challengeId };
 
             if (aggregatesReponse.Item1.Success)
             {
@@ -864,7 +864,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     new ACMA.Aggregate()
                     {
                         Id = challengeId,
-                        ChallengeUsers = new ACMA.ChallengeAggregateUsers() { Finished = 0, Started = 0 }
+                        ChallengeUsers = new ACMA.ChallengeAggregateUsers() { Finished = 0, Started = 0, ChallengeProgress = new List<string>() }
                     };
 
                 if (aggregatesReponse.Item2 == null)
@@ -873,6 +873,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 {
                     model.Finished = aggregatesReponse.Item2.ChallengeUsers.Finished;
                     model.Started = aggregatesReponse.Item2.ChallengeUsers.Started;
+                    model.ChallengeProgress = aggregatesReponse.Item2.ChallengeUsers.ChallengeProgress;
                 }
 
             }
@@ -882,7 +883,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 var agg = new ACMA.Aggregate
                 {
                     Id = challengeId,
-                    ChallengeUsers = new ACMA.ChallengeAggregateUsers() { Finished = 0, Started = 0 }
+                    ChallengeUsers = new ACMA.ChallengeAggregateUsers() { Finished = 0, Started = 0, ChallengeProgress = new List<string>() }
                 };
 
 

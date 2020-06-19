@@ -17,7 +17,7 @@
 
         $(".card-div-category").hide();
 
-        visible.forEach(function (v){
+        visible.forEach(function (v) {
             $(".card-div-category[data-category='" + v + "']").show();
         });
 

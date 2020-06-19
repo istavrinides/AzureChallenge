@@ -1,6 +1,12 @@
-﻿@model AzureChallenge.UI.Models.ChallengeViewModels.QuestionViewModel
+﻿@using Microsoft.AspNetCore.Identity
+@using AzureChallenge.UI.Areas.Identity.Data;
+@model AzureChallenge.UI.Models.ChallengeViewModels.QuestionViewModel
+@inject UserManager<AzureChallengeUIUser> UserManager
+
 @{
     ViewData["Title"] = Model.TournamentName + " -  Question " + (Model.QuestionIndex + 1);
+    var user = await UserManager.GetUserAsync(User);
+    var userId = user?.Id;
 }
 @if (Model.ShowWarning)
 {
@@ -8,6 +14,7 @@
         @Model.WarningMessage
     </div>
 }
+<input type="hidden" id="userId" value="@userId" />
 <div class="container pt-5">
     <div class="card">
         <div class="card-header bg-primary text-white font-weight-bold">@Model.TournamentName - Question @(Model.QuestionIndex +1)</div>
@@ -96,9 +103,11 @@
 
 @section Scripts{
     <environment include="Development">
+        <script src="~/lib/aspnet-signalr/signalr.js"></script>
         <script src="~/js/azurechallenge.challenge.question.js"></script>
     </environment>
     <environment exclude="Development">
+        <script src="~/lib/aspnet-signalr/signalr.min.js"></script>
         <script src="~/js/azurechallenge.challenge.question.min.js"></script>
     </environment>
 }

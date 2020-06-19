@@ -127,6 +127,9 @@ namespace AzureChallenge.UI
             services.AddSingleton<IRESTProvider, RESTProvider>();
             services.AddSingleton<IAzureAuthProvider, AzureAuthProvider>();
             services.AddApplicationInsightsTelemetry(Configuration["APPINSIGHTS_INSTRUMENTATIONKEY"]);
+
+
+            services.AddSignalR().AddAzureSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -151,6 +154,11 @@ namespace AzureChallenge.UI
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseEndpoints(routes =>
+            {
+                routes.MapHub<AzureChallenge.UI.Hubs.ChallengeHub>("/challengeHub");
+            });
 
             app.UseEndpoints(endpoints =>
             {

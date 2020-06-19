@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Security.Principal;
 using System.Text;
 
 namespace AzureChallenge.Models.Aggregates
@@ -31,5 +32,11 @@ namespace AzureChallenge.Models.Aggregates
         public int Started { get; set; }
         [JsonProperty(PropertyName = "finished")]
         public int Finished { get; set; }
+
+        // Challenge progress is a list of strings
+        // Each string has the following format <userId>:<questionIndex>:<year>:<month>:<day>
+        // Year/Month/Day is used to filter out older question completions, as we are only considering event from the last 5 days
+        [JsonProperty(PropertyName = "challengeProgress")]
+        public List<string> ChallengeProgress { get; set; }
     }
 }

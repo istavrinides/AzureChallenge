@@ -99,8 +99,17 @@
       "destination": "wwwroot/lib/chartist/"
     },
     {
+      "library": "aspnet-signalr@1.1.4",
+      "destination": "wwwroot/lib/aspnet-signalr/"
+    },
+    {
       "library": "chartist-plugin-legend@0.6.2",
       "destination": "wwwroot/lib/chartist-plugin-legend/"
+    },
+    {
+      "provider": "unpkg",
+      "library": "chartist-plugin-axistitle@0.0.7",
+      "destination": "wwwroot/lib/chartist-plugin-axistitle/"
     }
   ]
 }

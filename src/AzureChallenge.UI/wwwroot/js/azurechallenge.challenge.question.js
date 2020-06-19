@@ -1,4 +1,8 @@
-﻿$(document).ready(function () {
+﻿const connection = new signalR.HubConnectionBuilder()
+    .withUrl("/challengeHub")
+    .build();
+
+$(document).ready(function () {
 
     $("#btnCheck").click(function () {
 
@@ -38,6 +42,7 @@
                     $("#justification").removeClass('d-none');
                     $("#btnNext").removeAttr('disabled');
                     $("#btnNextModal").removeClass('d-none');
+                    connection.invoke("SendQuestionCompletionToGroup", $("#userId").val(), challengeId, questionIndex).catch(err => console.error(err));
                 }
             })
             .fail(function () {
@@ -49,3 +54,14 @@
     });
 
 });
+
+
+
+(async () => {
+    try {
+        await connection.start();
+    }
+    catch (e) {
+        console.error(e.toString());
+    }
+})();

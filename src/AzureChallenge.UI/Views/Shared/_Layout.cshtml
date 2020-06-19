@@ -57,7 +57,7 @@
     </header>
     <div class="container container-fluid min-vh-100 d-flex flex-column main-bg">
         <partial name="_CookieConsentPartial" />
-        <main role="main" class="pb-3">
+        <main role="main" class="pb-4">
             @if (SignInManager.IsSignedIn(User))
             {
                 var user = await UserManager.GetUserAsync(User);
