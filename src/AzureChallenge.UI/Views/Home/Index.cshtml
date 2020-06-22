@@ -14,7 +14,7 @@
     <div class="text-center">
         <h1 class="display-4">Welcome to Azure Challenge!</h1>
     </div>
-    @if (string.IsNullOrWhiteSpace(user.SubscriptionId))
+    @if (user?.SubscriptionId == null || string.IsNullOrWhiteSpace(user.SubscriptionId))
     {
         <div>
             <p class="pt-2">

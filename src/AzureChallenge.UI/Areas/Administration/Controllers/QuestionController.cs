@@ -208,7 +208,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     AvailableParameters = new List<string>(),
                     Justification = question.Justification,
                     UsefulLinks = question.UsefulLinks ?? new List<string>(),
-
+                    Owner = question.Owner
                 };
 
                 // Get the list of global parameters (if exist)

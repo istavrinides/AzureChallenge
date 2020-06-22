@@ -41,8 +41,6 @@ namespace AzureChallenge.UI.Controllers
         {
             var model = new IndexViewModel { AvailableChallenges = 0, UnfinishedChallenges = 0 };
 
-            throw new Exception("Test");
-
             var user = await _userManager.GetUserAsync(User);
             var aggregateResponse = await aggregateProvider.GetItemAsync("00000000-0000-0000-0000-000000000000");
 
