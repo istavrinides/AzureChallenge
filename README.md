@@ -148,7 +148,12 @@ The following values need to be set in your local development environment:
   "Endpoints": {
     "AzureServicesEnpoint": "https://docs.microsoft.com/en-us/rest/api/rest-products.json"
   },
-  "SendGrid_Api_Key": ""
+  "SendGrid_Api_Key": "",
+  "Azure": {
+    "SignalR": {
+      "ConnectionString": ""
+    }
+  }
 }
 ```
 
