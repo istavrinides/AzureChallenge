@@ -11,6 +11,8 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Questions
         [Required]
         public string Id { get; set; }
 
+        public string QuestionType { get; set; }
+
         [Required]
         public string Name { get; set; }
 

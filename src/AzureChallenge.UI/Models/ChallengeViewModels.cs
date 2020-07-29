@@ -28,6 +28,7 @@ namespace AzureChallenge.UI.Models.ChallengeViewModels
     {
         public string QuestionId { get; set; }
         public int QuestionIndex { get; set; }
+        public string QuestionType { get; set; }
         public bool ThisQuestionDone { get; set; }
         public string ChallengeId { get; set; }
         public string PreviousQuestionId { get; set; }
@@ -40,6 +41,19 @@ namespace AzureChallenge.UI.Models.ChallengeViewModels
         public List<string> HelpfulLinks { get; set; }
         public bool ShowWarning { get; set; }
         public string WarningMessage { get; set; }
+        public List<(string Text, bool Value, bool Selected)> Choices { get; set; }
+        public string SelectedRBChoice { get; set; }
+    }
+
+    public class ValidateQuestionViewModel
+    {
+        public string QuestionId { get; set; }
+        public string ChallengeId { get; set; }
+        public string NextQuestionId { get; set; }
+        public int Difficulty { get; set; }
+        public int QuestionIndex { get; set; }
+        public string SelectedRBChoice { get; set; }
+        public List<string> Choices { get; set; }
     }
 
     public class JoinPrivateChallengeViewModel

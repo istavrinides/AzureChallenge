@@ -8,6 +8,7 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Questions
     public class IndexQuestionViewModel
     {
         public string Id { get; set; }
+        public string QuestionType { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public bool CanDelete { get; set; }

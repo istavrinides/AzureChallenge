@@ -26,6 +26,8 @@ using Microsoft.Azure.Cosmos.Spatial;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Web.CodeGeneration;
+using Microsoft.Azure.Cosmos.Linq;
 
 namespace AzureChallenge.UI.Controllers
 {
@@ -306,7 +308,7 @@ namespace AzureChallenge.UI.Controllers
         [Route("Challenge/{challengeId}/Question/{questionId}")]
         public async Task<IActionResult> ShowQuestion(string challengeId, string questionId)
         {
-            var model = new QuestionViewModel();
+            var model = new QuestionViewModel() { Choices = new List<(string Text, bool Value, bool Selected)>() };
             var user = await _userManager.GetUserAsync(User);
 
             var userChallengeResponse = await userChallengesProvider.GetItemAsync(user.Id);
@@ -353,6 +355,7 @@ namespace AzureChallenge.UI.Controllers
                 var challengeQuestion = challengeResponse.Item2.Questions.Where(q => q.Id == questionId).FirstOrDefault();
                 var previousChallengeQuestion = challengeResponse.Item2.Questions.Where(q => q.NextQuestionId == questionId).FirstOrDefault();
 
+                model.QuestionType = question.QuestionType;
                 model.Difficulty = question.Difficulty;
                 model.QuestionIndex = challengeQuestion.Index;
                 model.ThisQuestionDone = userChallenge.CurrentIndex > challengeQuestion.Index;
@@ -365,8 +368,12 @@ namespace AzureChallenge.UI.Controllers
                 model.QuestionName = challengeQuestion.Name;
                 model.TournamentName = challengeResponse.Item2.Name;
                 model.ChallengeId = challengeId;
+                if (question.QuestionType == "MultiChoice")
+                {
+                    model.Choices = question.Answers[0].AnswerParameters.Select(a => (a.Key, bool.Parse(a.Value), false)).ToList();
+                }
 
-                if (question.Uris.Any(u => u.RequiresContributorAccess))
+                if (question.Uris != null && question.Uris.Any(u => u.RequiresContributorAccess))
                 {
                     model.ShowWarning = true;
                     model.WarningMessage = "This question requires that the Service Principal you have created has Contributor access to the below Resource(s).";
@@ -386,11 +393,25 @@ namespace AzureChallenge.UI.Controllers
             return View();
         }
 
-        public async Task<IActionResult> ValidateQuestion(string challengeId, string questionId, string nextQuestionId, int points, int questionIndex)
+        [HttpPost]
+        public async Task<IActionResult> ValidateQuestion(ValidateQuestionViewModel inputModel)
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var results = await assignedQuestionProvider.ValidateQuestion(questionId, mapper.Map<AzureChallenge.Models.Profile.UserProfile>(user));
+            // We need to get the selected choice(s) in case it's a multiple choice question
+            var selectedChoices = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(inputModel.SelectedRBChoice))
+            {
+                selectedChoices.Add(inputModel.SelectedRBChoice);
+            }
+            else if(inputModel.Choices?.Count > 0)
+            {
+                foreach (var choice in inputModel.Choices) 
+                    selectedChoices.Add(choice);
+            }
+
+            var results = await assignedQuestionProvider.ValidateQuestion(inputModel.QuestionId, mapper.Map<AzureChallenge.Models.Profile.UserProfile>(user), selectedChoices);
 
             if (results.All(p => p.Value))
             {
@@ -398,18 +419,18 @@ namespace AzureChallenge.UI.Controllers
                 var userChallengeResponse = await userChallengesProvider.GetItemAsync(user.Id);
 
                 // Get the current challenge
-                var challenge = userChallengeResponse.Item2.Challenges.Where(p => p.ChallengeId == challengeId).FirstOrDefault();
+                var challenge = userChallengeResponse.Item2.Challenges.Where(p => p.ChallengeId == inputModel.ChallengeId).FirstOrDefault();
 
-                if (questionIndex == challenge.CurrentIndex)
+                if (inputModel.QuestionIndex == challenge.CurrentIndex)
                 {
-                    user.AccumulatedPoint += points;
-                    challenge.AccumulatedXP += points;
+                    user.AccumulatedPoint += inputModel.Difficulty;
+                    challenge.AccumulatedXP += inputModel.Difficulty;
                     challenge.CurrentIndex += 1;
 
                     // End of challenge
-                    if (nextQuestionId == null)
+                    if (inputModel.NextQuestionId == null)
                     {
-                        var aggregateReponse = await aggregateProvider.GetItemAsync(challengeId);
+                        var aggregateReponse = await aggregateProvider.GetItemAsync(inputModel.ChallengeId);
 
                         aggregateReponse.Item2.ChallengeUsers.Finished += 1;
                         aggregateReponse.Item2.ChallengeUsers.Started -= 1;
@@ -420,7 +441,7 @@ namespace AzureChallenge.UI.Controllers
                     }
                     else
                     {
-                        challenge.CurrentQuestion = nextQuestionId;
+                        challenge.CurrentQuestion = inputModel.NextQuestionId;
                     }
 
                     await userChallengesProvider.AddItemAsync(userChallengeResponse.Item2);

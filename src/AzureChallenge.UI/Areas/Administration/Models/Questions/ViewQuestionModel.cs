@@ -10,6 +10,8 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Questions
     {
         public string Id { get; set; }
 
+        public string QuestionType { get; set; }
+
         public string Name { get; set; }
 
         [Display(Name = "Targetted Azure Service")]

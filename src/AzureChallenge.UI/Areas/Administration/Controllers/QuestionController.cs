@@ -88,7 +88,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Name = q.Name,
                     Description = q.Description,
                     Id = q.Id,
-                    TargettedAzureService = q.TargettedAzureService
+                    TargettedAzureService = q.TargettedAzureService,
+                    QuestionType = q.QuestionType
                 });
             }
 
@@ -134,7 +135,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     TextParameters = question.TextParameters,
                     Uris = uriParams,
                     Justification = question.Justification,
-                    UsefulLinks = question.UsefulLinks ?? new List<string>()
+                    UsefulLinks = question.UsefulLinks ?? new List<string>(),
+                    QuestionType = question.QuestionType
                 };
 
 
@@ -281,8 +283,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         }
 
         [HttpGet]
-        [Route("Administration/Questions/AddNew")]
-        public async Task<IActionResult> AddNew()
+        [Route("Administration/Questions/AddNewAPIQuestion")]
+        public async Task<IActionResult> AddNewAPIQuestion()
         {
             var client = new HttpClient();
             var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
@@ -306,6 +308,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             var model = new AddNewQuestionViewModel()
             {
                 Id = Guid.NewGuid().ToString(),
+                QuestionType = "API",
                 AzureServicesList = azureServiceList,
                 Difficulty = 1,
                 TextParameters = new List<string>(),
@@ -331,8 +334,113 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Route("Administration/Questions/AddNew")]
-        public async Task<IActionResult> AddNew(AddNewQuestionViewModel model)
+        [Route("Administration/Questions/AddNewAPIQuestion")]
+        public async Task<IActionResult> AddNewAPIQuestion(AddNewQuestionViewModel model)
+        {
+            var client = new HttpClient();
+            var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
+            var azureServiceList = new List<string>();
+
+            if (response != null)
+            {
+                var serviceListStr = await response.Content.ReadAsStringAsync();
+                var serviceList = JsonConvert.DeserializeObject<List<AzureServiceClass>>(serviceListStr);
+                var azureServices = serviceList.Where(p => p.name == "Azure").FirstOrDefault();
+
+                if (azureServices != null)
+                {
+                    foreach (var service in azureServices.services)
+                    {
+                        azureServiceList.Add(service.name);
+                    }
+                }
+            }
+            model.AzureServicesList = azureServiceList;
+            model.AvailableParameters = new List<string>();
+            model.Owner = User.Identity.Name;
+
+
+            // Get the list of global parameters (if exist)
+            var globalParams = await globalParameterProvider.GetAllItemsAsync();
+
+            if (globalParams.Item1.Success)
+            {
+                if (globalParams.Item2.Count > 0)
+                {
+                    // There is only one
+                    model.AvailableParameters.AddRange(globalParams.Item2[0].Parameters);
+                }
+            }
+
+            if (ModelState.IsValid)
+            {
+                var success = await AddUpdateQuestionAsync(model);
+
+                if (success)
+                    return RedirectToAction("Index");
+
+            }
+
+            if (model.TextParameters == null) model.TextParameters = new List<string>();
+            if (model.UsefulLinks == null) model.UsefulLinks = new List<string>();
+
+            return View(model);
+        }
+
+        [HttpGet]
+        [Route("Administration/Questions/AddNewMultiChoiceQuestion")]
+        public async Task<IActionResult> AddNewMultiChoiceQuestion()
+        {
+            var client = new HttpClient();
+            var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
+            var azureServiceList = new List<string>();
+
+            if (response != null)
+            {
+                var serviceListStr = await response.Content.ReadAsStringAsync();
+                var serviceList = JsonConvert.DeserializeObject<List<AzureServiceClass>>(serviceListStr);
+                var azureServices = serviceList.Where(p => p.name == "Azure").FirstOrDefault();
+
+                if (azureServices != null)
+                {
+                    foreach (var service in azureServices.services)
+                    {
+                        azureServiceList.Add(service.name);
+                    }
+                }
+            }
+
+            var model = new AddNewQuestionViewModel()
+            {
+                Id = Guid.NewGuid().ToString(),
+                QuestionType = "MultiChoice",
+                AzureServicesList = azureServiceList,
+                Difficulty = 1,
+                TextParameters = new List<string>(),
+                Uris = new List<AddNewQuestionViewModel.UriList>(),
+                AvailableParameters = new List<string>(),
+                UsefulLinks = new List<string>()
+            };
+
+            // Get the list of global parameters (if exist)
+            var globalParams = await globalParameterProvider.GetAllItemsAsync();
+
+            if (globalParams.Item1.Success)
+            {
+                if (globalParams.Item2.Count > 0)
+                {
+                    // There is only one
+                    model.AvailableParameters.AddRange(globalParams.Item2[0].Parameters);
+                }
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Route("Administration/Questions/AddNewMultiChoiceQuestion")]
+        public async Task<IActionResult> AddNewMultiChoiceQuestion(AddNewQuestionViewModel model)
         {
             var client = new HttpClient();
             var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
@@ -431,19 +539,23 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             var uriList = new List<ACMQ.Question.UriList>();
             var paramList = new List<string>();
 
-            foreach (var u in model.Uris)
+            if (model.QuestionType == "API")
             {
-                uriList.Add(new ACMQ.Question.UriList
-                {
-                    CallType = u.CallType,
-                    Id = u.Id,
-                    Uri = u.Uri,
-                    UriParameters = u.UriParameters,
-                    RequiresContributorAccess = u.RequiresContributorAccess
-                });
 
-                if (u.UriParameters != null)
-                    paramList.AddRange(u.UriParameters);
+                foreach (var u in model.Uris)
+                {
+                    uriList.Add(new ACMQ.Question.UriList
+                    {
+                        CallType = u.CallType,
+                        Id = u.Id,
+                        Uri = u.Uri,
+                        UriParameters = u.UriParameters,
+                        RequiresContributorAccess = u.RequiresContributorAccess
+                    });
+
+                    if (u.UriParameters != null)
+                        paramList.AddRange(u.UriParameters);
+                }
             }
 
             var mapped = new ACMQ.Question()
@@ -459,6 +571,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 Justification = model.Justification,
                 UsefulLinks = model.UsefulLinks,
                 Owner = model.Owner,
+                QuestionType = model.QuestionType
             };
 
             if (model.TextParameters != null)

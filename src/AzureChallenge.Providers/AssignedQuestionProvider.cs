@@ -71,17 +71,34 @@ namespace AzureChallenge.Providers
             return await dataProvider.DeleteItemAsync(id, "AssignedQuestion");
         }
 
-        public async Task<List<KeyValuePair<string, bool>>> ValidateQuestion(string id, UserProfile profile)
+        public async Task<List<KeyValuePair<string, bool>>> ValidateQuestion(string id, UserProfile profile, List<string> UserChoices)
         {
             // Get the question definition
             var result = await GetItemAsync(id);
-            // Create a list to check validity of answers
-            List<KeyValuePair<string, bool>> correctAnswers = new List<KeyValuePair<string, bool>>();
 
             if (!result.Item1.Success)
                 return null;
 
             var question = result.Item2;
+
+            if (question.QuestionType == "API")
+            {
+                return await ValidateAPIQuestion(question, profile);
+            }
+            else if (question.QuestionType == "MultiChoice")
+            {
+                return await ValidateMultiChoiceQuestion(question, profile, UserChoices);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private async Task<List<KeyValuePair<string, bool>>> ValidateAPIQuestion(AssignedQuestion question, UserProfile profile)
+        {
+            // Create a list to check validity of answers
+            List<KeyValuePair<string, bool>> correctAnswers = new List<KeyValuePair<string, bool>>();
 
             // Get the global parameters
             var globalParameters = await parametersProvider.GetItemAsync(question.ChallengeId);
@@ -225,14 +242,14 @@ namespace AzureChallenge.Providers
                                 {
                                     if (j.content.offerThroughput == throughput && j.resource == ids)
                                     {
-                                        correctAnswers.Add(new KeyValuePair<string, bool>(answerForThroughput.Key, true));
+                                        correctAnswers.Add(new KeyValuePair<string, bool>(answerForThroughput.ErrorMessage, true));
                                         found = true;
                                         break;
                                     }
                                 }
                                 if (!found)
                                 {
-                                    correctAnswers.Add(new KeyValuePair<string, bool>(answerForThroughput.Key, false));
+                                    correctAnswers.Add(new KeyValuePair<string, bool>(answerForThroughput.ErrorMessage, false));
                                 }
 
                                 // Remove the thoughput answer from the answer parameters to check any pending
@@ -245,7 +262,7 @@ namespace AzureChallenge.Providers
                                 // Get and format the answer. Answers might contain parameters
                                 var answerValue = SmartFormat.Smart.Format(answer.Value.Replace("Global.", "Global_").Replace("Profile.", "Profile_"), parameters);
 
-                                correctAnswers.Add(new KeyValuePair<string, bool>(answer.Key, CheckAnswer(o, properties, answerValue, 0, properties.Count)));
+                                correctAnswers.Add(new KeyValuePair<string, bool>(answer.ErrorMessage, CheckAnswer(o, properties, answerValue, 0, properties.Count)));
                             }
                         }
                         else
@@ -261,6 +278,32 @@ namespace AzureChallenge.Providers
                         }
 
                     }
+                }
+            }
+
+            return correctAnswers;
+        }
+
+        private async Task<List<KeyValuePair<string, bool>>> ValidateMultiChoiceQuestion(AssignedQuestion question, UserProfile profile, List<string> UserChoices)
+        {
+            // Create a list to check validity of answers
+            List<KeyValuePair<string, bool>> correctAnswers = new List<KeyValuePair<string, bool>>();
+
+            // For each answer parameter, check if the answer was given from the user
+            // If not, set it as true (don't care about this)
+            // If yes, check if true or not. Always add the message
+            foreach (var answer in question.Answers[0].AnswerParameters)
+            {
+                if (UserChoices.Exists(p => p == answer.Key))
+                {
+                    if (bool.Parse(answer.Value))
+                        correctAnswers.Add(new KeyValuePair<string, bool>(answer.Key + "#*#*#" + answer.ErrorMessage, true));
+                    else
+                        correctAnswers.Add(new KeyValuePair<string, bool>(answer.Key + "#*#*#" + answer.ErrorMessage, false));
+                }
+                else
+                {
+                    correctAnswers.Add(new KeyValuePair<string, bool>(answer.ErrorMessage, true));
                 }
             }
 

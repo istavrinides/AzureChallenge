@@ -157,7 +157,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     {
                         AzureService = q.TargettedAzureService,
                         Id = q.Id,
-                        Name = $"{q.Name} - {q.Description} - (Level: {q.DifficultyString})",
+                        Name = $"{q.Name} - (Level: {q.DifficultyString}) - {q.QuestionType}",
                         Selected = false
                     });
                 }
@@ -178,11 +178,12 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Answers = inputModel.QuestionToAdd.Answers
                                         .Select(p => new ACMQ.AssignedQuestion.AnswerList
                                         {
-                                            AnswerParameters = p.AnswerParameters?.Select(a => new ACMQ.AssignedQuestion.AnswerParameterItem() { ErrorMessage = a.ErrorMessage, Key = a.Key, Value = a.Value }).ToList(),
+                                            AnswerParameters = p.AnswerParameters?.Select(a => new ACMQ.AssignedQuestion.AnswerParameterItem() { ErrorMessage = a.ErrorMessage, Key = a.Key, Value = a.Value ?? (inputModel.QuestionToAdd.QuestionType == "MultiChoice" ? "false" : "") }).ToList(),
                                             AssociatedQuestionId = p.AssociatedQuestionId,
                                             ResponseType = p.ResponseType
                                         }
                                         ).ToList(),
+                    QuestionType = inputModel.QuestionToAdd.QuestionType,
                     AssociatedQuestionId = inputModel.QuestionToAdd.AssociatedQuestionId,
                     Description = inputModel.QuestionToAdd.Description,
                     Difficulty = inputModel.QuestionToAdd.Difficulty,
@@ -192,7 +193,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Text = inputModel.QuestionToAdd.Text,
                     TextParameters = inputModel.QuestionToAdd.TextParameters?.ToDictionary(p => p.Key, p => p.Value) ?? new Dictionary<string, string>(),
                     ChallengeId = inputModel.QuestionToAdd.ChallengeId,
-                    Uris = inputModel.QuestionToAdd.Uris
+                    Uris = inputModel.QuestionToAdd.Uris?
                                     .Select(p => new ACMQ.AssignedQuestion.UriList
                                     {
                                         CallType = p.CallType,
@@ -335,6 +336,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                             ResponseType = p.ResponseType
                                         }).ToList(),
                     AssociatedQuestionId = result.Item2.AssociatedQuestionId,
+                    QuestionType = result.Item2.QuestionType,
                     Description = result.Item2.Description,
                     Difficulty = result.Item2.Difficulty,
                     Id = result.Item2.QuestionId,
@@ -343,7 +345,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Text = result.Item2.Text,
                     TextParameters = result.Item2.TextParameters.Select(p => new VM.AssignedQuestion.KVPair { Key = p.Key, Value = p.Value }).ToList(),
                     ChallengeId = result.Item2.ChallengeId,
-                    Uris = result.Item2.Uris
+                    Uris = result.Item2.Uris?
                              .Select(p => new VM.AssignedQuestion.UriList
                              {
                                  CallType = p.CallType,
@@ -465,7 +467,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         {
             var user = await userManager.GetUserAsync(User);
 
-            var results = await assignedQuestionProvider.ValidateQuestion(questionId, mapper.Map<AzureChallenge.Models.Profile.UserProfile>(user));
+            var results = await assignedQuestionProvider.ValidateQuestion(questionId, mapper.Map<AzureChallenge.Models.Profile.UserProfile>(user), new List<string>());
 
             return Ok(results);
         }

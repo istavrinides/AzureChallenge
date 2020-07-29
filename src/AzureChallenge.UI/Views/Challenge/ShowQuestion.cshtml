@@ -20,94 +20,138 @@
         <div class="card-header bg-primary text-white font-weight-bold">@Model.TournamentName - Question @(Model.QuestionIndex +1)</div>
         <div class="card-body">
             <h5 class="card-title">@Model.QuestionName</h5>
-            <p class="card-text">@Model.QuestionText</p>
-            @if (Model.HelpfulLinks.Count > 0)
-            {
-                <p class="pt-5 font-weight-bold">
-                    Helpful Links
-                </p>
+            <p class="card-text">
+                @Model.QuestionText
+
+                @if (Model.QuestionType == "MultiChoice")
+                {
                 <p>
-                    @foreach (var url in Model.HelpfulLinks)
+                    @*If we have more than one correct answer*@
+                    @if (Model.Choices.Count(p => p.Value) > 1)
                     {
-                        <div><a href="@url">@url</a></div>
+                        <input type="hidden" id="MCType" value="CB" />
+                        for (int i = 0; i < Model.Choices.Count(); i++)
+                        {
+                            <div class="form-check input-group">
+                                <input asp-for="@Model.Choices[i].Selected" class="form-check-input mccb" data-key="@Model.Choices[i].Text" />
+                                <label class="form-check-label" asp-for="@Model.Choices[i].Selected">@Model.Choices[i].Text</label>
+                            </div>
+                            <div class="mc-message-div d-none" data-key="@Model.Choices[i].Text">
+                                <label class="mc-message" data-key="@Model.Choices[i].Text"></label>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <input type="hidden" id="MCType" value="RB" />
+                        for (int i = 0; i < Model.Choices.Count(); i++)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input mcrb" type="radio" name="SelectedRBChoice" id="Choices_@(i)__Value" data-key="@Model.Choices[i].Text" />
+                                <label class="form-check-label" for="Choices_@(i)__Value">@Model.Choices[i].Text</label>
+                            </div>
+                            <div class="mc-message-div d-none" data-key="@Model.Choices[i].Text">
+                                <label class="mc-message" data-key="@Model.Choices[i].Text"></label>
+                            </div>
+                        }
                     }
                 </p>
+                <p class="d-none mc-justification font-weight-bold">
+                    What does this mean:
+                </p>
+                <p class="d-none mc-justification">
+                    @Model.Justification
+                </p>
             }
-            <input type="hidden" asp-for="QuestionId" />
-            <input type="hidden" asp-for="NextQuestionId" />
-            <input type="hidden" asp-for="Difficulty" />
-            <input type="hidden" asp-for="ChallengeId" />
-            <input type="hidden" asp-for="QuestionIndex" />
-        </div>
-        <div class="card-footer">
-            <div class="d-flex justify-content-between">
+                </p>
+                @if (Model.HelpfulLinks.Count > 0)
+                {
+                    <p class="pt-5 font-weight-bold">
+                        Helpful Links
+                    </p>
+                    <p>
+                        @foreach (var url in Model.HelpfulLinks)
+                        {
+                            <div><a href="@url">@url</a></div>
+                        }
+                    </p>
+                }
+                <input type="hidden" asp-for="QuestionId" />
+                <input type="hidden" asp-for="NextQuestionId" />
+                <input type="hidden" asp-for="Difficulty" />
+                <input type="hidden" asp-for="ChallengeId" />
+                <input type="hidden" asp-for="QuestionIndex" />
+                <input type="hidden" asp-for="QuestionType" />
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between">
 
-                <button class="btn btn-secondary" id="btnPrevious" onclick='window.location.href="@Url.Action("ShowQuestion", "Challenge", new { challengeId = Model.ChallengeId, questionId = Model.PreviousQuestionId })"'>Previous</button>
-                <button type="button" class="btn btn-primary" id="btnCheck">Check</button>
-                @if (Model.NextQuestionId != null)
-                {
-                    <button class="btn btn-secondary" id="btnNext" onclick='window.location.href="@Url.Action("ShowQuestion", "Challenge", new { challengeId = Model.ChallengeId, questionId = Model.NextQuestionId })"' @(Model.ThisQuestionDone ? "" : "disabled")>Next</button>
-                }
-                else
-                {
-                    <button class="btn btn-secondary" id="btnNext" onclick='window.location.href="@Url.Action("Completed", "Challenge", new { challengeId = Model.ChallengeId })"'>Next</button>
-                }
+                    <button class="btn btn-secondary" id="btnPrevious" onclick='window.location.href="@Url.Action("ShowQuestion", "Challenge", new { challengeId = Model.ChallengeId, questionId = Model.PreviousQuestionId })"'>Previous</button>
+                    <button type="button" class="btn btn-primary" id="btnCheck">Check</button>
+                    @if (Model.NextQuestionId != null)
+                    {
+                        <button class="btn btn-secondary" id="btnNext" onclick='window.location.href="@Url.Action("ShowQuestion", "Challenge", new { challengeId = Model.ChallengeId, questionId = Model.NextQuestionId })"' @(Model.ThisQuestionDone ? "" : "disabled")>Next</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary" id="btnNext" onclick='window.location.href="@Url.Action("Completed", "Challenge", new { challengeId = Model.ChallengeId })"'>Next</button>
+                    }
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="modal" id="checkModal">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Question validation</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="checkModalWaiting" class="text-center">
-                    <div>
-                        Checking the question against your subscritpion...
-                    </div>
-                    <div>
-                        <img src="/images/wait.gif">
-                    </div>
+    <div class="modal" id="checkModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Question validation</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-                <div class="d-none" id="checkModalContent">
-                    <div class="row" id="checkModalContentDiv">
-                    </div>
-                    <div id="justification" class="d-none">
-                        <div class="font-weight-bold">What did I just do:</div>
+                <div class="modal-body">
+                    <div id="checkModalWaiting" class="text-center">
                         <div>
-                            @Model.Justification
+                            Checking the question against your subscritpion...
+                        </div>
+                        <div>
+                            <img src="/images/wait.gif">
+                        </div>
+                    </div>
+                    <div class="d-none" id="checkModalContent">
+                        <div class="row" id="checkModalContentDiv">
+                        </div>
+                        <div id="justification" class="d-none">
+                            <div class="font-weight-bold">What did I just do:</div>
+                            <div>
+                                @Model.Justification
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                @if (Model.NextQuestionId != null)
-                {
-                    <button class="btn btn-secondary d-none" id="btnNextModal" onclick='window.location.href="@Url.Action("ShowQuestion", "Challenge", new { challengeId = Model.ChallengeId, questionId = Model.NextQuestionId })"'>Go to next question</button>
-                }
-                else
-                {
-                    <button class="btn btn-secondary d-none" id="btnNextModal" onclick='window.location.href="@Url.Action("Completed", "Challenge", new { challengeId = Model.ChallengeId})"'>Go to next question</button>
-                }
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    @if (Model.NextQuestionId != null)
+                    {
+                        <button class="btn btn-secondary d-none" id="btnNextModal" onclick='window.location.href="@Url.Action("ShowQuestion", "Challenge", new { challengeId = Model.ChallengeId, questionId = Model.NextQuestionId })"'>Go to next question</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary d-none" id="btnNextModal" onclick='window.location.href="@Url.Action("Completed", "Challenge", new { challengeId = Model.ChallengeId})"'>Go to next question</button>
+                    }
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-@section Scripts{
-    <environment include="Development">
-        <script src="~/lib/aspnet-signalr/signalr.js"></script>
-        <script src="~/js/azurechallenge.challenge.question.js"></script>
-    </environment>
-    <environment exclude="Development">
-        <script src="~/lib/aspnet-signalr/signalr.min.js"></script>
-        <script src="~/js/azurechallenge.challenge.question.js"></script>
-    </environment>
-}
+    @section Scripts{
+        <environment include="Development">
+            <script src="~/lib/aspnet-signalr/signalr.js"></script>
+            <script src="~/js/azurechallenge.challenge.question.js"></script>
+        </environment>
+        <environment exclude="Development">
+            <script src="~/lib/aspnet-signalr/signalr.min.js"></script>
+            <script src="~/js/azurechallenge.challenge.question.js"></script>
+        </environment>
+    }

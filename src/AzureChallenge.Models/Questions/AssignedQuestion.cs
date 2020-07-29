@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Security.Principal;
 using System.Text;
 
 namespace AzureChallenge.Models.Questions
@@ -11,6 +12,9 @@ namespace AzureChallenge.Models.Questions
 
         [JsonProperty(PropertyName = "id")]
         public string QuestionId { get; set; }
+
+        [JsonProperty(PropertyName = "questionType")]
+        public string QuestionType { get; set; }
 
         [JsonProperty(PropertyName = "associatedQuestionId")]
         public string AssociatedQuestionId { get; set; }
