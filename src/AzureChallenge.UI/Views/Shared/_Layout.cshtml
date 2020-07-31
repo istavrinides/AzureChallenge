@@ -37,15 +37,19 @@
                                     <a class="nav-link text-white" asp-area="" asp-controller="Challenge" asp-action="UserChallenges">My Challenges</a>
                                 </div>
                             </li>
-                            if (User.IsInRole("Administrator"))
+                            if (User.IsInRole("Administrator") || User.IsInRole("ContentEditor"))
                             {
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        Administration
+                                        Manage
                                     </a>
                                     <div class="dropdown-menu bg-primary" aria-labelledby="navbarDropdown">
                                         <a class="nav-link text-white" asp-area="Administration" asp-controller="Challenge" asp-action="Index">Challenges</a>
                                         <a class="nav-link text-white" asp-area="Administration" asp-controller="Question" asp-action="Index">Question Templates</a>
+                                        @if (User.IsInRole("Administrator"))
+                                        {
+                                            <a class="nav-link text-white" asp-area="Identity" asp-page="/Roles/Manage" title="Manage">Manage User Roles</a>
+                                        }
                                     </div>
                                 </li>
                             }

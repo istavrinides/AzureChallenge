@@ -17,7 +17,7 @@ using ACMP = AzureChallenge.Models.Parameters;
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
     [Area("Administration")]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator, ContentEditor")]
     public class ParameterController : Controller
     {
         private IParameterProvider<ACM.AzureChallengeResult, ACMP.GlobalChallengeParameters> parametersProvider;

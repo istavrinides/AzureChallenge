@@ -106,6 +106,7 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account
                             if (!(await _roleManager.RoleExistsAsync("Administrator")))
                             {
                                 await _roleManager.CreateAsync(new IdentityRole("Administrator"));
+                                await _roleManager.CreateAsync(new IdentityRole("ContentEditor"));
                             }
                             await _userManager.ConfirmEmailAsync(user, code);
                             await _signInManager.SignInAsync(user, isPersistent: false);
@@ -121,6 +122,7 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account
                             if (!(await _roleManager.RoleExistsAsync("Administrator")))
                             {
                                 await _roleManager.CreateAsync(new IdentityRole("Administrator"));
+                                await _roleManager.CreateAsync(new IdentityRole("ContentEditor"));
                             }
                             await _userManager.ConfirmEmailAsync(user, code);
                             await _signInManager.SignInAsync(user, isPersistent: false);

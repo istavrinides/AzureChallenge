@@ -39,7 +39,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
     [Area("Administration")]
     [Authorize]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator, ContentEditor")]
     public class ChallengeController : Controller
     {
         private readonly ILogger<ChallengeController> _logger;

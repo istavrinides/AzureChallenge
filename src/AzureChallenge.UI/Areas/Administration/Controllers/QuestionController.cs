@@ -32,7 +32,7 @@ using AzureChallenge.UI.Models;
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
     [Area("Administration")]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator, ContentEditor")]
     public class QuestionController : Controller
     {
         private IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider;
