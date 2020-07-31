@@ -27,6 +27,7 @@ using AzureChallenge.Interfaces.Providers.Parameters;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SmartFormat.Utilities;
+using AzureChallenge.UI.Models;
 
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
@@ -112,16 +113,19 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
                 var uriParams = new List<ViewQuestionModel.UriList>();
 
-                foreach (var u in question.Uris)
+                if (question.QuestionType == "API")
                 {
-                    uriParams.Add(new ViewQuestionModel.UriList()
+                    foreach (var u in question.Uris)
                     {
-                        UriParameters = u.UriParameters,
-                        CallType = u.CallType,
-                        Id = u.Id,
-                        Uri = u.Uri,
-                        RequiresContributorAccess = u.RequiresContributorAccess
-                    });
+                        uriParams.Add(new ViewQuestionModel.UriList()
+                        {
+                            UriParameters = u.UriParameters,
+                            CallType = u.CallType,
+                            Id = u.Id,
+                            Uri = u.Uri,
+                            RequiresContributorAccess = u.RequiresContributorAccess
+                        });
+                    }
                 }
 
                 var model = new ViewQuestionModel()
@@ -177,6 +181,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                         {
                             azureServiceList.Add(service.name);
                         }
+
+                        azureServiceList.AddRange(AzureServicesCategoryMapping.TargettedServiceAdditions);
                     }
                 }
 
@@ -184,16 +190,19 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
                 var uriParams = new List<EditQuestionViewModel.UriList>();
 
-                foreach (var u in question.Uris)
+                if (question.QuestionType == "API")
                 {
-                    uriParams.Add(new EditQuestionViewModel.UriList()
+                    foreach (var u in question.Uris)
                     {
-                        UriParameters = u.UriParameters,
-                        CallType = u.CallType,
-                        Id = u.Id,
-                        Uri = u.Uri,
-                        RequiresContributorAccess = u.RequiresContributorAccess
-                    });
+                        uriParams.Add(new EditQuestionViewModel.UriList()
+                        {
+                            UriParameters = u.UriParameters,
+                            CallType = u.CallType,
+                            Id = u.Id,
+                            Uri = u.Uri,
+                            RequiresContributorAccess = u.RequiresContributorAccess
+                        });
+                    }
                 }
 
                 var model = new EditQuestionViewModel()
@@ -206,11 +215,12 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Text = question.Text,
                     TextParameters = question.TextParameters ?? new List<string>(),
                     Uris = uriParams,
-                    AzureServicesList = azureServiceList,
+                    AzureServicesList = azureServiceList.OrderBy(p => p).ToList(),
                     AvailableParameters = new List<string>(),
                     Justification = question.Justification,
                     UsefulLinks = question.UsefulLinks ?? new List<string>(),
-                    Owner = question.Owner
+                    Owner = question.Owner,
+                    QuestionType = question.QuestionType
                 };
 
                 // Get the list of global parameters (if exist)
@@ -253,9 +263,11 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     {
                         azureServiceList.Add(service.name);
                     }
+
+                    azureServiceList.AddRange(AzureServicesCategoryMapping.TargettedServiceAdditions);
                 }
             }
-            model.AzureServicesList = azureServiceList;
+            model.AzureServicesList = azureServiceList.OrderBy(p => p).ToList();
             model.AvailableParameters = new List<string>();
 
             // Get the list of global parameters (if exist)
@@ -283,8 +295,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         }
 
         [HttpGet]
-        [Route("Administration/Questions/AddNewAPIQuestion")]
-        public async Task<IActionResult> AddNewAPIQuestion()
+        [Route("Administration/Questions/Add")]
+        public async Task<IActionResult> Add(string type)
         {
             var client = new HttpClient();
             var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
@@ -302,14 +314,16 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     {
                         azureServiceList.Add(service.name);
                     }
+
+                    azureServiceList.AddRange(AzureServicesCategoryMapping.TargettedServiceAdditions);
                 }
             }
 
             var model = new AddNewQuestionViewModel()
             {
                 Id = Guid.NewGuid().ToString(),
-                QuestionType = "API",
-                AzureServicesList = azureServiceList,
+                QuestionType = type,
+                AzureServicesList = azureServiceList.OrderBy(p => p).ToList(),
                 Difficulty = 1,
                 TextParameters = new List<string>(),
                 Uris = new List<AddNewQuestionViewModel.UriList>(),
@@ -334,8 +348,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Route("Administration/Questions/AddNewAPIQuestion")]
-        public async Task<IActionResult> AddNewAPIQuestion(AddNewQuestionViewModel model)
+        [Route("Administration/Questions/Add")]
+        public async Task<IActionResult> Add(AddNewQuestionViewModel model)
         {
             var client = new HttpClient();
             var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
@@ -353,114 +367,11 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     {
                         azureServiceList.Add(service.name);
                     }
+
+                    azureServiceList.AddRange(AzureServicesCategoryMapping.TargettedServiceAdditions);
                 }
             }
-            model.AzureServicesList = azureServiceList;
-            model.AvailableParameters = new List<string>();
-            model.Owner = User.Identity.Name;
-
-
-            // Get the list of global parameters (if exist)
-            var globalParams = await globalParameterProvider.GetAllItemsAsync();
-
-            if (globalParams.Item1.Success)
-            {
-                if (globalParams.Item2.Count > 0)
-                {
-                    // There is only one
-                    model.AvailableParameters.AddRange(globalParams.Item2[0].Parameters);
-                }
-            }
-
-            if (ModelState.IsValid)
-            {
-                var success = await AddUpdateQuestionAsync(model);
-
-                if (success)
-                    return RedirectToAction("Index");
-
-            }
-
-            if (model.TextParameters == null) model.TextParameters = new List<string>();
-            if (model.UsefulLinks == null) model.UsefulLinks = new List<string>();
-
-            return View(model);
-        }
-
-        [HttpGet]
-        [Route("Administration/Questions/AddNewMultiChoiceQuestion")]
-        public async Task<IActionResult> AddNewMultiChoiceQuestion()
-        {
-            var client = new HttpClient();
-            var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
-            var azureServiceList = new List<string>();
-
-            if (response != null)
-            {
-                var serviceListStr = await response.Content.ReadAsStringAsync();
-                var serviceList = JsonConvert.DeserializeObject<List<AzureServiceClass>>(serviceListStr);
-                var azureServices = serviceList.Where(p => p.name == "Azure").FirstOrDefault();
-
-                if (azureServices != null)
-                {
-                    foreach (var service in azureServices.services)
-                    {
-                        azureServiceList.Add(service.name);
-                    }
-                }
-            }
-
-            var model = new AddNewQuestionViewModel()
-            {
-                Id = Guid.NewGuid().ToString(),
-                QuestionType = "MultiChoice",
-                AzureServicesList = azureServiceList,
-                Difficulty = 1,
-                TextParameters = new List<string>(),
-                Uris = new List<AddNewQuestionViewModel.UriList>(),
-                AvailableParameters = new List<string>(),
-                UsefulLinks = new List<string>()
-            };
-
-            // Get the list of global parameters (if exist)
-            var globalParams = await globalParameterProvider.GetAllItemsAsync();
-
-            if (globalParams.Item1.Success)
-            {
-                if (globalParams.Item2.Count > 0)
-                {
-                    // There is only one
-                    model.AvailableParameters.AddRange(globalParams.Item2[0].Parameters);
-                }
-            }
-
-            return View(model);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Route("Administration/Questions/AddNewMultiChoiceQuestion")]
-        public async Task<IActionResult> AddNewMultiChoiceQuestion(AddNewQuestionViewModel model)
-        {
-            var client = new HttpClient();
-            var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
-            var azureServiceList = new List<string>();
-
-            if (response != null)
-            {
-                var serviceListStr = await response.Content.ReadAsStringAsync();
-                var serviceList = JsonConvert.DeserializeObject<List<AzureServiceClass>>(serviceListStr);
-                var azureServices = serviceList.Where(p => p.name == "Azure").FirstOrDefault();
-
-                if (azureServices != null)
-                {
-                    foreach (var service in azureServices.services)
-                    {
-                        azureServiceList.Add(service.name);
-                    }
-                }
-            }
-            model.AzureServicesList = azureServiceList;
+            model.AzureServicesList = azureServiceList.OrderBy(p => p).ToList();
             model.AvailableParameters = new List<string>();
             model.Owner = User.Identity.Name;
 
@@ -532,9 +443,11 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     {
                         azureServiceList.Add(service.name);
                     }
+
+                    azureServiceList.AddRange(AzureServicesCategoryMapping.TargettedServiceAdditions);
                 }
             }
-            model.AzureServicesList = azureServiceList;
+            model.AzureServicesList = azureServiceList.OrderBy(p => p).ToList();
 
             var uriList = new List<ACMQ.Question.UriList>();
             var paramList = new List<string>();
@@ -570,7 +483,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 Uris = uriList,
                 Justification = model.Justification,
                 UsefulLinks = model.UsefulLinks,
-                Owner = model.Owner,
+                Owner = User.Identity.Name,
                 QuestionType = model.QuestionType
             };
 

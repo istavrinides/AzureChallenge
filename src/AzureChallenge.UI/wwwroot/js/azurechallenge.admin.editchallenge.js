@@ -197,15 +197,17 @@ $(document).ready(function () {
 
         var container = $("#Answers_" + itemIndex + "__params");
 
-        container.append("<div class='form-group col-4'> \
+        container.append("<div class='form-group col-4 answerParamDiv' data-index='" + currentIndex + "'> \
                             <label>Path</label> \
                             <input class='form-control answerParamInput answerParamInputKey' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].Key' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__Key'' data-index='" + currentIndex + "' required /></div>");
-        container.append("<div class='form-group col-4'> \
+        container.append("<div class='form-group col-3 answerParamDiv' data-index='" + currentIndex + "'> \
                             <label>Value to check</label> \
                             <input class='form-control answerParamInput answerParamInputVal' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].Value' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__Value' data-index='" + currentIndex + "' required /></div>");
-        container.append("<div class='form-group col-4'> \
+        container.append("<div class='form-group col-4 answerParamDiv' data-index='" + currentIndex + "'> \
                             <label>Error Message</label> \
                             <input class='form-control answerParamInput answerParamInputError' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].ErrorMessage' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__ErrorMessage' data-index='" + currentIndex + "' required /></div>");
+        container.append("<div class='form-group col pt-3 answerParamDiv' data-index='" + currentIndex + "'><br /> \
+                            <a href='#' class='answerParamDelete' data-index='" + currentIndex + "'><img src='/images/trash-2.svg' class='svg-filter-danger' /></a></div>");
 
         var numberOfRequiredInputs = 0;
         if (parseInt($("#requiredInputsAnswer").text()))
@@ -237,13 +239,15 @@ $(document).ready(function () {
 
         var container = $("#Answers_" + itemIndex + "__params");
 
-        container.append("<div class='form-group col-9 border-top pt-2'> \
+        container.append("<div class='form-group col-9 border-top pt-2 answerParamDiv' data-index='" + currentIndex + "'> \
                             <label>Text</label> \
                             <input class='form-control answerParamInput answerParamInputKey' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].Key' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__Key'' data-index='" + currentIndex + "' required /></div>");
-        container.append("<div class='form-group col-3 border-top pt-2'> \
+        container.append("<div class='form-group col-2 border-top pt-2 answerParamDiv' data-index='" + currentIndex + "'> \
                             <label>Correct?</label> <br />\
                             <input type='checkbox' data-toggle='toggle' data-size='normal' data-on='Yes' data-off='No' class='answerParamInput answerParamInputVal' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].Value' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__Value' data-index='" + currentIndex + "' required value='true' /></div>");
-        container.append("<div class='form-group col-12'> \
+        container.append("<div class='form-group col border-top pt-2 answerParamDiv' data-index='" + currentIndex + "'><br /> \
+                            <a href='#' class='answerParamDelete' data-index='" + currentIndex + "'><img src='/images/trash-2.svg' class='svg-filter-danger pt-3' /></a></div>");
+        container.append("<div class='form-group col-12 answerParamDiv' data-index='" + currentIndex + "'> \
                             <label>Message</label> \
                             <input class='form-control answerParamInput answerParamInputError' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].ErrorMessage' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__ErrorMessage' data-index='" + currentIndex + "' required /></div>");
 
@@ -258,6 +262,37 @@ $(document).ready(function () {
 
         return false;
     });
+
+    $("#modal-answer").on('click', '.answerParamDelete', function () {
+        // Get the index of the parameter to delete
+        var index = parseInt($(this).data('index'));
+
+        // Remove the divs with that index
+        $(".answerParamDiv[data-index='" + index + "']").remove();
+
+        // Starting from index+1, renumber the later ones
+        index = index + 1;
+        // Check if an element with index+1 exists
+        while ($(".answerParamDiv[data-index='" + index + "']").length > 0) {
+            // Renumber the divs
+            $(".answerParamDiv[data-index='" + index + "']").each(function () {
+                $(this).attr('data-index', index - 1);
+            });
+
+            // Fix the inputs
+            $("input.answerParamInput[data-index='" + index + "']").each(function () {
+                $(this).attr('name', $(this).attr('name').replace('AnswerParameters[' + index + ']', 'AnswerParameters[' + (index - 1) + ']'));
+                $(this).attr('id', $(this).attr('id').replace('AnswerParameters_' + index + '_', 'AnswerParameters_' + (index - 1) + '_'));
+                $(this).attr('data-index', index - 1);
+            });
+
+            // Fix the Delete link
+            var deleteLink = $(".answerParamDiv[data-index='" + (index - 1) + "'] > .answerParamDelete");
+            deleteLink.attr('data-index', index - 1);
+
+            index = index + 1;
+        }
+    })
 
     $('#questionModal').on('hidden.bs.modal', function () {
         $("#modalWaiting").show();
@@ -450,15 +485,17 @@ var populateModal = function (selectedQuestionId, challengeId, readOnly = false)
 
                             for (j = 0; j < data.answers[i].answerParameters.length; j++) {
 
-                                toAppend += "<div class='form-group col-4'> \
+                                toAppend += "<div class='form-group col-4 answerParamDiv' data-index='" + j + "'> \
                                             <label>Path</label> \
                                         <input class='form-control answerParamInput answerParamInputKey' name='QuestionToAdd.Answers[" + i + "].AnswerParameters[" + j + "].Key' id='QuestionToAdd_Answers_" + i + "_AnswerParameters_" + j + "__Key' data-index='" + j + "' required " + (readOnly ? "readonly" : "") + " /></div>";
-                                toAppend += "<div class='form-group col-4'> \
+                                toAppend += "<div class='form-group col-3 answerParamDiv' data-index='" + j + "'> \
                                             <label>Value to check</label> \
                                         <input class='form-control answerParamInput answerParamInputVal' name='QuestionToAdd.Answers[" + i + "].AnswerParameters[" + j + "].Value' id='QuestionToAdd_Answers_" + i + "_AnswerParameters_" + j + "__Value' data-index='" + j + "' required " + (readOnly ? "readonly" : "") + " /></div>";
-                                toAppend += "<div class='form-group col-4'> \
+                                toAppend += "<div class='form-group col-4 answerParamDiv' data-index='" + j + "'> \
                                             <label>Error Message</label> \
                                         <input class='form-control answerParamInput answerParamInputError' name='QuestionToAdd.Answers[" + i + "].AnswerParameters[" + j + "].ErrorMessage' id='QuestionToAdd_Answers_" + i + "_AnswerParameters_" + j + "__ErrorMessage' data-index='" + j + "' required " + (readOnly ? "readonly" : "") + " /></div>";
+                                toAppend += "<div class='form-group col pt-3 answerParamDiv' data-index='" + j + "'><br /> \
+                                                <a href='#' class='answerParamDelete' data-index='" + j + "'><img src='/images/trash-2.svg' class='svg-filter-danger' /></a></div>";
                             }
 
                             // Add a new tab content for the answer
@@ -519,13 +556,15 @@ var populateModal = function (selectedQuestionId, challengeId, readOnly = false)
 
                         for (j = 0; j < data.answers[0].answerParameters.length; j++) {
 
-                            answerContainer.append("<div class='form-group col-9 border-top pt-2'> \
+                            answerContainer.append("<div class='form-group col-9 border-top pt-2 answerParamDiv' data-index='" + j + "'> \
                                                         <label>Text</label> \
                                                         <input class='form-control answerParamInput answerParamInputKey' name='QuestionToAdd.Answers[0].AnswerParameters[" + j + "].Key' id='QuestionToAdd_Answers_0_AnswerParameters_" + j + "__Key'' data-index='" + j + "' required value='" + data.answers[0].answerParameters[j].key + "' /></div>");
-                            answerContainer.append("<div class='form-group col-3 border-top pt-2'> \
+                            answerContainer.append("<div class='form-group col-2 border-top pt-2 answerParamDiv' data-index='" + j + "'> \
                                                         <label>Correct?</label> <br />\
                                                         <input type='checkbox' data-toggle='toggle' data-size='normal' data-on='Yes' data-off='No' class='answerParamInput answerParamInputVal' name='QuestionToAdd.Answers[0].AnswerParameters[" + j + "].Value' id='QuestionToAdd_Answers_0_AnswerParameters_" + j + "__Value' data-index='" + j + "' required value='true' " + (data.answers[0].answerParameters[j].value === 'true' ? 'checked' : '') + " /></div>");
-                            answerContainer.append("<div class='form-group col-12'> \
+                            answerContainer.append("<div class='form-group col border-top pt-2 answerParamDiv' data-index='" + j + "'><br /> \
+                                                        <a href='#' class='answerParamDelete' data-index='" + j + "'><img src='/images/trash-2.svg' class='svg-filter-danger pt-3' /></a></div>");
+                            answerContainer.append("<div class='form-group col-12 answerParamDiv' data-index='" + j + "'> \
                                                         <label>Message</label> \
                                                         <input class='form-control answerParamInput answerParamInputError' name='QuestionToAdd.Answers[0].AnswerParameters[" + j + "].ErrorMessage' id='QuestionToAdd_Answers_0_AnswerParameters_" + j + "__ErrorMessage' data-index='" + j + "' required value='" + data.answers[0].answerParameters[j].errorMessage + "' /></div>");
                         }

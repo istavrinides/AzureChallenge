@@ -235,12 +235,14 @@
             </li>");
         // Add the new tab content at then end
         $("#uriTabContent").append(
-            "<div class='tab-pane fade' id='uri-" + lastIndex + "-content' role='tabpanel' aria-labelledby='uri" + lastIndex + "-tab'> \
+            "<div class='tab-pane fade' id='uri-" + lastIndex + "-content' role='tabpanel' aria-labelledby='uri-" + lastIndex + "-tab'> \
                 <input type='hidden' name='Uris["+ lastIndex + "].Id' id='Uris_" + lastIndex + "__Id' value='" + lastIndex + "' /> \
                 <div class='input-group mb-3'> \
-                    <select class='selectpicker' name='Uris["+ lastIndex + "].CallType' id='Uris_" + lastIndex + "__CallType'> \
-                        <option selected>GET</option> \
-                    </select > \
+                    <div class='input-group-prepend btn-group-toggle' data-toggle='buttons'> \
+                        <label class='btn btn-secondary'> \
+                            <input type='radio' name='Uris[" + lastIndex + "].CallType' id='Uris_" + lastIndex + "__CallType' value='GET' id='GET' autocomplete='off' checked> GET \
+                        </label> \
+                    </div> \
                     <input name='Uris["+ lastIndex + "].Uri' id='Uris_" + lastIndex + "__Uri' data-index='" + lastIndex + "' class='form-control uriinput autocomplete' /> \
                 </div > \
                 <small class='form-text text-muted'>Please enter the Uri for the API to call. Placeholders that will be replaced from below parameters should be wrapped inside curly braces {}.</small> \
