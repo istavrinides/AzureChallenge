@@ -269,6 +269,7 @@ namespace AzureChallenge.Providers
                         {
                             foreach (var answer in question.Answers[i].AnswerParameters)
                             {
+                                answer.Key = SmartFormat.Smart.Format(answer.Key.Replace("Global.", "Global_").Replace("Profile.", "Profile_"), parameters);
                                 var properties = answer.Key.Split('.').ToList();
                                 // Get and format the answer. Answers might contain parameters
                                 var answerValue = SmartFormat.Smart.Format(answer.Value.Replace("Global.", "Global_").Replace("Profile.", "Profile_"), parameters);
