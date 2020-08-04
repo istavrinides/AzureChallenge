@@ -81,7 +81,7 @@ Once created, you will need to **edit** the challenge. In the edit page, you wil
 You can also Import challenges that have been defined in the [public repo](https://github.com/istavrinides/AzureChallenge/tree/master/Exports). You can submit your exported challenge as a PR, it will be evaluated and potentially added to the repo. For custom challenge import, you will need to change the web application code so that it will point to a different location.
 
 When adding a question, you are essentially "hydrating" the question. In this phase, we are leveraging the defined question template to add the specific paramaters/placeholder values for the specific challenge/question. When adding (or editing) a question, you need to do the following in the modal that will be shown:
-- Fill in any parameter values. If a Global parameter has been defined in the Challenge parameters or defined in a previous question, that value will be used.
+- Fill in any parameter values. If a Global parameter has been defined in the Challenge parameters or defined in a previous question, that value will be used. 
 - Add answer parameters. If you don't add any, the question will be considered correct it the corresponding URI call returns an HTTP status code 200. In case where the URI returns a JSON document, you can check values within the document. To do this, the following are supported:
   - Path: 
     - A dot separated value that defines the JSON path to the desired property. For example, for the below JSON, to validate the value "myValue", you would give a path of **Path.To.Property** (case sensitive):
@@ -113,6 +113,7 @@ When adding a question, you are essentially "hydrating" the question. In this ph
         }
     }
     ```
+    - If you need to have the dot (.) present in the Path (for example, for a resource identifier, you might have something like Microsoft.Compute, which should not be splitted but kept together), replace the dot with a double star (**) (so in the previous example, you should enter Microsoft**Storage).
 
 ## Configuration
 The following values need to be set in your local development environment:

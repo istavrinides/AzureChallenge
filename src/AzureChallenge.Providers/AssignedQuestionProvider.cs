@@ -118,12 +118,12 @@ namespace AzureChallenge.Providers
                 {
                     // Prepare the uri
                     // First we need to replace the . notation for Global and Profile placeholders to _ (SmartFormat doesn't like the . notation)
-                    var formattedUri = question.Uris[i].Uri.Replace("Global.", "Global_").Replace("Profile.", "Profile_");
+                    var formattedUri = question.Uris[i].Uri.Replace("Global.", "Global_").Replace("{Profile.", "{Profile_");
                     // Then we need to concatenate all the parameters
                     parameters = parameters.Concat(profile.GetKeyValuePairs()).ToDictionary(p => p.Key, p => p.Value);
                     // Filter out the Profile. and Global. from Uri Parameters, since they don't have values anyway
-                    parameters = parameters.Concat(question.Uris[i].UriParameters.Where(p => !p.Key.StartsWith("Profile.") && !p.Key.StartsWith("Global.")).ToDictionary(p => p.Key, p => p.Value)).ToDictionary(p => p.Key, p => p.Value);
-                    parameters = parameters.Concat(question.TextParameters.Where(p => !p.Key.StartsWith("Profile.") && !p.Key.StartsWith("Global.") && !parameters.ContainsKey(p.Key)).ToDictionary(p => p.Key, p => p.Value)).ToDictionary(p => p.Key, p => p.Value);
+                    parameters = parameters.Concat(question.Uris[i].UriParameters.Where(p => !p.Key.StartsWith("{Profile.") && !p.Key.StartsWith("Global.")).ToDictionary(p => p.Key, p => p.Value)).ToDictionary(p => p.Key, p => p.Value);
+                    parameters = parameters.Concat(question.TextParameters.Where(p => !p.Key.StartsWith("{Profile.") && !p.Key.StartsWith("Global.") && !parameters.ContainsKey(p.Key)).ToDictionary(p => p.Key, p => p.Value)).ToDictionary(p => p.Key, p => p.Value);
                     formattedUri = SmartFormat.Smart.Format(formattedUri, parameters);
 
                     // Get the access token
@@ -260,7 +260,7 @@ namespace AzureChallenge.Providers
                             {
                                 var properties = answer.Key.Split('.').ToList();
                                 // Get and format the answer. Answers might contain parameters
-                                var answerValue = SmartFormat.Smart.Format(answer.Value.Replace("Global.", "Global_").Replace("Profile.", "Profile_"), parameters);
+                                var answerValue = SmartFormat.Smart.Format(answer.Value.Replace("Global.", "Global_").Replace("{Profile.", "{Profile_"), parameters);
 
                                 correctAnswers.Add(new KeyValuePair<string, bool>(answer.ErrorMessage, CheckAnswer(o, properties, answerValue, 0, properties.Count)));
                             }
@@ -269,10 +269,12 @@ namespace AzureChallenge.Providers
                         {
                             foreach (var answer in question.Answers[i].AnswerParameters)
                             {
-                                answer.Key = SmartFormat.Smart.Format(answer.Key.Replace("Global.", "Global_").Replace("Profile.", "Profile_"), parameters);
+                                answer.Key = SmartFormat.Smart.Format(answer.Key.Replace("Global.", "Global_").Replace("{Profile.", "{Profile_"), parameters);
                                 var properties = answer.Key.Split('.').ToList();
+                                // In some cases, we substitue the . for a ** so we can bypass the split condition above. So now we need to replace ** with .
+                                properties = properties.Select(p => p.Replace("**", ".")).ToList();
                                 // Get and format the answer. Answers might contain parameters
-                                var answerValue = SmartFormat.Smart.Format(answer.Value.Replace("Global.", "Global_").Replace("Profile.", "Profile_"), parameters);
+                                var answerValue = SmartFormat.Smart.Format(answer.Value.Replace("Global.", "Global_").Replace("{Profile.", "{Profile_"), parameters);
 
                                 correctAnswers.Add(new KeyValuePair<string, bool>(answer.ErrorMessage, CheckAnswer(o, properties, answerValue, 0, properties.Count)));
                             }
