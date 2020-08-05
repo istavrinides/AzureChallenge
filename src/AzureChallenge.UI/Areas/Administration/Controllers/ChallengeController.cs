@@ -366,6 +366,60 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
             }
         }
 
+        public async Task<IActionResult> RearrangeQuestion(string challengeId, string questionId, string newIndex)
+        {
+            // Get the challenge
+            var challengeResponse = await challengeProvider.GetItemAsync(challengeId);
+
+            if (challengeResponse.Item1.Success)
+            {
+                // Create a new object, in case we need to revert
+                var challenge = new ACMT.ChallengeDetails
+                {
+                    Description = challengeResponse.Item2.Description,
+                    Id = challengeResponse.Item2.Id,
+                    Name = challengeResponse.Item2.Name,
+                    Questions = challengeResponse.Item2.Questions,
+                    AzureServiceCategory = challengeResponse.Item2.AzureServiceCategory
+                };
+
+                var challengeQuestions = challenge.Questions;
+
+                // Remove the question from the list, re-index the next questions and change the pointers also
+                // First find the question question's index
+                var question = challengeQuestions.Where(p => p.Id == questionId).FirstOrDefault();
+                var questionIndex = challengeQuestions.IndexOf(question);
+                
+                // Remove the question from the old index
+                challengeQuestions.RemoveAt(questionIndex);
+
+                // Insert the question at the new index
+                challengeQuestions.Insert(int.Parse(newIndex), question);
+
+                // Fix the pointers
+                // Re-index the question and fix the pointer to the next question
+                for (int i = 0; i < challengeQuestions.Count; i++)
+                {
+                    challengeQuestions[i].Index = i;
+                    challengeQuestions[i].NextQuestionId = i + 1 == challengeQuestions.Count ? null : challengeQuestions[i + 1].Id;
+                }
+
+                // Update the challenge
+                var updateResult = await challengeProvider.AddItemAsync(challenge);
+
+                if (updateResult.Success)
+                {
+                    return Ok();
+                }
+
+                return StatusCode(500);
+            }
+            else
+            {
+                return StatusCode(500);
+            }
+        }
+
         public async Task<IActionResult> RemoveQuestion(string challengeId, string questionId)
         {
             // Get the challenge

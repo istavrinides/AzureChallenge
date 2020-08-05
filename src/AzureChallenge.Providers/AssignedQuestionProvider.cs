@@ -17,6 +17,7 @@ using AzureChallenge.Models.Profile;
 using System.Xml.Linq;
 using System.Net;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks.Dataflow;
 
 namespace AzureChallenge.Providers
 {
@@ -185,101 +186,115 @@ namespace AzureChallenge.Providers
                         return correctAnswers;
                     }
 
-                    JObject o = JObject.Parse(response.Content);
 
-                    // If we don't need to check any answers, the call was successful
-                    if (question.Answers[i].AnswerParameters == null || question.Answers[i].AnswerParameters.Count == 0)
+                    try
                     {
-                        correctAnswers.Add(new KeyValuePair<string, bool>("Call succeeded", true));
-                    }
-                    else
-                    {
+                        JObject o = JObject.Parse(response.Content);
 
-                        // Special case for RUs. We need to check the offer, and for that we need the database and collection Ids, to make sure we are checking the right collection for the RUs
-                        if (formattedUri.Contains("documents.azure.com") && formattedUri.ToLower().EndsWith("/offers"))
+                        // If we don't need to check any answers, the call was successful
+                        if (question.Answers[i].AnswerParameters == null || question.Answers[i].AnswerParameters.Count == 0)
                         {
-                            // First get the database and collection id
-                            var formattedUriForRUs = SmartFormat.Smart.Format(
-                                formattedUri.Substring(0, formattedUri.IndexOf(".documents.azure.com")) + ".documents.azure.com/dbs/{DatabaseName}/colls/{CollectionName}", parameters);
-                            // We should have a Resource Group in the uri parameters, else auth won't work
-                            var resourceGroup = question.Uris[i].UriParameters.Where(p => p.Key == "ResourceGroupName").Select(p => p.Value).FirstOrDefault();
-                            var throughput = question.Answers[i].AnswerParameters.Where(p => p.Key.Contains("offerThroughput")).Select(p => p.Value).FirstOrDefault();
-
-                            if (!string.IsNullOrWhiteSpace(throughput))
-                            {
-                                access_token = await authProvider.CosmosAuthorizeAsync(profile.GetSecretsForAuth(), formattedUriForRUs, resourceGroup);
-                                (string Content, HttpStatusCode StatusCode) responseForDBandCollIds;
-                                try
-                                {// We need to add additional headers for CosmosDb calls
-                                    additionalHeaders = new List<KeyValuePair<string, string>>();
-                                    additionalHeaders.Add(new KeyValuePair<string, string>("x-ms-date", DateTime.UtcNow.ToString("R")));
-                                    additionalHeaders.Add(new KeyValuePair<string, string>("x-ms-version", "2018-12-31"));
-
-                                    responseForDBandCollIds = await restProvider.GetAsync(formattedUriForRUs, access_token, additionalHeaders);
-
-                                    if (responseForDBandCollIds.StatusCode != HttpStatusCode.OK)
-                                    {
-                                        correctAnswers = new List<KeyValuePair<string, bool>>();
-                                        correctAnswers.Add(new KeyValuePair<string, bool>(responseForDBandCollIds.Content, false));
-                                        return correctAnswers;
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    _logger.LogError(ex.ToString());
-                                    correctAnswers = new List<KeyValuePair<string, bool>>();
-                                    correctAnswers.Add(new KeyValuePair<string, bool>("Calling one of the APIs to check your answer failed. Either the resource requested has not been created or is still being created. Try in a while.", false));
-                                    return correctAnswers;
-                                }
-
-                                dynamic json = JObject.Parse(responseForDBandCollIds.Content);
-                                var ids = json._self;
-
-                                dynamic jsonOffer = JObject.Parse(response.Content);
-                                var answerForThroughput = question.Answers[i].AnswerParameters.Where(p => p.Key.Contains("offerThroughput")).FirstOrDefault();
-                                var found = false;
-                                foreach (var j in jsonOffer.Offers)
-                                {
-                                    if (j.content.offerThroughput == throughput && j.resource == ids)
-                                    {
-                                        correctAnswers.Add(new KeyValuePair<string, bool>(answerForThroughput.ErrorMessage, true));
-                                        found = true;
-                                        break;
-                                    }
-                                }
-                                if (!found)
-                                {
-                                    correctAnswers.Add(new KeyValuePair<string, bool>(answerForThroughput.ErrorMessage, false));
-                                }
-
-                                // Remove the thoughput answer from the answer parameters to check any pending
-                                question.Answers[i].AnswerParameters.Remove(answerForThroughput);
-                            }
-
-                            foreach (var answer in question.Answers[i].AnswerParameters)
-                            {
-                                var properties = answer.Key.Split('.').ToList();
-                                // Get and format the answer. Answers might contain parameters
-                                var answerValue = SmartFormat.Smart.Format(answer.Value.Replace("Global.", "Global_").Replace("{Profile.", "{Profile_"), parameters);
-
-                                correctAnswers.Add(new KeyValuePair<string, bool>(answer.ErrorMessage, CheckAnswer(o, properties, answerValue, 0, properties.Count)));
-                            }
+                            correctAnswers.Add(new KeyValuePair<string, bool>("Call succeeded", true));
                         }
                         else
                         {
-                            foreach (var answer in question.Answers[i].AnswerParameters)
-                            {
-                                answer.Key = SmartFormat.Smart.Format(answer.Key.Replace("Global.", "Global_").Replace("{Profile.", "{Profile_"), parameters);
-                                var properties = answer.Key.Split('.').ToList();
-                                // In some cases, we substitue the . for a ** so we can bypass the split condition above. So now we need to replace ** with .
-                                properties = properties.Select(p => p.Replace("**", ".")).ToList();
-                                // Get and format the answer. Answers might contain parameters
-                                var answerValue = SmartFormat.Smart.Format(answer.Value.Replace("Global.", "Global_").Replace("{Profile.", "{Profile_"), parameters);
 
-                                correctAnswers.Add(new KeyValuePair<string, bool>(answer.ErrorMessage, CheckAnswer(o, properties, answerValue, 0, properties.Count)));
+                            // Special case for RUs. We need to check the offer, and for that we need the database and collection Ids, to make sure we are checking the right collection for the RUs
+                            if (formattedUri.Contains("documents.azure.com") && formattedUri.ToLower().EndsWith("/offers"))
+                            {
+                                // First get the database and collection id
+                                var formattedUriForRUs = SmartFormat.Smart.Format(
+                                    formattedUri.Substring(0, formattedUri.IndexOf(".documents.azure.com")) + ".documents.azure.com/dbs/{DatabaseName}/colls/{CollectionName}", parameters);
+                                // We should have a Resource Group in the uri parameters, else auth won't work
+                                var resourceGroup = question.Uris[i].UriParameters.Where(p => p.Key == "ResourceGroupName").Select(p => p.Value).FirstOrDefault();
+                                var throughput = question.Answers[i].AnswerParameters.Where(p => p.Key.Contains("offerThroughput")).Select(p => p.Value).FirstOrDefault();
+
+                                if (!string.IsNullOrWhiteSpace(throughput))
+                                {
+                                    access_token = await authProvider.CosmosAuthorizeAsync(profile.GetSecretsForAuth(), formattedUriForRUs, resourceGroup);
+                                    (string Content, HttpStatusCode StatusCode) responseForDBandCollIds;
+                                    try
+                                    {// We need to add additional headers for CosmosDb calls
+                                        additionalHeaders = new List<KeyValuePair<string, string>>();
+                                        additionalHeaders.Add(new KeyValuePair<string, string>("x-ms-date", DateTime.UtcNow.ToString("R")));
+                                        additionalHeaders.Add(new KeyValuePair<string, string>("x-ms-version", "2018-12-31"));
+
+                                        responseForDBandCollIds = await restProvider.GetAsync(formattedUriForRUs, access_token, additionalHeaders);
+
+                                        if (responseForDBandCollIds.StatusCode != HttpStatusCode.OK)
+                                        {
+                                            correctAnswers = new List<KeyValuePair<string, bool>>();
+                                            correctAnswers.Add(new KeyValuePair<string, bool>(responseForDBandCollIds.Content, false));
+                                            return correctAnswers;
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        _logger.LogError(ex.ToString());
+                                        correctAnswers = new List<KeyValuePair<string, bool>>();
+                                        correctAnswers.Add(new KeyValuePair<string, bool>("Calling one of the APIs to check your answer failed. Either the resource requested has not been created or is still being created. Try in a while.", false));
+                                        return correctAnswers;
+                                    }
+
+                                    dynamic json = JObject.Parse(responseForDBandCollIds.Content);
+                                    var ids = json._self;
+
+                                    dynamic jsonOffer = JObject.Parse(response.Content);
+                                    var answerForThroughput = question.Answers[i].AnswerParameters.Where(p => p.Key.Contains("offerThroughput")).FirstOrDefault();
+                                    var found = false;
+                                    foreach (var j in jsonOffer.Offers)
+                                    {
+                                        if (j.content.offerThroughput == throughput && j.resource == ids)
+                                        {
+                                            correctAnswers.Add(new KeyValuePair<string, bool>(answerForThroughput.ErrorMessage, true));
+                                            found = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!found)
+                                    {
+                                        correctAnswers.Add(new KeyValuePair<string, bool>(answerForThroughput.ErrorMessage, false));
+                                    }
+
+                                    // Remove the thoughput answer from the answer parameters to check any pending
+                                    question.Answers[i].AnswerParameters.Remove(answerForThroughput);
+                                }
+
+                                foreach (var answer in question.Answers[i].AnswerParameters)
+                                {
+                                    var properties = answer.Key.Split('.').ToList();
+                                    // Get and format the answer. Answers might contain parameters
+                                    var answerValue = SmartFormat.Smart.Format(answer.Value.Replace("Global.", "Global_").Replace("{Profile.", "{Profile_"), parameters);
+
+                                    correctAnswers.Add(new KeyValuePair<string, bool>(answer.ErrorMessage, CheckAnswer(o, properties, answerValue, 0, properties.Count)));
+                                }
                             }
+                            else
+                            {
+                                foreach (var answer in question.Answers[i].AnswerParameters)
+                                {
+                                    answer.Key = SmartFormat.Smart.Format(answer.Key.Replace("Global.", "Global_").Replace("{Profile.", "{Profile_"), parameters);
+                                    var properties = answer.Key.Split('.').ToList();
+                                    // In some cases, we substitue the . for a ** so we can bypass the split condition above. So now we need to replace ** with .
+                                    properties = properties.Select(p => p.Replace("**", ".")).ToList();
+                                    // Get and format the answer. Answers might contain parameters
+                                    var answerValue = SmartFormat.Smart.Format(answer.Value.Replace("Global.", "Global_").Replace("{Profile.", "{Profile_"), parameters);
+
+                                    correctAnswers.Add(new KeyValuePair<string, bool>(answer.ErrorMessage, CheckAnswer(o, properties, answerValue, 0, properties.Count)));
+                                }
+                            }
+
                         }
 
+                    }
+                    catch (Newtonsoft.Json.JsonReaderException ex)
+                    {
+                        // If we don't have a valid JSON, chances are that the return is simply our needed answer.
+                        // So if we only have one answer and they match, then return true.
+                        if(question.Answers[i].AnswerParameters.Count == 1)
+                        {
+                            correctAnswers.Add(new KeyValuePair<string, bool>(question.Answers[i].AnswerParameters[0].ErrorMessage, question.Answers[i].AnswerParameters[0].Value == response.Content));
+                        }
                     }
                 }
             }

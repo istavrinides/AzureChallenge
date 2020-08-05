@@ -1,6 +1,4 @@
-﻿var previousSelectedValue = -1;
-
-$(document).ready(function () {
+﻿$(document).ready(function () {
     $.validator.setDefaults({ ignore: '' });
     $('[data-toggle="tooltip"]').tooltip();
 
@@ -37,85 +35,22 @@ $(document).ready(function () {
             });
     })
 
-    $("#associatedQuestionsTable .indexSelector").on('focus', function () {
-        previousSelectedValue = parseInt($(this).val());
-    }).change(function () {
+    $("#associatedQuestionsTable .indexSelector").on('change', function () {
 
-        if (previousSelectedValue >= 0) {
-            // Enable the save button
-            $("#btnSave").removeAttr('disabled');
-            $("#saveAlert").removeClass("d-none");
+        $("#reArrangeModal").modal('show');
 
-            // Get the value
-            var index = parseInt($(this).val());
+        var questionId = $(this).attr('data-questionId');
+        var challengeId = $("#Id").val();
+        var newIndex = parseInt($(this).val());
 
-            // Find the select control that has this (new) value and is not this control
-            var selectToChange = $(".indexSelector option[value='" + index + "']:selected").parent().not(this);
-            $(selectToChange).val(previousSelectedValue);
-
-            // Swap the rows. First will be the one with the smallest original index
-            var firstRow, secondRow;
-            if (previousSelectedValue < index) {
-                firstRow = $(this).closest('tr');
-                secondRow = $(selectToChange).closest('tr');
-            }
-            else {
-                firstRow = $(selectToChange).closest('tr');
-                secondRow = $(this).closest('tr');
-            }
-
-
-            var firstRowNQId = $(firstRow).find(".nextQuestionId").val();
-            var secondRowNQId = $(secondRow).find(".nextQuestionId").val();
-
-
-            // Check if they are adjacent.
-            if ($(firstRow).next('tr').is($(secondRow))) {
-                // Swap the rows
-                $(firstRow).insertAfter($(secondRow));
-
-                // Fix the NextQuestionIds
-                $(firstRow).find(".nextQuestionId").val(secondRowNQId);
-                $(secondRow).find(".nextQuestionId").val($(firstRow).find(".questionId").val());
-
-            }
-            // Check if the first row is the top most row
-            else if ($(firstRow).prev('tr').length === 0) {
-                // Get the row below the first one (none above)
-                var belowFirst = $(firstRow).prev('tr');
-                // Get the row above and below the second one
-                var aboveSecond = $(secondRow).prev('tr');
-                var belowSecond = $(secondRow).next('tr');
-
-                // Second row goes above the first
-                $(secondRow).insertBefore($(firstRow));
-                // First row goes below the aboveSecond
-                $(firstRow).insertAfter($(aboveSecond));
-
-                // Fix the NextQuestionIds
-                $(secondRow).find(".nextQuestionId").val(firstRowNQId);
-                $(aboveSecond).find(".nextQuestionId").val($(firstRow).find(".questionId").val());
-                $(firstRow).find(".nextQuestionId").val(secondRowNQId);
-            }
-            else {
-                // Get the row above the first and second row
-                var aboveFirst = $(firstRow).prev('tr');
-                var aboveSecond = $(secondRow).prev('tr');
-
-                // Second row goes above the aboveFirst
-                $(secondRow).insertAfter($(aboveFirst));
-                // First row goes below the aboveSecond
-                $(firstRow).insertAfter($(aboveSecond));
-
-                // Fix the NextQuestionIds
-                $(secondRow).find(".nextQuestionId").val(firstRowNQId);
-                $(aboveSecond).find(".nextQuestionId").val($(firstRow).find(".questionId").val());
-                $(firstRow).find(".nextQuestionId").val(secondRowNQId);
-                $(aboveFirst).find(".nextQuestionId").val($(secondRow).find(".questionId").val());
-            }
-
-            previousSelectedValue = -1;
-        }
+        $.get("/Administration/Challenge/RearrangeQuestion?questionId=" + questionId + "&challengeId=" + challengeId + "&newIndex=" + newIndex)
+            .done(function (data) {
+                location.reload();
+            })
+            .fail(function () {
+                $("#reArrangeModal").modal('hide');
+                window.alert("Could not re-arrange the question, an internal error occured. Please try again later.");
+            });
     });
 
     $("#associatedQuestionsTable .tableLinkEdit").on('click', function () {
@@ -608,6 +543,7 @@ var populateModalAddNew = function (selectedQuestionId, challengeId) {
             $("#QuestionToAdd_Difficulty").val(data.difficulty);
             $("#QuestionToAdd_Description").val(data.description);
             $("#QuestionToAdd_ChallengeId").val(challengeId);
+            $("#QuestionToAdd_Id").val("");
             $("#QuestionToAdd_Justification").val(data.justification);
             $("#QuestionToAdd_QuestionType").val(data.questionType);
 
