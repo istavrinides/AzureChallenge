@@ -282,7 +282,7 @@ var populateModal = function (selectedQuestionId, challengeId, readOnly = false)
             $("#QuestionToAdd_Text").val(data.text);
             if (readOnly)
                 $("#QuestionToAdd_Text").addClass('d-none');
-            $("#QuestionToAdd_AssociatedQuestionId").val(data.id);
+            $("#QuestionToAdd_AssociatedQuestionId").val(data.id === selectedQuestionId ? data.associatedQuestionId : data.id);
             $("#QuestionToAdd_Name").val(data.name);
             $("#QuestionToAdd_TargettedAzureService").val(data.targettedAzureService);
             $("#QuestionToAdd_Difficulty").val(data.difficulty);
@@ -784,7 +784,7 @@ var populatePreview = function () {
         var paramValue = $(this).val();
 
         if (paramValue)
-            text = text.replace(paramKey, paramValue);
+            text = text.replace(new RegExp(paramKey, 'g'), paramValue);
     })
 
     $("#textParamsPreview").text(text);

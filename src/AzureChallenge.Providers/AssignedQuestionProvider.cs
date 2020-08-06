@@ -133,7 +133,16 @@ namespace AzureChallenge.Providers
                     {
                         // Do a regular auth if not for Cosmos
                         if (!formattedUri.Contains("documents.azure.com"))
-                            access_token = await authProvider.AzureAuthorizeAsync(profile.GetSecretsForAuth());
+                        {
+                            if (formattedUri.Contains("vault.azure.net"))
+                            {
+                                access_token = await authProvider.AzureAuthorizeV2Async(profile.GetSecretsForAuth(formattedUri));
+                            }
+                            else
+                            {
+                                access_token = await authProvider.AzureAuthorizeAsync(profile.GetSecretsForAuth(formattedUri));
+                            }
+                        }
                         else
                         {
                             // We should have a Resource Group in the uri parameters, else auth won't work

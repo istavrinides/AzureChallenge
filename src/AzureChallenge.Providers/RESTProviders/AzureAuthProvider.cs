@@ -37,6 +37,24 @@ namespace AzureChallenge.Providers.RESTProviders
             return json.access_token;
         }
 
+        /// <summary>
+        /// Authorizes the current session and get an access token back
+        /// </summary>
+        /// <param name="secrets">A list of KeyValue pais that contain the ClientId, ClientSecret, SubscriptionId and TenantId</param>
+        /// <returns>The access token</returns>
+        public async Task<string> AzureAuthorizeV2Async(IEnumerable<KeyValuePair<string, string>> secrets)
+        {
+            // Azure API Authorization flow
+            var tenantId = secrets.Where(p => p.Key == "TenantId").Select(p => p.Value).FirstOrDefault();
+            var authUri = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
+
+            var response = await restProvider.PostAsync(authUri, secrets, IRESTProvider.ContentType.FormUrlEncoded);
+
+            dynamic json = JObject.Parse(response);
+
+            return json.access_token;
+        }
+
         public async Task<string> CosmosAuthorizeAsync(IEnumerable<KeyValuePair<string, string>> secrets, string uri, string resourceGroup = "")
         {
             // We need to get the account name

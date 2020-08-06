@@ -8,6 +8,7 @@ namespace AzureChallenge.Interfaces.Providers.REST
     public interface IAzureAuthProvider
     {
         public Task<string> AzureAuthorizeAsync(IEnumerable<KeyValuePair<string, string>> secrets);
+        public Task<string> AzureAuthorizeV2Async(IEnumerable<KeyValuePair<string, string>> secrets);
         public Task<string> CosmosAuthorizeAsync(IEnumerable<KeyValuePair<string, string>> secrets, string uri, string resourceGroup = "");
     }
 }
