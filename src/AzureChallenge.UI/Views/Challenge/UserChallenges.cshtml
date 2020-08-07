@@ -3,56 +3,65 @@
     ViewData["Title"] = "My Challenges";
 }
 
-<h1>@ViewData["Title"]</h1>
+<h3>@ViewData["Title"]</h3>
 <hr />
 
-<form>
-    <div class="container">
-        <table class="table table-responsive-md table-hover">
-            <thead class="thead-dark">
-                <tr>
-                    <th style="width:16.67%">
-                        @Html.DisplayNameFor(model => model.Challenges[0].Name)
-                    </th>
-                    <th style="width:66.67%">
-                        @Html.DisplayNameFor(model => model.Challenges[0].Description)
-                    </th>
-                    <th style="width:16.66%"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var q in Model.Challenges)
+<div class="container">
+
+    <div class="row">
+        <div class="col-md-12">
+            @for (int i = 0; i < Model.Challenges.Count(); i++)
+            {
+                if (i % 2 == 0)
                 {
-                    <tr>
-                        <td>
-                            @q.Name
-                        </td>
-                        <td>
-                            @q.Description
-                        </td>
-                        <td>
-                            @if (q.IsComplete)
+                    @Html.Raw("<div class='row'>")
+                }
+
+                <div class="col-md-6 card-div-category" data-category="@Model.Challenges[i].AzureCategory">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="float-left">@Model.Challenges[i].Name</h5>
+                            <span class="badge badge-secondary mt-1 float-right">@Model.Challenges[i].AzureCategory</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                @Model.Challenges[i].Description
+                            </p>
+                        </div>
+                        <div class="card-footer">
+                            @if (Model.Challenges[i].IsComplete)
                             {
                                 <span class="text-success">Completed</span>
                             }
-                            else if (q.IsUnderway)
+                            else if (Model.Challenges[i].IsUnderway)
                             {
-                                <a asp-action="StartChallenge" asp-controller="Challenge" asp-route-challengeId="@q.Id" asp-route-questionId="@q.CurrentQuestionId">Continue (@q.CurrentQuestionIndex of @q.TotalQuestions)</a>
+                                <a asp-action="StartChallenge" asp-controller="Challenge" asp-route-challengeId="@Model.Challenges[i].Id" asp-route-questionId="@Model.Challenges[i].CurrentQuestionId">Continue</a>
                             }
                             else
                             {
-                                <a asp-action="StartChallenge" asp-controller="Challenge" asp-route-challengeId="@q.Id" asp-route-questionId="@q.CurrentQuestionId">Start</a>
+                                <a asp-action="StartChallenge" asp-controller="Challenge" asp-route-challengeId="@Model.Challenges[i].Id" asp-route-questionId="@Model.Challenges[i].CurrentQuestionId">Start</a>
                             }
-                        </td>
-                    </tr>
+                        </div>
+                    </div>
+                </div>
+
+                if (i % 2 == 1)
+                {
+                    @Html.Raw("</div>")
                 }
-            </tbody>
-        </table>
+            }
+        </div>
     </div>
-</form>
+</div>
 
 @section Scripts
 {
     <partial name="_ValidationScriptsPartial" />
+    <environment include="Development">
+        <script src="~/js/azurechallenge.challenge.index.js"></script>
+    </environment>
+    <environment exclude="Development">
+        <script src="~/js/azurechallenge.challenge.index.min.js"></script>
+    </environment>
 
 }

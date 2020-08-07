@@ -80,15 +80,23 @@
         $("#modalWaitingImport").removeClass('d-none');
         $("#modalInputImport").addClass('d-none');
 
-        $.post('/Administration/Challenge/ImportChallenge?uri=' + $("#fileSelector").val())
-            .done(function () {
-                location.reload(true);
-            })
-            .fail(function () {
-                alert("Challenge could not be imported.");
-                $("#importModal").modal('hide');
-            });
-
+        $.ajax({
+            type: "POST",
+            url: '/Administration/Challenge/ImportChallenge?uri=' + $("#fileSelector").val(),
+            statusCode: {
+                200: function () {
+                    location.delay().reload(true);
+                },
+                409: function () {
+                    alert("Challenge could not be imported - already exists.");
+                    $("#importModal").modal('hide');
+                },
+                500: function () {
+                    alert("Challenge could not be imported - an error occured.");
+                    $("#importModal").modal('hide');
+                }
+            }
+        });
     });
 
     $("#btnModalAdd").click(function () {

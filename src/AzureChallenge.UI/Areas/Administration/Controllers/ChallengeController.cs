@@ -889,7 +889,14 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                         var qDoc = JsonConvert.DeserializeObject<ACMQ.Question>(await qSR.ReadToEndAsync());
                                         // Need to assigned owner
                                         qDoc.Owner = User.Identity.Name;
-                                        await questionProvider.AddItemAsync(qDoc);
+
+                                        // Check if we already have this one defined (same id). if so, don't allow import
+                                        var doesQuestionExist = await questionProvider.GetItemAsync(qDoc.Id);
+
+                                        if (!doesQuestionExist.Item1.Success)
+                                        {
+                                            await questionProvider.AddItemAsync(qDoc);
+                                        }
                                     }
                                 }
                             }

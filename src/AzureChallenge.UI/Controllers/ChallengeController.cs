@@ -281,6 +281,8 @@ namespace AzureChallenge.UI.Controllers
                 }
                 else
                 {
+                    // The user already has done some challenges
+                    // If this is new, then add the userChallenge and update the Aggregate
                     if (!userChallengeResponse.Item2.Challenges.Any(p => p.ChallengeId == challengeId))
                     {
                         userChallengeResponse.Item2.Challenges
@@ -295,6 +297,32 @@ namespace AzureChallenge.UI.Controllers
                                NumOfQuestions = challengeResponse.Item2.Questions.Count()
                            });
                         await userChallengesProvider.AddItemAsync(userChallengeResponse.Item2);
+
+                        if (aggregateReponse.Item1.Success)
+                        {
+                            var agg =
+                               aggregateReponse.Item2 ??
+                               new ACMA.Aggregate()
+                               {
+                                   Id = challengeId,
+                                   ChallengeUsers = new ACMA.ChallengeAggregateUsers() { Finished = 0, Started = 0 }
+                               };
+
+                            agg.ChallengeUsers.Started += 1;
+                            await aggregateProvider.AddItemAsync(agg);
+                        }
+                        else
+                        {
+                            // Doesn't exist
+                            var agg = new ACMA.Aggregate()
+                            {
+                                Id = challengeId,
+                                ChallengeUsers = new ACMA.ChallengeAggregateUsers() { Finished = 0, Started = 0 }
+                            };
+
+                            agg.ChallengeUsers.Started += 1;
+                            await aggregateProvider.AddItemAsync(agg);
+                        }
                     }
                 }
 
