@@ -29,7 +29,7 @@ Based on the out-of-the-box experience provided by MVC Core, some minor function
 - The backed has been kept as an Azure SQL Database
 
 ### Question templates
-To keep the system as customizable as possible, questions are created in the system as templates. The following information is required when adding a new Question Template:
+To keep the system as customizable as possible, questions are created in the system as templates. There are two types of question supported: API-based questions (call Azure-related REST APIs to validate the user's actions) and Multiple Choice questions. The following information is required when adding a new Question Template:
 - **Name**
 - **Description**
 - **Targetted Azure Service**: allows for grouping questions
@@ -47,8 +47,8 @@ To keep the system as customizable as possible, questions are created in the sys
   - **Local**: Any other placeholder. These are applied (as a value) only at the current question level
 - **Justification**: Message to show if the user successfully answers the question. Serves as a way to offer an explanation, usefulness etc.
 - **Useful links**: List of URLs that could help the user answer the question.
-- **Uri endpoints to call**: A list of URI's the backed will call to validate the question. URIs can be parameterized with placeholders exactly in the same manner as the question text.
-- **Requires elevated (Contributor) access to the resource**: The Service Principal used has Read access (at the level the user will assign this). Some APIs require Contributor access. Setting this will show a warning to the user in the question screen so that they can set the permission correctly.
+- **Uri endpoints to call**: *Only for API-Based questions*. A list of URI's the backed will call to validate the question. URIs can be parameterized with placeholders exactly in the same manner as the question text.
+- **Requires elevated (Contributor) access to the resource**: *Only for API-based questions*. The Service Principal used has Read access (at the level the user will assign this). Some APIs require Contributor access. Setting this will show a warning to the user in the question screen so that they can set the permission correctly.
 
 ### Challenges
 Challenges is the way we define
@@ -113,7 +113,7 @@ When adding a question, you are essentially "hydrating" the question. In this ph
         }
     }
     ```
-    - If you need to have the dot (.) present in the Path (for example, for a resource identifier, you might have something like Microsoft.Compute, which should not be splitted but kept together), replace the dot with a double star (**) (so in the previous example, you should enter Microsoft**Storage).
+    - If you need to have the dot (.) present in the Path (for example, for a resource identifier, you might have something like *Microsoft.Compute*, which should not be splitted but kept together), replace the dot with a double star (\*\*) (so in the previous example, you should enter *Microsoft\*\*Compute*).
 
 ## Configuration
 The following values need to be set in your local development environment:
