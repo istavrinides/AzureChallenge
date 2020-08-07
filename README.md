@@ -82,38 +82,47 @@ You can also Import challenges that have been defined in the [public repo](https
 
 When adding a question, you are essentially "hydrating" the question. In this phase, we are leveraging the defined question template to add the specific paramaters/placeholder values for the specific challenge/question. When adding (or editing) a question, you need to do the following in the modal that will be shown:
 - Fill in any parameter values. If a Global parameter has been defined in the Challenge parameters or defined in a previous question, that value will be used. 
-- Add answer parameters. If you don't add any, the question will be considered correct it the corresponding URI call returns an HTTP status code 200. In case where the URI returns a JSON document, you can check values within the document. To do this, the following are supported:
-  - Path: 
-    - A dot separated value that defines the JSON path to the desired property. For example, for the below JSON, to validate the value "myValue", you would give a path of **Path.To.Property** (case sensitive):
-    ```    
-    {
-        "Path": {
-            "To": {
-                "Property": "myValue"
+- Add answer parameters. If you don't add any, the question will be considered correct it the corresponding URI call returns an HTTP status code 200.
+  - Answer parameters for URI-based question require the following: 
+    - **Path** (JSON path to the property to check - see below)
+    - **Value to check**: The value of the JSON property that needs to be true for the answer to be valid
+    - **Error Message**: What the user will see if the value is incorrect.
+  - Answer parameters for Mutliple Choice questions require the following:
+    - **Text**: The option text
+    - **Correct?**: If the option is correct or not. If only one of the options is correct, the whole list will be rendered as a radio button list. If more than one is correct, the whole list will be rendered as a checkbox list.
+    - **Error Message**: What the user will see if the value is incorrect.
+  - In case where the URI returns a JSON document, you can check values within the document. To do this, the following are supported:
+    - Path: 
+      - A dot separated value that defines the JSON path to the desired property. For example, for the below JSON, to validate the value "myValue", you would give a path of **Path.To.Property** (case sensitive):
+        ```    
+        {
+            "Path": {
+                "To": {
+                    "Property": "myValue"
+                }
             }
         }
-    }
-    ```
-    - A dot separated value with square brackets to denote a specific value in an array for a specific property. For example, for the below JSON, you would provide a path of **Path.To.Property[Name=Name2].MyProperty** and check the value **Value**
-    ```    
-    {
-        "Path": {
-            "To": {
-                "Property": [
-                    {
-                        "Name": "Name1",
-                        "MyProperty": "SomeValue"
-                    },
-                    {
-                        "Name": "Name2",
-                        "MyProperty": "Value"
-                    }
-                ]
+        ```
+        - A dot separated value with square brackets to denote a specific value in an array for a specific property. For example, for the below JSON, you would provide a path of **Path.To.Property[Name=Name2].MyProperty** and check the value **Value**
+        ```    
+        {
+            "Path": {
+                "To": {
+                    "Property": [
+                        {
+                            "Name": "Name1",
+                            "MyProperty": "SomeValue"
+                        },
+                        {
+                            "Name": "Name2",
+                            "MyProperty": "Value"
+                        }
+                    ]
+                }
             }
         }
-    }
-    ```
-    - If you need to have the dot (.) present in the Path (for example, for a resource identifier, you might have something like *Microsoft.Compute*, which should not be splitted but kept together), replace the dot with a double star (\*\*) (so in the previous example, you should enter *Microsoft\*\*Compute*).
+        ```
+      - If you need to have the dot (.) present in the Path (for example, for a resource identifier, you might have something like *Microsoft.Compute*, which should not be splitted but kept together), replace the dot with a double star (\*\*) (so in the previous example, you should enter *Microsoft\*\*Compute*).
 
 ## Configuration
 The following values need to be set in your local development environment:
