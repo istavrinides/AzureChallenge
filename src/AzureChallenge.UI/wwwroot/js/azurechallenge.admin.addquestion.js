@@ -6,6 +6,9 @@
     var suggestionList = [];
     $('[data-toggle="tooltip"]').tooltip();
 
+    $("input,textarea").on('input', function () {
+        window.onbeforeunload = function () { return true;}
+    })
 
     profileParams.forEach(function (item) {
         allParams.push(item);
@@ -88,6 +91,10 @@
     })
 
     $("#uriTabContent").on('input', '.uriinput', function () {
+
+        var indexOfHttps = $(this).val().toLowerCase().indexOf("https://");
+        $(this).val($(this).val().substring(indexOfHttps));
+
         var uriParameters = $(this).val().match(/\{([^}]+)\}/g);
 
         if (!uriParameters || uriParameters.some(param => param.slice(1, -1).includes('{') || param.slice(1, -1).includes('}')))
@@ -291,6 +298,9 @@
                         <a href='" + newLink + "' style='color:#fff !important'>" + newLink + "</a>&nbsp; \
                         <span class='badge badge-danger deleteLink' style='cursor:pointer' data-index='" + newIndex + "'>&times</span> \
                     </span>");
+
+        // Clear the input
+        $("#inputNewLink").val("");
 
     });
 
