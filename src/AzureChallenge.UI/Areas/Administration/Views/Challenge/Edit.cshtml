@@ -44,6 +44,12 @@
     <input type="hidden" asp-for="Name" />
     <input type="hidden" asp-for="IsLocked" />
     <input type="hidden" asp-for="AzureServiceCategory" />
+    <input type="hidden" asp-for="Duration" />
+    <input type="hidden" asp-for="WelcomeMessage" />
+    @for(int i = 0; i< Model.PrereqLinks?.Count; i++)
+    {
+        <input type="hidden" asp-for="@Model.PrereqLinks[i]" />
+    }
     <div class="form-group row">
         <div class="col-md-12">
             <label class="pr-2" asp-for="IsPublic"></label>

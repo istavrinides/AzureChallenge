@@ -22,6 +22,19 @@ namespace AzureChallenge.UI.Models.ChallengeViewModels
         public bool IsComplete { get; set; }
         public bool IsUnderway { get; set; }
         public string AzureCategory { get; set; }
+        public string WelcomeMessage { get; set; }
+        public List<string> PrereqLinks { get; set; }
+        public int Duration { get; set; }
+    }
+
+    public class IntroductionViewModel
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string WelcomeMessage { get; set; }
+        public int Duration { get; set; }
+        public List<string> PrereqLinks { get; set; }
+        public string FirstQuestion { get; set; }
     }
 
     public class QuestionViewModel
@@ -43,6 +56,7 @@ namespace AzureChallenge.UI.Models.ChallengeViewModels
         public string WarningMessage { get; set; }
         public List<(string Text, bool Value, bool Selected)> Choices { get; set; }
         public string SelectedRBChoice { get; set; }
+        public int TimeLeftInSeconds { get; set; }
     }
 
     public class ValidateQuestionViewModel

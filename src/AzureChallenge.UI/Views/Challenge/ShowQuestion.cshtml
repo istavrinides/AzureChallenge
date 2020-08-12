@@ -8,6 +8,10 @@
     var user = await UserManager.GetUserAsync(User);
     var userId = user?.Id;
 }
+<div class="text-right font-weight-bold">
+    Time left: <span id="timeLeft"></span>
+    <input type="hidden" asp-for="TimeLeftInSeconds" />
+</div>
 @if (Model.ShowWarning)
 {
     <div class="alert alert-danger text-center" role="alert">

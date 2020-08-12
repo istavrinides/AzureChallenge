@@ -1,0 +1,46 @@
+﻿@model AzureChallenge.UI.Models.ChallengeViewModels.IntroductionViewModel
+
+@{
+    ViewData["Title"] = "Challenge Introduction";
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+
+<div class="form-group">
+    <div class="col-md-12">
+        @Model.WelcomeMessage
+    </div>
+</div>
+@if (Model.PrereqLinks?.Count > 0)
+{
+    <hr />
+    <div class="form-group">
+        <div class="col-md-12">
+            The below content (linked) is considered a prerequisite for this Challenge. We would encourage you to go through the material before starting the Challenge.
+        </div>
+    </div>
+    <div class="form-group">
+        @foreach (var link in Model.PrereqLinks)
+        {
+            <div class="col-md-12 pl-4">
+                <a href="@link" target="_blank">@link</a>
+            </div>
+        }
+    </div>
+    @if (Model.Duration > 0)
+    {
+        <br />
+        <div class="form-group">
+            <div class="col-md-12">
+                This Challenge is timed. Once you start the Challenge, you will have @Model.Duration minutes to complete it.
+            </div>
+        </div>
+    }
+}
+<div class="pt-4 text-center text-success font-weight-bold">
+    We hope you have a great time with this Challenge and enjoy the learning experience!
+</div>
+<div class="pt-4 text-center">
+    <button class="btn btn-success" onclick='window.location.href="@Url.Action("ShowQuestion", "Challenge", new { challengeId = Model.Id, questionId = Model.FirstQuestion })"'>Start the Challenge!</button>
+</div>

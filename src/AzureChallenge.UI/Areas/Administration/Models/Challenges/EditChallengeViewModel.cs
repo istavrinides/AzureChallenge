@@ -41,6 +41,10 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
             public string UserNameHashed { get; set; }
             public string TenantId { get; set; }
         }
+        public string WelcomeMessage { get; set; }
+        public List<string> PrereqLinks { get; set; }
+
+        public int Duration { get; set; }
     }
 
     public class ChallengeQuestion

@@ -116,6 +116,31 @@ $(document).ready(function () {
         });
     });
 
+    var countDown = function () {
+
+        var timeleft = $("#TimeLeftInSeconds").val() - 1;
+        $("#TimeLeftInSeconds").val(timeleft);
+
+        var hours = Math.floor(((timeleft * 1000) % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var minutes = Math.floor(((timeleft * 1000) % (1000 * 60 * 60)) / (1000 * 60));
+        var seconds = Math.floor(((timeleft * 1000) % (1000 * 60)) / 1000);
+
+        var timeString = ('0' + hours).slice(-2) + ':' + ('0' + minutes).slice(-2) + ':' + ('0' + seconds).slice(-2);
+
+        $("#timeLeft").text(timeString);
+
+        // If we have 30 minutes remaining
+        if (timeleft < 1800)
+            $("#timeLeft").addClass('text-warning');
+        // If we have 10 minutes remaining
+        if (timeleft < 600)
+            $("#timeLeft").addClass('text-danger');
+
+    };
+
+    countDown();
+    setInterval(countDown, 1000);
+
 });
 
 

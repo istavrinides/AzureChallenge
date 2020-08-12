@@ -146,7 +146,10 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     TenantId = userProfile.TenantId,
                     UserNameHashed = userProfile.UserNameHashed()
                 },
-                AzureServiceCategory = challenge.Item2.AzureServiceCategory
+                AzureServiceCategory = challenge.Item2.AzureServiceCategory,
+                Duration = challenge.Item2.Duration,
+                PrereqLinks = challenge.Item2.PrereqLinks,
+                WelcomeMessage = challenge.Item2.WelcomeMessage
             };
 
             foreach (var q in questions.Item2)
@@ -230,7 +233,10 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Id = inputModel.Id,
                     Name = inputModel.Name,
                     Questions = challengeQuestions,
-                    AzureServiceCategory = inputModel.AzureServiceCategory
+                    AzureServiceCategory = inputModel.AzureServiceCategory,
+                    WelcomeMessage = inputModel.WelcomeMessage,
+                    Duration = inputModel.Duration,
+                    PrereqLinks = inputModel.PrereqLinks
                 };
 
                 // Check if this is an update to an existing challenge question
@@ -380,7 +386,10 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Id = challengeResponse.Item2.Id,
                     Name = challengeResponse.Item2.Name,
                     Questions = challengeResponse.Item2.Questions,
-                    AzureServiceCategory = challengeResponse.Item2.AzureServiceCategory
+                    AzureServiceCategory = challengeResponse.Item2.AzureServiceCategory,
+                    WelcomeMessage = challengeResponse.Item2.WelcomeMessage,
+                    Duration = challengeResponse.Item2.Duration,
+                    PrereqLinks = challengeResponse.Item2.PrereqLinks
                 };
 
                 var challengeQuestions = challenge.Questions;
@@ -389,7 +398,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 // First find the question question's index
                 var question = challengeQuestions.Where(p => p.Id == questionId).FirstOrDefault();
                 var questionIndex = challengeQuestions.IndexOf(question);
-                
+
                 // Remove the question from the old index
                 challengeQuestions.RemoveAt(questionIndex);
 
@@ -434,7 +443,10 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Id = challengeResponse.Item2.Id,
                     Name = challengeResponse.Item2.Name,
                     Questions = challengeResponse.Item2.Questions,
-                    AzureServiceCategory = challengeResponse.Item2.AzureServiceCategory
+                    AzureServiceCategory = challengeResponse.Item2.AzureServiceCategory,
+                    WelcomeMessage = challengeResponse.Item2.WelcomeMessage,
+                    Duration = challengeResponse.Item2.Duration,
+                    PrereqLinks = challengeResponse.Item2.PrereqLinks
                 };
 
                 var challengeQuestions = challenge.Questions;
@@ -548,7 +560,10 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                           Name = p.Name,
                                           NextQuestionId = p.NextQuestionId
                                       }).ToList(),
-                AzureServiceCategory = inputModel.AzureServiceCategory
+                AzureServiceCategory = inputModel.AzureServiceCategory,
+                WelcomeMessage = inputModel.WelcomeMessage,
+                Duration = inputModel.Duration,
+                PrereqLinks = inputModel.PrereqLinks
             };
 
             var updateResult = await challengeProvider.AddItemAsync(challenge);
@@ -601,7 +616,10 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 Id = Guid.NewGuid().ToString(),
                 Name = inputModel.Name,
                 Questions = new List<ACMQ.QuestionLite>(),
-                AzureServiceCategory = inputModel.AzureServiceCategory
+                AzureServiceCategory = inputModel.AzureServiceCategory,
+                Duration = inputModel.Duration,
+                WelcomeMessage = inputModel.WelcomeMessage,
+                PrereqLinks = inputModel.PrereqLinks
             };
 
             var response = await challengeProvider.AddItemAsync(challenge);
@@ -918,7 +936,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         public async Task<IActionResult> Analytics(string challengeId)
         {
             var aggregatesReponse = await aggregateProvider.GetItemAsync(challengeId);
-            var model = new AnalyticsTournamentViewModel() { ChallengeId = challengeId };
+            var model = new AnalyticsChallengeViewModel() { ChallengeId = challengeId };
 
             if (aggregatesReponse.Item1.Success)
             {
