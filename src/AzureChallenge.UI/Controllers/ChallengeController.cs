@@ -418,7 +418,7 @@ namespace AzureChallenge.UI.Controllers
                 model.QuestionName = challengeQuestion.Name;
                 model.TournamentName = challengeResponse.Item2.Name;
                 model.ChallengeId = challengeId;
-                model.TimeLeftInSeconds = challengeResponse.Item2.Duration * 60 - (int)((DateTime.Now.ToUniversalTime() - userChallenge.StartTimeUTC).TotalSeconds);
+                model.TimeLeftInSeconds = challengeResponse.Item2.Duration == 0 ? 0 : challengeResponse.Item2.Duration * 60 - (int)((DateTime.Now.ToUniversalTime() - userChallenge.StartTimeUTC).TotalSeconds);
                 if (question.QuestionType == "MultiChoice")
                 {
                     model.Choices = question.Answers[0].AnswerParameters.Select(a => (a.Key, bool.Parse(a.Value), false)).ToList();

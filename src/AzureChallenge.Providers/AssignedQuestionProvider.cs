@@ -328,6 +328,10 @@ namespace AzureChallenge.Providers
                     else
                         correctAnswers.Add(new KeyValuePair<string, bool>(answer.Key + "#*#*#" + answer.ErrorMessage, false));
                 }
+                else if(!UserChoices.Exists(p => p == answer.Key) && bool.Parse(answer.Value))
+                {
+                    correctAnswers.Add(new KeyValuePair<string, bool>("WrongChoiceCombo", false));
+                }
                 else
                 {
                     correctAnswers.Add(new KeyValuePair<string, bool>(answer.ErrorMessage, true));

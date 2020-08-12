@@ -47,7 +47,8 @@ $(document).ready(function () {
         $("#checkModalWaiting").show();
         $("#checkModalContent").addClass('d-none');
         $("#justification").addClass('d-none');
-        $("#checkModal").modal('show');
+        if (questionType === "API")
+            $("#checkModal").modal('show');
 
         $.post("/Challenge/ValidateQuestion",
             {
@@ -68,6 +69,8 @@ $(document).ready(function () {
             $("#checkModalContent").removeClass('d-none');
             $(".mc-message-div").addClass('d-none');
             $(".mc-justification").addClass('d-none');
+            $(".mc-more-to-check").addClass('d-none');
+            $(".mc-correct").addClass('d-none');
 
             if (questionType === "API") {
                 if (data.filter(e => e.Value === false).length > 0) {
@@ -105,7 +108,11 @@ $(document).ready(function () {
                 if (data.filter(e => e.Value === false).length === 0) {
                     $(".mc-justification").removeClass('d-none');
                     $("#btnNext").removeAttr('disabled');
+                    $(".mc-correct").removeClass('d-none');
                     connection.invoke("SendQuestionCompletionToGroup", $("#userId").val(), challengeId, questionIndex).catch(err => console.error(err));
+                }
+                else if (data.filter(e => e.Value === false && e.Key != "WrongChoiceCombo").length === 0) {
+                    $(".mc-more-to-check").removeClass('d-none');
                 }
             }
         }).fail(function () {
@@ -116,30 +123,33 @@ $(document).ready(function () {
         });
     });
 
-    var countDown = function () {
+    if ($("#TimeLeftInSeconds").val() > 0) {
+        var countDown = function () {
 
-        var timeleft = $("#TimeLeftInSeconds").val() - 1;
-        $("#TimeLeftInSeconds").val(timeleft);
 
-        var hours = Math.floor(((timeleft * 1000) % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        var minutes = Math.floor(((timeleft * 1000) % (1000 * 60 * 60)) / (1000 * 60));
-        var seconds = Math.floor(((timeleft * 1000) % (1000 * 60)) / 1000);
+            var timeleft = $("#TimeLeftInSeconds").val() - 1;
+            $("#TimeLeftInSeconds").val(timeleft);
 
-        var timeString = ('0' + hours).slice(-2) + ':' + ('0' + minutes).slice(-2) + ':' + ('0' + seconds).slice(-2);
+            var hours = Math.floor(((timeleft * 1000) % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor(((timeleft * 1000) % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor(((timeleft * 1000) % (1000 * 60)) / 1000);
 
-        $("#timeLeft").text(timeString);
+            var timeString = ('0' + hours).slice(-2) + ':' + ('0' + minutes).slice(-2) + ':' + ('0' + seconds).slice(-2);
 
-        // If we have 30 minutes remaining
-        if (timeleft < 1800)
-            $("#timeLeft").addClass('text-warning');
-        // If we have 10 minutes remaining
-        if (timeleft < 600)
-            $("#timeLeft").addClass('text-danger');
+            $("#timeLeft").text(timeString);
 
-    };
+            // If we have 30 minutes remaining
+            if (timeleft < 1800)
+                $("#timeLeft").addClass('text-warning');
+            // If we have 10 minutes remaining
+            if (timeleft < 600)
+                $("#timeLeft").addClass('text-danger');
 
-    countDown();
-    setInterval(countDown, 1000);
+        };
+
+        countDown();
+        setInterval(countDown, 1000);
+    }
 
 });
 
