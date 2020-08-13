@@ -300,7 +300,7 @@ namespace AzureChallenge.Providers
                     {
                         // If we don't have a valid JSON, chances are that the return is simply our needed answer.
                         // So if we only have one answer and they match, then return true.
-                        if(question.Answers[i].AnswerParameters.Count == 1)
+                        if (question.Answers[i].AnswerParameters.Count == 1)
                         {
                             correctAnswers.Add(new KeyValuePair<string, bool>(question.Answers[i].AnswerParameters[0].ErrorMessage, question.Answers[i].AnswerParameters[0].Value == response.Content));
                         }
@@ -321,14 +321,14 @@ namespace AzureChallenge.Providers
             // If yes, check if true or not. Always add the message
             foreach (var answer in question.Answers[0].AnswerParameters)
             {
-                if (UserChoices.Exists(p => p == answer.Key))
+                if (UserChoices.Exists(p => p == answer.Key.Replace("\'", "")))
                 {
                     if (bool.Parse(answer.Value))
                         correctAnswers.Add(new KeyValuePair<string, bool>(answer.Key + "#*#*#" + answer.ErrorMessage, true));
                     else
                         correctAnswers.Add(new KeyValuePair<string, bool>(answer.Key + "#*#*#" + answer.ErrorMessage, false));
                 }
-                else if(!UserChoices.Exists(p => p == answer.Key) && bool.Parse(answer.Value))
+                else if (!UserChoices.Exists(p => p == answer.Key.Replace("\'", "")) && bool.Parse(answer.Value))
                 {
                     correctAnswers.Add(new KeyValuePair<string, bool>("WrongChoiceCombo", false));
                 }

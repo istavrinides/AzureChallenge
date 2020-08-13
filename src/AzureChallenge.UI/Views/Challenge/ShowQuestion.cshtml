@@ -10,10 +10,10 @@
 }
 @if (Model.TimeLeftInSeconds > 0)
 {
-<div class="text-right font-weight-bold">
-    Time left: <span id="timeLeft"></span>
-    <input type="hidden" asp-for="TimeLeftInSeconds" />
-</div>
+    <div class="text-right font-weight-bold">
+        Time left: <span id="timeLeft"></span>
+        <input type="hidden" asp-for="TimeLeftInSeconds" />
+    </div>
 }
 @if (Model.ShowWarning)
 {
@@ -32,62 +32,62 @@
 
                 @if (Model.QuestionType == "MultiChoice")
                 {
-            <p>
-                @*If we have more than one correct answer*@
-                @if (Model.Choices.Count(p => p.Value) > 1)
+                <p>
+                    @*If we have more than one correct answer*@
+                    @if (Model.Choices.Count(p => p.Value) > 1)
                     {
-                <input type="hidden" id="MCType" value="CB" />
+                        <input type="hidden" id="MCType" value="CB" />
                         for (int i = 0; i < Model.Choices.Count(); i++)
                         {
-                <div class="form-check input-group">
-                    <input asp-for="@Model.Choices[i].Selected" class="form-check-input mccb" data-key="@Model.Choices[i].Text" />
-                    <label class="form-check-label" asp-for="@Model.Choices[i].Selected">@Model.Choices[i].Text</label>
-                </div>
-                <div class="mc-message-div d-none" data-key="@Model.Choices[i].Text">
-                    <label class="mc-message" data-key="@Model.Choices[i].Text"></label>
-                </div>
+                            <div class="form-check input-group">
+                                <input asp-for="@Model.Choices[i].Selected" class="form-check-input mccb" data-key="@Model.Choices[i].Text.Replace("\'","")" />
+                                <label class="form-check-label" asp-for="@Model.Choices[i].Selected">@Model.Choices[i].Text</label>
+                            </div>
+                            <div class="mc-message-div d-none" data-key="@Model.Choices[i].Text.Replace("\'","")">
+                                <label class="mc-message" data-key="@Model.Choices[i].Text.Replace("\'","")"></label>
+                            </div>
                         }
                     }
                     else
                     {
-                <input type="hidden" id="MCType" value="RB" />
+                        <input type="hidden" id="MCType" value="RB" />
                         for (int i = 0; i < Model.Choices.Count(); i++)
                         {
-                <div class="form-check">
-                    <input class="form-check-input mcrb" type="radio" name="SelectedRBChoice" id="Choices_@(i)__Value" data-key="@Model.Choices[i].Text" />
-                    <label class="form-check-label" for="Choices_@(i)__Value">@Model.Choices[i].Text</label>
-                </div>
-                <div class="mc-message-div d-none" data-key="@Model.Choices[i].Text">
-                    <label class="mc-message" data-key="@Model.Choices[i].Text"></label>
-                </div>
+                            <div class="form-check">
+                                <input class="form-check-input mcrb" type="radio" name="SelectedRBChoice" id="Choices_@(i)__Value" data-key="@Model.Choices[i].Text.Replace("\'","")" />
+                                <label class="form-check-label" for="Choices_@(i)__Value">@Model.Choices[i].Text</label>
+                            </div>
+                            <div class="mc-message-div d-none" data-key="@Model.Choices[i].Text.Replace("\'","")">
+                                <label class="mc-message" data-key="@Model.Choices[i].Text.Replace("\'","")"></label>
+                            </div>
                         }
                     }
-            </p>
-            <p class="d-none mc-more-to-check font-weight-bold text-center text-danger">
-                You have not selected all the correct answers.
-            </p>
-            <p class="d-none mc-correct font-weight-bold text-center text-success">
-                Correct!!!
-            </p>
-            <p class="d-none mc-justification font-weight-bold">
-                What does this mean:
-            </p>
-            <p class="d-none mc-justification">
-                @Model.Justification
-            </p>
+                </p>
+                <p class="d-none mc-more-to-check font-weight-bold text-center text-danger">
+                    You have not selected all the correct answers.
+                </p>
+                <p class="d-none mc-correct font-weight-bold text-center text-success">
+                    Correct!!!
+                </p>
+                <p class="d-none mc-justification font-weight-bold">
+                    What does this mean:
+                </p>
+                <p class="d-none mc-justification">
+                    @Model.Justification
+                </p>
             }
                 </p>
                 @if (Model.HelpfulLinks.Count > 0)
                 {
-                <p class="pt-5 font-weight-bold">
-                    Helpful Links
-                </p>
-                <p>
-                    @foreach (var url in Model.HelpfulLinks)
+                    <p class="pt-5 font-weight-bold">
+                        Helpful Links
+                    </p>
+                    <p>
+                        @foreach (var url in Model.HelpfulLinks)
                         {
-                    <div><a href="@url">@url</a></div>
+                            <div><a href="@url">@url</a></div>
                         }
-                </p>
+                    </p>
                 }
                 <input type="hidden" asp-for="QuestionId" />
                 <input type="hidden" asp-for="NextQuestionId" />

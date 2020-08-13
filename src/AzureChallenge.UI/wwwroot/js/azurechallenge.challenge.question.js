@@ -99,10 +99,10 @@ $(document).ready(function () {
                 data.filter(e => e.Key.includes("#*#*#")).forEach(function (item) {
                     var splitted = item.Key.split("#*#*#");
 
-                    var lbl = $(".mc-message[data-key='" + splitted[0] + "'");
+                    var lbl = $(".mc-message[data-key='" + splitted[0].replace('\'', '') + "'");
                     lbl.text(splitted[1]);
                     lbl.addClass(item.Value === false ? "text-danger" : "text-success");
-                    $(".mc-message-div[data-key='" + splitted[0] + "'").removeClass('d-none');
+                    $(".mc-message-div[data-key='" + splitted[0].replace('\'', '') + "'").removeClass('d-none');
                 });
 
                 if (data.filter(e => e.Value === false).length === 0) {
