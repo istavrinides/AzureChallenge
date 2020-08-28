@@ -39,7 +39,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
     [Area("Administration")]
     [Authorize]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator, ContentEditor")]
     public class ChallengeController : Controller
     {
         private readonly ILogger<ChallengeController> _logger;
@@ -146,7 +146,10 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     TenantId = userProfile.TenantId,
                     UserNameHashed = userProfile.UserNameHashed()
                 },
-                AzureServiceCategory = challenge.Item2.AzureServiceCategory
+                AzureServiceCategory = challenge.Item2.AzureServiceCategory,
+                Duration = challenge.Item2.Duration,
+                PrereqLinks = challenge.Item2.PrereqLinks,
+                WelcomeMessage = challenge.Item2.WelcomeMessage
             };
 
             foreach (var q in questions.Item2)
@@ -157,7 +160,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     {
                         AzureService = q.TargettedAzureService,
                         Id = q.Id,
-                        Name = $"{q.Name} - {q.Description} - (Level: {q.DifficultyString})",
+                        Name = $"{q.Name} - (Level: {q.DifficultyString}) - {q.QuestionType}",
                         Selected = false
                     });
                 }
@@ -178,11 +181,12 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Answers = inputModel.QuestionToAdd.Answers
                                         .Select(p => new ACMQ.AssignedQuestion.AnswerList
                                         {
-                                            AnswerParameters = p.AnswerParameters?.Select(a => new ACMQ.AssignedQuestion.AnswerParameterItem() { ErrorMessage = a.ErrorMessage, Key = a.Key, Value = a.Value }).ToList(),
+                                            AnswerParameters = p.AnswerParameters?.Select(a => new ACMQ.AssignedQuestion.AnswerParameterItem() { ErrorMessage = a.ErrorMessage, Key = a.Key, Value = a.Value ?? (inputModel.QuestionToAdd.QuestionType == "MultiChoice" ? "false" : "") }).ToList(),
                                             AssociatedQuestionId = p.AssociatedQuestionId,
                                             ResponseType = p.ResponseType
                                         }
                                         ).ToList(),
+                    QuestionType = inputModel.QuestionToAdd.QuestionType,
                     AssociatedQuestionId = inputModel.QuestionToAdd.AssociatedQuestionId,
                     Description = inputModel.QuestionToAdd.Description,
                     Difficulty = inputModel.QuestionToAdd.Difficulty,
@@ -192,7 +196,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Text = inputModel.QuestionToAdd.Text,
                     TextParameters = inputModel.QuestionToAdd.TextParameters?.ToDictionary(p => p.Key, p => p.Value) ?? new Dictionary<string, string>(),
                     ChallengeId = inputModel.QuestionToAdd.ChallengeId,
-                    Uris = inputModel.QuestionToAdd.Uris
+                    Uris = inputModel.QuestionToAdd.Uris?
                                     .Select(p => new ACMQ.AssignedQuestion.UriList
                                     {
                                         CallType = p.CallType,
@@ -229,7 +233,10 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Id = inputModel.Id,
                     Name = inputModel.Name,
                     Questions = challengeQuestions,
-                    AzureServiceCategory = inputModel.AzureServiceCategory
+                    AzureServiceCategory = inputModel.AzureServiceCategory,
+                    WelcomeMessage = inputModel.WelcomeMessage,
+                    Duration = inputModel.Duration,
+                    PrereqLinks = inputModel.PrereqLinks
                 };
 
                 // Check if this is an update to an existing challenge question
@@ -335,6 +342,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                             ResponseType = p.ResponseType
                                         }).ToList(),
                     AssociatedQuestionId = result.Item2.AssociatedQuestionId,
+                    QuestionType = result.Item2.QuestionType,
                     Description = result.Item2.Description,
                     Difficulty = result.Item2.Difficulty,
                     Id = result.Item2.QuestionId,
@@ -343,7 +351,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Text = result.Item2.Text,
                     TextParameters = result.Item2.TextParameters.Select(p => new VM.AssignedQuestion.KVPair { Key = p.Key, Value = p.Value }).ToList(),
                     ChallengeId = result.Item2.ChallengeId,
-                    Uris = result.Item2.Uris
+                    Uris = result.Item2.Uris?
                              .Select(p => new VM.AssignedQuestion.UriList
                              {
                                  CallType = p.CallType,
@@ -357,6 +365,63 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 };
 
                 return Ok(question);
+            }
+            else
+            {
+                return StatusCode(500);
+            }
+        }
+
+        public async Task<IActionResult> RearrangeQuestion(string challengeId, string questionId, string newIndex)
+        {
+            // Get the challenge
+            var challengeResponse = await challengeProvider.GetItemAsync(challengeId);
+
+            if (challengeResponse.Item1.Success)
+            {
+                // Create a new object, in case we need to revert
+                var challenge = new ACMT.ChallengeDetails
+                {
+                    Description = challengeResponse.Item2.Description,
+                    Id = challengeResponse.Item2.Id,
+                    Name = challengeResponse.Item2.Name,
+                    Questions = challengeResponse.Item2.Questions,
+                    AzureServiceCategory = challengeResponse.Item2.AzureServiceCategory,
+                    WelcomeMessage = challengeResponse.Item2.WelcomeMessage,
+                    Duration = challengeResponse.Item2.Duration,
+                    PrereqLinks = challengeResponse.Item2.PrereqLinks
+                };
+
+                var challengeQuestions = challenge.Questions;
+
+                // Remove the question from the list, re-index the next questions and change the pointers also
+                // First find the question question's index
+                var question = challengeQuestions.Where(p => p.Id == questionId).FirstOrDefault();
+                var questionIndex = challengeQuestions.IndexOf(question);
+
+                // Remove the question from the old index
+                challengeQuestions.RemoveAt(questionIndex);
+
+                // Insert the question at the new index
+                challengeQuestions.Insert(int.Parse(newIndex), question);
+
+                // Fix the pointers
+                // Re-index the question and fix the pointer to the next question
+                for (int i = 0; i < challengeQuestions.Count; i++)
+                {
+                    challengeQuestions[i].Index = i;
+                    challengeQuestions[i].NextQuestionId = i + 1 == challengeQuestions.Count ? null : challengeQuestions[i + 1].Id;
+                }
+
+                // Update the challenge
+                var updateResult = await challengeProvider.AddItemAsync(challenge);
+
+                if (updateResult.Success)
+                {
+                    return Ok();
+                }
+
+                return StatusCode(500);
             }
             else
             {
@@ -378,7 +443,10 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Id = challengeResponse.Item2.Id,
                     Name = challengeResponse.Item2.Name,
                     Questions = challengeResponse.Item2.Questions,
-                    AzureServiceCategory = challengeResponse.Item2.AzureServiceCategory
+                    AzureServiceCategory = challengeResponse.Item2.AzureServiceCategory,
+                    WelcomeMessage = challengeResponse.Item2.WelcomeMessage,
+                    Duration = challengeResponse.Item2.Duration,
+                    PrereqLinks = challengeResponse.Item2.PrereqLinks
                 };
 
                 var challengeQuestions = challenge.Questions;
@@ -465,7 +533,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         {
             var user = await userManager.GetUserAsync(User);
 
-            var results = await assignedQuestionProvider.ValidateQuestion(questionId, mapper.Map<AzureChallenge.Models.Profile.UserProfile>(user));
+            var results = await assignedQuestionProvider.ValidateQuestion(questionId, mapper.Map<AzureChallenge.Models.Profile.UserProfile>(user), new List<string>());
 
             return Ok(results);
         }
@@ -492,7 +560,10 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                           Name = p.Name,
                                           NextQuestionId = p.NextQuestionId
                                       }).ToList(),
-                AzureServiceCategory = inputModel.AzureServiceCategory
+                AzureServiceCategory = inputModel.AzureServiceCategory,
+                WelcomeMessage = inputModel.WelcomeMessage,
+                Duration = inputModel.Duration,
+                PrereqLinks = inputModel.PrereqLinks
             };
 
             var updateResult = await challengeProvider.AddItemAsync(challenge);
@@ -545,7 +616,10 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 Id = Guid.NewGuid().ToString(),
                 Name = inputModel.Name,
                 Questions = new List<ACMQ.QuestionLite>(),
-                AzureServiceCategory = inputModel.AzureServiceCategory
+                AzureServiceCategory = inputModel.AzureServiceCategory,
+                Duration = inputModel.Duration,
+                WelcomeMessage = inputModel.WelcomeMessage,
+                PrereqLinks = inputModel.PrereqLinks
             };
 
             var response = await challengeProvider.AddItemAsync(challenge);
@@ -833,7 +907,14 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                                         var qDoc = JsonConvert.DeserializeObject<ACMQ.Question>(await qSR.ReadToEndAsync());
                                         // Need to assigned owner
                                         qDoc.Owner = User.Identity.Name;
-                                        await questionProvider.AddItemAsync(qDoc);
+
+                                        // Check if we already have this one defined (same id). if so, don't allow import
+                                        var doesQuestionExist = await questionProvider.GetItemAsync(qDoc.Id);
+
+                                        if (!doesQuestionExist.Item1.Success)
+                                        {
+                                            await questionProvider.AddItemAsync(qDoc);
+                                        }
                                     }
                                 }
                             }
@@ -855,7 +936,7 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         public async Task<IActionResult> Analytics(string challengeId)
         {
             var aggregatesReponse = await aggregateProvider.GetItemAsync(challengeId);
-            var model = new AnalyticsTournamentViewModel() { ChallengeId = challengeId };
+            var model = new AnalyticsChallengeViewModel() { ChallengeId = challengeId };
 
             if (aggregatesReponse.Item1.Success)
             {

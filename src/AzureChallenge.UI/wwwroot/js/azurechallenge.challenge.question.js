@@ -9,22 +9,70 @@ $(document).ready(function () {
         var questionId = $("#QuestionId").val();
         var challengeId = $("#ChallengeId").val();
         var nextQuestionId = $("#NextQuestionId").val();
-        var difficulty = $("#Difficulty").val();
+        var difficulty = parseInt($("#Difficulty").val()) * 100;
         var questionIndex = $("#QuestionIndex").val();
+        var questionType = $("#QuestionType").val();
+
+        var selectedRBChoice = "";
+        var choices = [];
+
+        if (questionType === "MultiChoice") {
+            var questionSubType = $("#MCType").val();
+
+            // Check if it's a radio button or check box multiplce choice question
+            if (questionSubType === "CB") {
+
+                if ($(".mccb:checked").length === 0) {
+                    alert("Please select at least one option");
+                    return;
+                }
+
+                $(".mccb:checked").each(function () {
+                    choices.push($(this).data('key'));
+                })
+            }
+            else {
+
+                if ($(".mcrb:checked").length === 0) {
+                    alert("Please select at least one option");
+                    return;
+                }
+
+                selectedRBChoice = $(".mcrb:checked").first().data('key');
+            }
+        }
 
         // Clear the contents
         $("#checkModalContentDiv").empty();
         $("#checkModalWaiting").show();
         $("#checkModalContent").addClass('d-none');
         $("#justification").addClass('d-none');
-        $("#checkModal").modal('show');
+        if (questionType === "API")
+            $("#checkModal").modal('show');
 
-        $.get("/Challenge/ValidateQuestion?questionId=" + questionId + "&challengeId=" + challengeId + "&nextQuestionId=" + nextQuestionId + "&points=" + difficulty + "00&questionIndex=" + questionIndex)
-            .done(function (data) {
-                $("#checkModalWaiting").hide();
+        $.post("/Challenge/ValidateQuestion",
+            {
+                inputModel:
+                {
+                    QuestionId: questionId,
+                    challengeId: challengeId,
+                    NextQuestionId: nextQuestionId,
+                    Difficulty: difficulty,
+                    QuestionIndex: questionIndex,
+                    SelectedRBChoice: selectedRBChoice,
+                    Choices: choices
+                }
+            }
+        ).done(function (data) {
+            $("#checkModalWaiting").hide();
 
-                $("#checkModalContent").removeClass('d-none');
+            $("#checkModalContent").removeClass('d-none');
+            $(".mc-message-div").addClass('d-none');
+            $(".mc-justification").addClass('d-none');
+            $(".mc-more-to-check").addClass('d-none');
+            $(".mc-correct").addClass('d-none');
 
+            if (questionType === "API") {
                 if (data.filter(e => e.Value === false).length > 0) {
                     data.forEach(function (item) {
                         if (!item.Value) {
@@ -44,14 +92,64 @@ $(document).ready(function () {
                     $("#btnNextModal").removeClass('d-none');
                     connection.invoke("SendQuestionCompletionToGroup", $("#userId").val(), challengeId, questionIndex).catch(err => console.error(err));
                 }
-            })
-            .fail(function () {
-                window.alert("Could not validate the question, an internal error occured. Please try again later.");
+            }
+            else if (questionType === "MultiChoice") {
                 $("#checkModal").modal('hide');
-                $('body').removeClass('modal-open');
-                $('.modal-backdrop').remove();
-            });
+
+                data.filter(e => e.Key.includes("#*#*#")).forEach(function (item) {
+                    var splitted = item.Key.split("#*#*#");
+
+                    var lbl = $(".mc-message[data-key='" + splitted[0].replace('\'', '') + "'");
+                    lbl.text(splitted[1]);
+                    lbl.addClass(item.Value === false ? "text-danger" : "text-success");
+                    $(".mc-message-div[data-key='" + splitted[0].replace('\'', '') + "'").removeClass('d-none');
+                });
+
+                if (data.filter(e => e.Value === false).length === 0) {
+                    $(".mc-justification").removeClass('d-none');
+                    $("#btnNext").removeAttr('disabled');
+                    $(".mc-correct").removeClass('d-none');
+                    connection.invoke("SendQuestionCompletionToGroup", $("#userId").val(), challengeId, questionIndex).catch(err => console.error(err));
+                }
+                else if (data.filter(e => e.Value === false && e.Key != "WrongChoiceCombo").length === 0) {
+                    $(".mc-more-to-check").removeClass('d-none');
+                }
+            }
+        }).fail(function () {
+            window.alert("Could not validate the question, an internal error occured. Please try again later.");
+            $("#checkModal").modal('hide');
+            $('body').removeClass('modal-open');
+            $('.modal-backdrop').remove();
+        });
     });
+
+    if ($("#TimeLeftInSeconds").val() > 0) {
+        var countDown = function () {
+
+
+            var timeleft = $("#TimeLeftInSeconds").val() - 1;
+            $("#TimeLeftInSeconds").val(timeleft);
+
+            var hours = Math.floor(((timeleft * 1000) % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor(((timeleft * 1000) % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor(((timeleft * 1000) % (1000 * 60)) / 1000);
+
+            var timeString = ('0' + hours).slice(-2) + ':' + ('0' + minutes).slice(-2) + ':' + ('0' + seconds).slice(-2);
+
+            $("#timeLeft").text(timeString);
+
+            // If we have 30 minutes remaining
+            if (timeleft < 1800)
+                $("#timeLeft").addClass('text-warning');
+            // If we have 10 minutes remaining
+            if (timeleft < 600)
+                $("#timeLeft").addClass('text-danger');
+
+        };
+
+        countDown();
+        setInterval(countDown, 1000);
+    }
 
 });
 

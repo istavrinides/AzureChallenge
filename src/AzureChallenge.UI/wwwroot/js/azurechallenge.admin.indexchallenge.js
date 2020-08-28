@@ -80,15 +80,23 @@
         $("#modalWaitingImport").removeClass('d-none');
         $("#modalInputImport").addClass('d-none');
 
-        $.post('/Administration/Challenge/ImportChallenge?uri=' + $("#fileSelector").val())
-            .done(function () {
-                location.reload(true);
-            })
-            .fail(function () {
-                alert("Challenge could not be imported.");
-                $("#importModal").modal('hide');
-            });
-
+        $.ajax({
+            type: "POST",
+            url: '/Administration/Challenge/ImportChallenge?uri=' + $("#fileSelector").val(),
+            statusCode: {
+                200: function () {
+                    location.delay().reload(true);
+                },
+                409: function () {
+                    alert("Challenge could not be imported - already exists.");
+                    $("#importModal").modal('hide');
+                },
+                500: function () {
+                    alert("Challenge could not be imported - an error occured.");
+                    $("#importModal").modal('hide');
+                }
+            }
+        });
     });
 
     $("#btnModalAdd").click(function () {
@@ -114,7 +122,10 @@
         var model = {
             Name: Name,
             Description: Description,
-            AzureServiceCategory: AzureServiceCategory
+            AzureServiceCategory: AzureServiceCategory,
+            WelcomeMessage: $("#WelcomeMessage").val(),
+            Duration: $("#Duration").val(),
+            PrereqLinks: $(".prereqLinksDiv a").map(function () { return this.href }).get()
         };
 
         $.post("/Administration/Challenge/AddNewChallenge", model)
@@ -164,6 +175,53 @@
                 location.reload(true);
             })
 
+    });
+
+    $("#btnAddPrerequeLink").click(function () {
+        var newLink = $("#inputNewLink").val();
+
+        if (!newLink) {
+            $("#inputNewLink").popover('show');
+            return;
+        }
+
+        // Get the next index
+        var newIndex = $("#linksInputGroup input").length;
+
+        $(".prereqLinksDiv")
+            .append("<input type='hidden' name='PrereqLinks[" + newIndex + "]' id='PrereqLinks_" + newIndex + "_' data-index='" + newIndex + "' value='" + newLink + "' /> \
+                    <span class='border border-info rounded p-1 bg-info m-1' data-index='" + newIndex + "'> \
+                        <a href='" + newLink + "' style='color:#fff !important'>" + newLink + "</a>&nbsp; \
+                        <span class='badge badge-danger deleteLink' style='cursor:pointer' data-index='" + newIndex + "'>&times</span> \
+                    </span>");
+
+        // Clear the input
+        $("#inputNewLink").val("");
+    });
+
+    $(".prereqLinksDiv").on('click', '.deleteLink', function () {
+        // Get the index to delete
+        var index = parseInt($(this).attr('data-index'));
+
+        // Delete the input and span with that index
+        $(".prereqLinksDiv input[data-index='" + index + "']").remove();
+        $(".prereqLinksDiv span.border[data-index='" + index + "']").remove();
+
+        // Re-index the remaining
+        $(".prereqLinksDiv input").each(function () {
+            var thisIndex = $(this).attr('data-index');
+            if (thisIndex > index) {
+                $(this).attr('data-index', (thisIndex - 1));
+                $(this).attr('id', 'PrereqLinks_' + (thisIndex - 1) + '_');
+                $(this).attr('name', 'PrereqLinks[' + (thisIndex - 1) + ']');
+            }
+        });
+        $(".prereqLinksDiv span").each(function () {
+            var thisIndex = $(this).attr('data-index');
+            if (thisIndex > index) {
+                $(this).attr('data-index', (thisIndex - 1));
+            }
+        });
     });
 
 });

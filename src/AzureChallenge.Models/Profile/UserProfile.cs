@@ -36,14 +36,22 @@ namespace AzureChallenge.Models.Profile
             return pairs;
         }
 
-        public IEnumerable<KeyValuePair<string, string>> GetSecretsForAuth()
+        public IEnumerable<KeyValuePair<string, string>> GetSecretsForAuth(string uri = "")
         {
             var secrets = new List<KeyValuePair<string, string>>();
 
             secrets.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
             secrets.Add(new KeyValuePair<string, string>("client_id", ClientId));
             secrets.Add(new KeyValuePair<string, string>("client_secret", ClientSecret));
-            secrets.Add(new KeyValuePair<string, string>("resource", "https://management.azure.com"));
+
+            if (uri.Contains("vault.azure.net"))
+            {
+                secrets.Add(new KeyValuePair<string, string>("scope", "https://vault.azure.net/.default"));
+            }
+            else
+            {
+                secrets.Add(new KeyValuePair<string, string>("resource", "https://management.azure.com"));
+            }
             secrets.Add(new KeyValuePair<string, string>("TenantId", TenantId));
             secrets.Add(new KeyValuePair<string, string>("SubscriptionId", SubscriptionId));
 

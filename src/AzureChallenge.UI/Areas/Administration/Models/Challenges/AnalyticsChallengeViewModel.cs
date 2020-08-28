@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
 {
-    public class AnalyticsTournamentViewModel
+    public class AnalyticsChallengeViewModel
     {
         public int Started { get; set; }
         public int Finished { get; set; }

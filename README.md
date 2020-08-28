@@ -1,7 +1,9 @@
 # Azure Challenge
 Azure Challenge is an ASP.NET Core MVC application that serves as a platform for interactive learning of Azure Services. 
 Using the web application, you can define questions and challenges to users participating and check their validity by issuing REST API calls
-using the Azure Resource Manager. The working sample is located at https://az-challenge.azurewebsites.net, you are welcome to give it a try!
+using the Azure Resource Manager. 
+
+A working sample is located at https://az-challenge.azurewebsites.net, you are welcome to give it a try! Please note you can only use a Microsoft account in this deployed instance. I would appreciate if you deployed the solution to your subscription instead so that I need not worry about any data you provide in this deployment (hint, hint, GDPR :))
 
 We assume that everyone participating in the challenge has an Azure Subscription.
 
@@ -29,7 +31,7 @@ Based on the out-of-the-box experience provided by MVC Core, some minor function
 - The backed has been kept as an Azure SQL Database
 
 ### Question templates
-To keep the system as customizable as possible, questions are created in the system as templates. The following information is required when adding a new Question Template:
+To keep the system as customizable as possible, questions are created in the system as templates. There are two types of question supported: API-based questions (call Azure-related REST APIs to validate the user's actions) and Multiple Choice questions. The following information is required when adding a new Question Template:
 - **Name**
 - **Description**
 - **Targetted Azure Service**: allows for grouping questions
@@ -47,8 +49,8 @@ To keep the system as customizable as possible, questions are created in the sys
   - **Local**: Any other placeholder. These are applied (as a value) only at the current question level
 - **Justification**: Message to show if the user successfully answers the question. Serves as a way to offer an explanation, usefulness etc.
 - **Useful links**: List of URLs that could help the user answer the question.
-- **Uri endpoints to call**: A list of URI's the backed will call to validate the question. URIs can be parameterized with placeholders exactly in the same manner as the question text.
-- **Requires elevated (Contributor) access to the resource**: The Service Principal used has Read access (at the level the user will assign this). Some APIs require Contributor access. Setting this will show a warning to the user in the question screen so that they can set the permission correctly.
+- **Uri endpoints to call**: *Only for API-Based questions*. A list of URI's the backed will call to validate the question. URIs can be parameterized with placeholders exactly in the same manner as the question text.
+- **Requires elevated (Contributor) access to the resource**: *Only for API-based questions*. The Service Principal used has Read access (at the level the user will assign this). Some APIs require Contributor access. Setting this will show a warning to the user in the question screen so that they can set the permission correctly.
 
 ### Challenges
 Challenges is the way we define
@@ -81,38 +83,48 @@ Once created, you will need to **edit** the challenge. In the edit page, you wil
 You can also Import challenges that have been defined in the [public repo](https://github.com/istavrinides/AzureChallenge/tree/master/Exports). You can submit your exported challenge as a PR, it will be evaluated and potentially added to the repo. For custom challenge import, you will need to change the web application code so that it will point to a different location.
 
 When adding a question, you are essentially "hydrating" the question. In this phase, we are leveraging the defined question template to add the specific paramaters/placeholder values for the specific challenge/question. When adding (or editing) a question, you need to do the following in the modal that will be shown:
-- Fill in any parameter values. If a Global parameter has been defined in the Challenge parameters or defined in a previous question, that value will be used.
-- Add answer parameters. If you don't add any, the question will be considered correct it the corresponding URI call returns an HTTP status code 200. In case where the URI returns a JSON document, you can check values within the document. To do this, the following are supported:
-  - Path: 
-    - A dot separated value that defines the JSON path to the desired property. For example, for the below JSON, to validate the value "myValue", you would give a path of **Path.To.Property** (case sensitive):
-    ```    
-    {
-        "Path": {
-            "To": {
-                "Property": "myValue"
+- Fill in any parameter values. If a Global parameter has been defined in the Challenge parameters or defined in a previous question, that value will be used. 
+- Add answer parameters. If you don't add any, the question will be considered correct it the corresponding URI call returns an HTTP status code 200.
+  - Answer parameters for URI-based question require the following: 
+    - **Path** (JSON path to the property to check - see below)
+    - **Value to check**: The value of the JSON property that needs to be true for the answer to be valid
+    - **Error Message**: What the user will see if the value is incorrect.
+  - Answer parameters for Mutliple Choice questions require the following:
+    - **Text**: The option text
+    - **Correct?**: If the option is correct or not. If only one of the options is correct, the whole list will be rendered as a radio button list. If more than one is correct, the whole list will be rendered as a checkbox list.
+    - **Error Message**: What the user will see if the value is incorrect.
+  - In case where the URI returns a JSON document, you can check values within the document. To do this, the following are supported:
+    - Path: 
+      - A dot separated value that defines the JSON path to the desired property. For example, for the below JSON, to validate the value "myValue", you would give a path of **Path.To.Property** (case sensitive):
+        ```    
+        {
+            "Path": {
+                "To": {
+                    "Property": "myValue"
+                }
             }
         }
-    }
-    ```
-    - A dot separated value with square brackets to denote a specific value in an array for a specific property. For example, for the below JSON, you would provide a path of **Path.To.Property[Name=Name2].MyProperty** and check the value **Value**
-    ```    
-    {
-        "Path": {
-            "To": {
-                "Property": [
-                    {
-                        "Name": "Name1",
-                        "MyProperty": "SomeValue"
-                    },
-                    {
-                        "Name": "Name2",
-                        "MyProperty": "Value"
-                    }
-                ]
+        ```
+        - A dot separated value with square brackets to denote a specific value in an array for a specific property. For example, for the below JSON, you would provide a path of **Path.To.Property[Name=Name2].MyProperty** and check the value **Value**
+        ```    
+        {
+            "Path": {
+                "To": {
+                    "Property": [
+                        {
+                            "Name": "Name1",
+                            "MyProperty": "SomeValue"
+                        },
+                        {
+                            "Name": "Name2",
+                            "MyProperty": "Value"
+                        }
+                    ]
+                }
             }
         }
-    }
-    ```
+        ```
+      - If you need to have the dot (.) present in the Path (for example, for a resource identifier, you might have something like *Microsoft.Compute*, which should not be splitted but kept together), replace the dot with a double star (\*\*) (so in the previous example, you should enter *Microsoft\*\*Compute*).
 
 ## Configuration
 The following values need to be set in your local development environment:

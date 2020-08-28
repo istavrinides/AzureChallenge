@@ -1,0 +1,74 @@
+﻿@page
+@model AzureChallenge.UI.Areas.Identity.Pages.Roles.ManageModel
+@{
+    ViewData["Title"] = "User Role management";
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+<p>
+    <strong>Administrators</strong> can manage user roles, as well as create/edit Challenges and Questions and participate in Challenges. <br />
+    <strong>Content Editors</strong> can only create/edit Challenges and Questions as well as participate in Challenges.<br />
+    <strong>Users</strong> can only participate in Challenges.<br /><br />
+    Note: your account is not visible below to avoid any mistakes.
+</p>
+<form method="post">
+    <table class="table table-responsive-md table-hover" id="userRoleTable">
+        <thead class="thead-dark">
+            <tr>
+                <th style="width:37.505%">
+                    Email
+                </th>
+                <th style="width:37.505%">
+                    Role
+                </th>
+                <th style="width:8.33%" class="text-center"></th>
+                <th style="width:8.33%" class="text-center"></th>
+                <th style="width:8.33%" class="text-center"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ur in Model.UserRoles)
+            {
+            <tr>
+                <td>
+                    @ur.Email
+                </td>
+                <td>
+                    @ur.Role
+                </td>
+                <td>
+                    @if (ur.Role != "User")
+                    {
+                        <input type="submit" class="btn btn-primary btn-xs" value="Make User" asp-page-handler="RemoveRole" asp-route-userId="@ur.Id" asp-route-role="@ur.Role" />
+                    }
+                    else
+                    {
+                        <input type="submit" class="btn btn-primary btn-xs" value="Make User" asp-page-handler="RemoveRole" asp-route-userId="@ur.Id" asp-route-role="@ur.Role" disabled />
+                    }
+                </td>
+                <td>
+                    @if (ur.Role != "ContentEditor")
+                    {
+                        <input type="submit" class="btn btn-primary btn-xs" value="Make Content Editor" asp-page-handler="AddAsContent" asp-route-userId="@ur.Id" />
+                    }
+                    else
+                    {
+                        <input type="submit" class="btn btn-primary btn-xs" value="Make Content Editor" asp-page-handler="AddAsContent" asp-route-userId="@ur.Id" disabled />
+                    }
+                </td>
+                <td>
+                    @if (ur.Role != "Administrator")
+                    {
+                        <input type="submit" class="btn btn-primary btn-xs" value="Make Administrator" asp-page-handler="AddAsAdmin" asp-route-userId="@ur.Id" />
+                    }
+                    else
+                    {
+                        <input type="submit" class="btn btn-primary btn-xs" value="Make Administrator" asp-page-handler="AddAsAdmin" asp-route-userId="@ur.Id" disabled />
+                    }
+                </td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</form>

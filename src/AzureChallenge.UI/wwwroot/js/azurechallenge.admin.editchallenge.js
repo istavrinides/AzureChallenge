@@ -1,6 +1,4 @@
-﻿var previousSelectedValue = -1;
-
-$(document).ready(function () {
+﻿$(document).ready(function () {
     $.validator.setDefaults({ ignore: '' });
     $('[data-toggle="tooltip"]').tooltip();
 
@@ -37,85 +35,22 @@ $(document).ready(function () {
             });
     })
 
-    $("#associatedQuestionsTable .indexSelector").on('focus', function () {
-        previousSelectedValue = parseInt($(this).val());
-    }).change(function () {
+    $("#associatedQuestionsTable .indexSelector").on('change', function () {
 
-        if (previousSelectedValue >= 0) {
-            // Enable the save button
-            $("#btnSave").removeAttr('disabled');
-            $("#saveAlert").removeClass("d-none");
+        $("#reArrangeModal").modal('show');
 
-            // Get the value
-            var index = parseInt($(this).val());
+        var questionId = $(this).attr('data-questionId');
+        var challengeId = $("#Id").val();
+        var newIndex = parseInt($(this).val());
 
-            // Find the select control that has this (new) value and is not this control
-            var selectToChange = $(".indexSelector option[value='" + index + "']:selected").parent().not(this);
-            $(selectToChange).val(previousSelectedValue);
-
-            // Swap the rows. First will be the one with the smallest original index
-            var firstRow, secondRow;
-            if (previousSelectedValue < index) {
-                firstRow = $(this).closest('tr');
-                secondRow = $(selectToChange).closest('tr');
-            }
-            else {
-                firstRow = $(selectToChange).closest('tr');
-                secondRow = $(this).closest('tr');
-            }
-
-
-            var firstRowNQId = $(firstRow).find(".nextQuestionId").val();
-            var secondRowNQId = $(secondRow).find(".nextQuestionId").val();
-
-
-            // Check if they are adjacent.
-            if ($(firstRow).next('tr').is($(secondRow))) {
-                // Swap the rows
-                $(firstRow).insertAfter($(secondRow));
-
-                // Fix the NextQuestionIds
-                $(firstRow).find(".nextQuestionId").val(secondRowNQId);
-                $(secondRow).find(".nextQuestionId").val($(firstRow).find(".questionId").val());
-
-            }
-            // Check if the first row is the top most row
-            else if ($(firstRow).prev('tr').length === 0) {
-                // Get the row below the first one (none above)
-                var belowFirst = $(firstRow).prev('tr');
-                // Get the row above and below the second one
-                var aboveSecond = $(secondRow).prev('tr');
-                var belowSecond = $(secondRow).next('tr');
-
-                // Second row goes above the first
-                $(secondRow).insertBefore($(firstRow));
-                // First row goes below the aboveSecond
-                $(firstRow).insertAfter($(aboveSecond));
-
-                // Fix the NextQuestionIds
-                $(secondRow).find(".nextQuestionId").val(firstRowNQId);
-                $(aboveSecond).find(".nextQuestionId").val($(firstRow).find(".questionId").val());
-                $(firstRow).find(".nextQuestionId").val(secondRowNQId);
-            }
-            else {
-                // Get the row above the first and second row
-                var aboveFirst = $(firstRow).prev('tr');
-                var aboveSecond = $(secondRow).prev('tr');
-
-                // Second row goes above the aboveFirst
-                $(secondRow).insertAfter($(aboveFirst));
-                // First row goes below the aboveSecond
-                $(firstRow).insertAfter($(aboveSecond));
-
-                // Fix the NextQuestionIds
-                $(secondRow).find(".nextQuestionId").val(firstRowNQId);
-                $(aboveSecond).find(".nextQuestionId").val($(firstRow).find(".questionId").val());
-                $(firstRow).find(".nextQuestionId").val(secondRowNQId);
-                $(aboveFirst).find(".nextQuestionId").val($(secondRow).find(".questionId").val());
-            }
-
-            previousSelectedValue = -1;
-        }
+        $.get("/Administration/Challenge/RearrangeQuestion?questionId=" + questionId + "&challengeId=" + challengeId + "&newIndex=" + newIndex)
+            .done(function (data) {
+                location.reload();
+            })
+            .fail(function () {
+                $("#reArrangeModal").modal('hide');
+                window.alert("Could not re-arrange the question, an internal error occured. Please try again later.");
+            });
     });
 
     $("#associatedQuestionsTable .tableLinkEdit").on('click', function () {
@@ -176,7 +111,7 @@ $(document).ready(function () {
             });
     })
 
-    $("#answersParamsGroup").on('click', '.addAnswerParameter', function () {
+    $("#answersAPIParamsGroup").on('click', '.addAnswerParameter', function () {
 
         // Get the index from the Id
         var itemIndex = parseInt($(this).data("index"));
@@ -197,15 +132,17 @@ $(document).ready(function () {
 
         var container = $("#Answers_" + itemIndex + "__params");
 
-        container.append("<div class='form-group col-4'> \
+        container.append("<div class='form-group col-4 answerParamDiv' data-index='" + currentIndex + "'> \
                             <label>Path</label> \
                             <input class='form-control answerParamInput answerParamInputKey' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].Key' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__Key'' data-index='" + currentIndex + "' required /></div>");
-        container.append("<div class='form-group col-4'> \
+        container.append("<div class='form-group col-3 answerParamDiv' data-index='" + currentIndex + "'> \
                             <label>Value to check</label> \
                             <input class='form-control answerParamInput answerParamInputVal' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].Value' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__Value' data-index='" + currentIndex + "' required /></div>");
-        container.append("<div class='form-group col-4'> \
+        container.append("<div class='form-group col-4 answerParamDiv' data-index='" + currentIndex + "'> \
                             <label>Error Message</label> \
                             <input class='form-control answerParamInput answerParamInputError' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].ErrorMessage' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__ErrorMessage' data-index='" + currentIndex + "' required /></div>");
+        container.append("<div class='form-group col pt-3 answerParamDiv' data-index='" + currentIndex + "'><br /> \
+                            <a href='#' class='answerParamDelete' data-index='" + currentIndex + "'><img src='/images/trash-2.svg' class='svg-filter-danger' /></a></div>");
 
         var numberOfRequiredInputs = 0;
         if (parseInt($("#requiredInputsAnswer").text()))
@@ -215,6 +152,82 @@ $(document).ready(function () {
 
         return false;
     });
+
+    $("#answersMCParamsGroup").on('click', '.addAnswerParameter', function () {
+
+        // Get the index from the Id
+        var itemIndex = parseInt($(this).data("index"));
+
+        var currentIndex = -1;
+        // Get the largest index under the current itemdId
+        $("#Answers_" + itemIndex + "__params input.answerParamInputKey").each(function () {
+            thisIndex = parseInt($(this).data('index'));
+            if (currentIndex < thisIndex)
+                currentIndex = thisIndex;
+        })
+
+        // If it's the first one
+        if (currentIndex === -1)
+            currentIndex = 0;
+        else
+            currentIndex += 1;
+
+        var container = $("#Answers_" + itemIndex + "__params");
+
+        container.append("<div class='form-group col-9 border-top pt-2 answerParamDiv' data-index='" + currentIndex + "'> \
+                            <label>Text</label> \
+                            <input class='form-control answerParamInput answerParamInputKey' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].Key' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__Key'' data-index='" + currentIndex + "' required /></div>");
+        container.append("<div class='form-group col-2 border-top pt-2 answerParamDiv' data-index='" + currentIndex + "'> \
+                            <label>Correct?</label> <br />\
+                            <input type='checkbox' data-toggle='toggle' data-size='normal' data-on='Yes' data-off='No' class='answerParamInput answerParamInputVal' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].Value' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__Value' data-index='" + currentIndex + "' required value='true' /></div>");
+        container.append("<div class='form-group col border-top pt-2 answerParamDiv' data-index='" + currentIndex + "'><br /> \
+                            <a href='#' class='answerParamDelete' data-index='" + currentIndex + "'><img src='/images/trash-2.svg' class='svg-filter-danger pt-3' /></a></div>");
+        container.append("<div class='form-group col-12 answerParamDiv' data-index='" + currentIndex + "'> \
+                            <label>Message</label> \
+                            <input class='form-control answerParamInput answerParamInputError' name='QuestionToAdd.Answers[" + itemIndex + "].AnswerParameters[" + currentIndex + "].ErrorMessage' id='QuestionToAdd_Answers_" + itemIndex + "_AnswerParameters_" + currentIndex + "__ErrorMessage' data-index='" + currentIndex + "' required /></div>");
+
+        $("[data-toggle='toggle']").bootstrapToggle('destroy')
+        $("[data-toggle='toggle']").bootstrapToggle();
+
+        var numberOfRequiredInputs = 0;
+        if (parseInt($("#requiredInputsAnswer").text()))
+            numberOfRequiredInputs = parseInt($("#requiredInputsAnswer").text());
+
+        $("#requiredInputsAnswer").text(numberOfRequiredInputs + 2);
+
+        return false;
+    });
+
+    $("#modal-answer").on('click', '.answerParamDelete', function () {
+        // Get the index of the parameter to delete
+        var index = parseInt($(this).data('index'));
+
+        // Remove the divs with that index
+        $(".answerParamDiv[data-index='" + index + "']").remove();
+
+        // Starting from index+1, renumber the later ones
+        index = index + 1;
+        // Check if an element with index+1 exists
+        while ($(".answerParamDiv[data-index='" + index + "']").length > 0) {
+            // Renumber the divs
+            $(".answerParamDiv[data-index='" + index + "']").each(function () {
+                $(this).attr('data-index', index - 1);
+            });
+
+            // Fix the inputs
+            $("input.answerParamInput[data-index='" + index + "']").each(function () {
+                $(this).attr('name', $(this).attr('name').replace('AnswerParameters[' + index + ']', 'AnswerParameters[' + (index - 1) + ']'));
+                $(this).attr('id', $(this).attr('id').replace('AnswerParameters_' + index + '_', 'AnswerParameters_' + (index - 1) + '_'));
+                $(this).attr('data-index', index - 1);
+            });
+
+            // Fix the Delete link
+            var deleteLink = $(".answerParamDiv[data-index='" + (index - 1) + "'] > .answerParamDelete");
+            deleteLink.attr('data-index', index - 1);
+
+            index = index + 1;
+        }
+    })
 
     $('#questionModal').on('hidden.bs.modal', function () {
         $("#modalWaiting").show();
@@ -258,7 +271,8 @@ var populateModal = function (selectedQuestionId, challengeId, readOnly = false)
     $("#uriTab").empty();
     $("#uriTabContent").empty();
     $("#answerTab").empty();
-    $("#answerTabContent").empty();
+    $("#answerTabContentAPI").empty();
+    $("#answerTabContentMChoice").empty();
     $("#requiredInputsText").text('');
     $("#requiredInputsUri").text('');
     $("#requiredInputsAnswer").text('');
@@ -268,7 +282,7 @@ var populateModal = function (selectedQuestionId, challengeId, readOnly = false)
             $("#QuestionToAdd_Text").val(data.text);
             if (readOnly)
                 $("#QuestionToAdd_Text").addClass('d-none');
-            $("#QuestionToAdd_AssociatedQuestionId").val(data.id);
+            $("#QuestionToAdd_AssociatedQuestionId").val(data.id === selectedQuestionId ? data.associatedQuestionId : data.id);
             $("#QuestionToAdd_Name").val(data.name);
             $("#QuestionToAdd_TargettedAzureService").val(data.targettedAzureService);
             $("#QuestionToAdd_Difficulty").val(data.difficulty);
@@ -276,6 +290,7 @@ var populateModal = function (selectedQuestionId, challengeId, readOnly = false)
             $("#QuestionToAdd_ChallengeId").val(challengeId);
             $("#QuestionToAdd_Id").val(data.id);
             $("#QuestionToAdd_Justification").val(data.justification);
+            $("#QuestionToAdd_QuestionType").val(data.questionType);
 
             // Clear any old links from previous modal loads
             $(".modal-hidden-urls").remove();
@@ -331,16 +346,25 @@ var populateModal = function (selectedQuestionId, challengeId, readOnly = false)
                         }
                     }
 
-                    // Construct the uri tabs
-                    container = $("#uriTab");
-                    for (i = 0; i < data.uris.length; i++) {
-                        container.append(
-                            "<li class='nav-item'> \
+                    // The URI tab is only needed for the API question type
+                    if (data.questionType === "API") {
+
+                        // Show the URI modal tab, just in case it was hidden previously
+                        // Same for the inner div, plus hide the others
+                        $("#uriTabModal").removeClass('d-none');
+                        $("#answersAPIParamsGroup").removeClass('d-none');
+                        $("#answersMCParamsGroup").addClass('d-none');
+
+                        // Construct the uri tabs
+                        container = $("#uriTab");
+                        for (i = 0; i < data.uris.length; i++) {
+                            container.append(
+                                "<li class='nav-item'> \
                                         <a class='nav-link uriNavItem' id='uri-"+ i + "-tab' data-toggle='tab' href='#uri-" + i + "-content' role='tab' aria-controls='uri-" + i + "-content' aria-selected='false' data-index='" + i + "'> Uri #" + (i + 1) + "</a> \
                                     </li>"
-                        );
+                            );
 
-                        var toAppend = "<div class='tab-pane fade' id='uri-" + i + "-content' role='tabpanel' aria-labelledby='uri" + i + "-tab'> \
+                            var toAppend = "<div class='tab-pane fade' id='uri-" + i + "-content' role='tabpanel' aria-labelledby='uri" + i + "-tab'> \
                                                     <input type='hidden' name='QuestionToAdd.Uris["+ i + "].Id' id='QuestionToAdd_Uris_" + i + "__Id' value='" + data.uris[i].id + "' /> \
                                                     <input type='hidden' name='QuestionToAdd.Uris["+ i + "].RequiresContributorAccess' id='QuestionToAdd_Uris_" + i + "__RequiresContributorAccess' value='" + data.uris[i].requiresContributorAccess + "' /> \
                                                     <div class='input-group mb-3'> \
@@ -353,64 +377,66 @@ var populateModal = function (selectedQuestionId, challengeId, readOnly = false)
                                                     <br /> \
                                                     <div class='form-group row'>";
 
-                        for (var j = 0; j < data.uris[i].uriParameters.length; j++) {
+                            for (var j = 0; j < data.uris[i].uriParameters.length; j++) {
 
-                            toAppend += "<div class='form-group col-6'> \
+                                toAppend += "<div class='form-group col-6'> \
                                                     <label>"+ data.uris[i].uriParameters[j].key + "</label> \
                                                     <input type='hidden' name='QuestionToAdd.Uris[" + i + "].UriParameters[" + j + "].Key' id='QuestionToAdd_Uris_" + i + "__UriParameters_" + j + "__Key' value='" + data.uris[i].uriParameters[j].key + "' /> \
                                                  </div>";
 
-                            // Check if this is a global parameters
-                            if (globalParams.parameters.some(p => p.key === data.uris[i].uriParameters[j].key)) {
-                                toAppend += "<div class='form-group col-6'> " + globalParams.parameters.find(p => p.key === data.uris[i].uriParameters[j].key).value + " \
+                                // Check if this is a global parameters
+                                if (globalParams.parameters.some(p => p.key === data.uris[i].uriParameters[j].key)) {
+                                    toAppend += "<div class='form-group col-6'> " + globalParams.parameters.find(p => p.key === data.uris[i].uriParameters[j].key).value + " \
                                             <input type='hidden' name='QuestionToAdd.Uris[" + i + "].UriParameters[" + j + "].Value' id='QuestionToAdd_Uris_" + i + "__UriParameters_" + j + "__Key' value='" + data.uris[i].uriParameters[j].value + "' /> \
                                             </div>";
 
-                            }
-                            // Check if this is a profile parameter
-                            else if (data.uris[i].uriParameters[j].key.startsWith('Profile.')) {
-                                // Get the value for the current user
-                                var profileValue = $("#CurrentUserProfile_" + data.uris[i].uriParameters[j].key.substr(8)).val();
-                                toAppend += "<div class='form-group col-6'>" + profileValue + " <span class='badge badge-warning' data-toggle='tooltip' data-placement='top' title='This is your value. Each user will automatically get their own based on their profile'>(note)</span></div>";
-                            }
-                            else {
-                                toAppend += "<div class='form-group col-6'> \
+                                }
+                                // Check if this is a profile parameter
+                                else if (data.uris[i].uriParameters[j].key.startsWith('Profile.')) {
+                                    // Get the value for the current user
+                                    var profileValue = $("#CurrentUserProfile_" + data.uris[i].uriParameters[j].key.substr(8)).val();
+                                    toAppend += "<div class='form-group col-6'>" + profileValue + " <span class='badge badge-warning' data-toggle='tooltip' data-placement='top' title='This is your value. Each user will automatically get their own based on their profile'>(note)</span></div>";
+                                }
+                                else {
+                                    toAppend += "<div class='form-group col-6'> \
                                                 <input class='form-control' name='QuestionToAdd.Uris[" + i + "].UriParameters[" + j + "].Value' id='QuestionToAdd_Uris_" + i + "__UriParameters_" + j + "__Value' required value='" + data.uris[i].uriParameters[j].value + "' " + (readOnly ? "readonly" : "") + "/> \
                                             </div>";
+                                }
+
+
                             }
-
-
-                        }
-                        toAppend += "       </div> \
+                            toAppend += "       </div> \
                                                 </div>";
-                        $("#uriTabContent").append(toAppend);
+                            $("#uriTabContent").append(toAppend);
 
-                        // Add a new answer tab (every question will have a answer associated with it)
-                        $("#answerTab").append(
-                            "<li class='nav-item'> \
+                            // Add a new answer tab (every question will have a answer associated with it)
+                            $("#answerTab").append(
+                                "<li class='nav-item'> \
                                         <a class='nav-link answerNavItem' id='answer-" + i + "-tab' data-toggle='tab' href='#answer-" + i + "-content' role='tab' aria-controls='answer-" + i + "-content' aria-selected='false'>Answer for Uri #" + (i + 1) + "</a> \
                                     </li>"
-                        );
+                            );
 
-                        toAppend = "";
+                            toAppend = "";
 
-                        for (j = 0; j < data.answers[i].answerParameters.length; j++) {
+                            for (j = 0; j < data.answers[i].answerParameters.length; j++) {
 
-                            toAppend += "<div class='form-group col-4'> \
+                                toAppend += "<div class='form-group col-4 answerParamDiv' data-index='" + j + "'> \
                                             <label>Path</label> \
                                         <input class='form-control answerParamInput answerParamInputKey' name='QuestionToAdd.Answers[" + i + "].AnswerParameters[" + j + "].Key' id='QuestionToAdd_Answers_" + i + "_AnswerParameters_" + j + "__Key' data-index='" + j + "' required " + (readOnly ? "readonly" : "") + " /></div>";
-                            toAppend += "<div class='form-group col-4'> \
+                                toAppend += "<div class='form-group col-3 answerParamDiv' data-index='" + j + "'> \
                                             <label>Value to check</label> \
                                         <input class='form-control answerParamInput answerParamInputVal' name='QuestionToAdd.Answers[" + i + "].AnswerParameters[" + j + "].Value' id='QuestionToAdd_Answers_" + i + "_AnswerParameters_" + j + "__Value' data-index='" + j + "' required " + (readOnly ? "readonly" : "") + " /></div>";
-                            toAppend += "<div class='form-group col-4'> \
+                                toAppend += "<div class='form-group col-4 answerParamDiv' data-index='" + j + "'> \
                                             <label>Error Message</label> \
                                         <input class='form-control answerParamInput answerParamInputError' name='QuestionToAdd.Answers[" + i + "].AnswerParameters[" + j + "].ErrorMessage' id='QuestionToAdd_Answers_" + i + "_AnswerParameters_" + j + "__ErrorMessage' data-index='" + j + "' required " + (readOnly ? "readonly" : "") + " /></div>";
-                        }
+                                toAppend += "<div class='form-group col pt-3 answerParamDiv' data-index='" + j + "'><br /> \
+                                                <a href='#' class='answerParamDelete' data-index='" + j + "'><img src='/images/trash-2.svg' class='svg-filter-danger' /></a></div>";
+                            }
 
-                        // Add a new tab content for the answer
-                        $("#answerTabContent").append(
-                            "<div class='tab-pane fade' id='answer-" + i + "-content' role='tabpanel' aria-labelledby='answer-" + i + "-tab'> \
-                                <input type='hidden' name='QuestionToAdd.Answers[" + i + "].AssociatedUriId' id='QuestionToAdd_Answers_" + i + "__AssociatedUriId' value='" + i + "' /> \
+                            // Add a new tab content for the answer
+                            $("#answerTabContentAPI").append(
+                                "<div class='tab-pane fade' id='answer-" + i + "-content' role='tabpanel' aria-labelledby='answer-" + i + "-tab'> \
+                                <input type='hidden' name='QuestionToAdd.Answers[" + i + "].AssociatedQuestionId' id='QuestionToAdd_Answers_" + i + "__AssociatedQuestionId' value='" + i + "' /> \
                                 <div class= 'form-group input-group mb-3'> \
                                     <div class='col-5 pl-0'> \
                                         <label class='pr-3'>Answer will be checked against:</label> \
@@ -428,14 +454,58 @@ var populateModal = function (selectedQuestionId, challengeId, readOnly = false)
                                 </div> \
                                 <div id='Answers_" + i + "__params' class='form-group row'>" + toAppend + "</div> \
                             </div>"
+                            );
+
+                            for (j = 0; j < data.answers[i].answerParameters.length; j++) {
+
+                                $("#QuestionToAdd_Answers_" + i + "_AnswerParameters_" + j + "__Key").val(data.answers[i].answerParameters[j].key);
+                                $("#QuestionToAdd_Answers_" + i + "_AnswerParameters_" + j + "__Value").val(data.answers[i].answerParameters[j].value);
+                                $("#QuestionToAdd_Answers_" + i + "_AnswerParameters_" + j + "__ErrorMessage").val(data.answers[i].answerParameters[j].errorMessage);
+                            }
+                        }
+                    }
+                    else if (data.questionType === "MultiChoice") {
+                        // Multi-choice questions don't need the URI tab at all, so hide it
+                        // Same for the inner div, and show the correct one
+                        $("#uriTabModal").addClass('d-none');
+                        $("#answersAPIParamsGroup").addClass('d-none');
+                        $("#answersMCParamsGroup").removeClass('d-none');
+
+
+
+                        // Add a new tab content for the answer
+                        $("#answerTabContentMChoice").append(
+                            "<div id='answer-0-content'> \
+                                    <input type='hidden' name='QuestionToAdd.Answers[0].AssociatedQuestionId' id='QuestionToAdd_Answers_0__AssociatedQuestionId' value='0' /> \
+                                    <div class= 'form-group input-group mb-3'> \
+                                        <div class='col-3 pr-0'> \
+                                            <button type='button' class='btn btn-info addAnswerParameter' data-index='0'>Add choice</button> \
+                                        </div> \
+                                    </div> \
+                                    <div id='Answers_0__params' class='form-group row'> \
+                                    </div > \
+                                </div>"
                         );
 
-                        for (j = 0; j < data.answers[i].answerParameters.length; j++) {
+                        var answerContainer = $("#Answers_0__params");
 
-                            $("#QuestionToAdd_Answers_" + i + "_AnswerParameters_" + j + "__Key").val(data.answers[i].answerParameters[j].key);
-                            $("#QuestionToAdd_Answers_" + i + "_AnswerParameters_" + j + "__Value").val(data.answers[i].answerParameters[j].value);
-                            $("#QuestionToAdd_Answers_" + i + "_AnswerParameters_" + j + "__ErrorMessage").val(data.answers[i].answerParameters[j].errorMessage);
+                        for (j = 0; j < data.answers[0].answerParameters.length; j++) {
+
+                            answerContainer.append("<div class='form-group col-9 border-top pt-2 answerParamDiv' data-index='" + j + "'> \
+                                                        <label>Text</label> \
+                                                        <input class='form-control answerParamInput answerParamInputKey' name='QuestionToAdd.Answers[0].AnswerParameters[" + j + "].Key' id='QuestionToAdd_Answers_0_AnswerParameters_" + j + "__Key'' data-index='" + j + "' required value='" + data.answers[0].answerParameters[j].key + "' /></div>");
+                            answerContainer.append("<div class='form-group col-2 border-top pt-2 answerParamDiv' data-index='" + j + "'> \
+                                                        <label>Correct?</label> <br />\
+                                                        <input type='checkbox' data-toggle='toggle' data-size='normal' data-on='Yes' data-off='No' class='answerParamInput answerParamInputVal' name='QuestionToAdd.Answers[0].AnswerParameters[" + j + "].Value' id='QuestionToAdd_Answers_0_AnswerParameters_" + j + "__Value' data-index='" + j + "' required value='true' " + (data.answers[0].answerParameters[j].value === 'true' ? 'checked' : '') + " /></div>");
+                            answerContainer.append("<div class='form-group col border-top pt-2 answerParamDiv' data-index='" + j + "'><br /> \
+                                                        <a href='#' class='answerParamDelete' data-index='" + j + "'><img src='/images/trash-2.svg' class='svg-filter-danger pt-3' /></a></div>");
+                            answerContainer.append("<div class='form-group col-12 answerParamDiv' data-index='" + j + "'> \
+                                                        <label>Message</label> \
+                                                        <input class='form-control answerParamInput answerParamInputError' name='QuestionToAdd.Answers[0].AnswerParameters[" + j + "].ErrorMessage' id='QuestionToAdd_Answers_0_AnswerParameters_" + j + "__ErrorMessage' data-index='" + j + "' required value='" + data.answers[0].answerParameters[j].errorMessage + "' /></div>");
                         }
+
+                        $("[data-toggle='toggle']").bootstrapToggle('destroy')
+                        $("[data-toggle='toggle']").bootstrapToggle();
                     }
 
                     $("#uri-0-tab").trigger('click');
@@ -456,7 +526,8 @@ var populateModalAddNew = function (selectedQuestionId, challengeId) {
     $("#uriTab").empty();
     $("#uriTabContent").empty();
     $("#answerTab").empty();
-    $("#answerTabContent").empty();
+    $("#answerTabContentAPI").empty();
+    $("#answerTabContentMChoice").empty();
     $("#requiredInputsText").text('');
     $("#requiredInputsUri").text('');
     $("#requiredInputsAnswer").text('');
@@ -472,8 +543,9 @@ var populateModalAddNew = function (selectedQuestionId, challengeId) {
             $("#QuestionToAdd_Difficulty").val(data.difficulty);
             $("#QuestionToAdd_Description").val(data.description);
             $("#QuestionToAdd_ChallengeId").val(challengeId);
-            $("#QuestionToAdd_Justification").val(data.justification);
             $("#QuestionToAdd_Id").val("");
+            $("#QuestionToAdd_Justification").val(data.justification);
+            $("#QuestionToAdd_QuestionType").val(data.questionType);
 
             // Clear any old links from previous modal loads
             $(".modal-hidden-urls").remove();
@@ -549,17 +621,26 @@ var populateModalAddNew = function (selectedQuestionId, challengeId) {
                             $("#requiredInputsText").text(numOfEmptyInputsText);
 
 
-                        // Construct the uri tabs
-                        container = $("#uriTab");
-                        for (i = 0; i < data.uris.length; i++) {
+                        // The URI tab is only needed for the API question type
+                        if (data.questionType === "API") {
 
-                            container.append(
-                                "<li class='nav-item'> \
+                            // Show the URI modal tab, just in case it was hidden previously
+                            // Same for the inner div, plus hide the others
+                            $("#uriTabModal").removeClass('d-none');
+                            $("#answersAPIParamsGroup").removeClass('d-none');
+                            $("#answersMCParamsGroup").addClass('d-none');
+
+                            // Construct the uri tabs
+                            container = $("#uriTab");
+                            for (i = 0; i < data.uris.length; i++) {
+
+                                container.append(
+                                    "<li class='nav-item'> \
                                         <a class='nav-link uriNavItem' id='uri-"+ i + "-tab' data-toggle='tab' href='#uri-" + i + "-content' role='tab' aria-controls='uri-" + i + "-content' aria-selected='false' data-index='" + i + "'> Uri #" + (i + 1) + "</a> \
                                     </li>"
-                            );
+                                );
 
-                            var toAppend = "<div class='tab-pane fade' id='uri-" + i + "-content' role='tabpanel' aria-labelledby='uri" + i + "-tab'> \
+                                var toAppend = "<div class='tab-pane fade' id='uri-" + i + "-content' role='tabpanel' aria-labelledby='uri" + i + "-tab'> \
                                                     <input type='hidden' name='QuestionToAdd.Uris["+ i + "].Id' id='QuestionToAdd_Uris_" + i + "__Id' value='" + data.uris[i].id + "' /> \
                                                     <input type='hidden' name='QuestionToAdd.Uris["+ i + "].RequiresContributorAccess' id='QuestionToAdd_Uris_" + i + "__RequiresContributorAccess' value='" + data.uris[i].requiresContributorAccess + "' /> \
                                                     <div class='input-group mb-3'> \
@@ -571,62 +652,62 @@ var populateModalAddNew = function (selectedQuestionId, challengeId) {
                                                     </div > \
                                                     <br /> \
                                                     <div class='form-group row'>";
-                            if (data.uris[i].uriParameters) {
-                                for (var j = 0; j < data.uris[i].uriParameters.length; j++) {
+                                if (data.uris[i].uriParameters) {
+                                    for (var j = 0; j < data.uris[i].uriParameters.length; j++) {
 
-                                    toAppend += "<div class='form-group col-6'> \
+                                        toAppend += "<div class='form-group col-6'> \
                                                     <label>"+ data.uris[i].uriParameters[j] + "</label> \
                                                     <input type='hidden' name='QuestionToAdd.Uris[" + i + "].UriParameters[" + j + "].Key' id='QuestionToAdd_Uris_" + i + "__UriParameters_" + j + "__Key' value='" + data.uris[i].uriParameters[j] + "' /> \
                                                  </div>";
 
-                                    // Check if this is a global parameters
-                                    if (globalParams.parameters) {
-                                        globalParams.parameters.forEach(function (item) {
-                                            if (item.key === data.uris[i].uriParameters[j]) {
-                                                exists = true;
-                                                paramValue = item.value;
-                                                return;
-                                            }
-                                        });
-                                    }
-                                    if (exists) {
-                                        toAppend += "<div class='form-group col-6'> " + paramValue + " \
+                                        // Check if this is a global parameters
+                                        if (globalParams.parameters) {
+                                            globalParams.parameters.forEach(function (item) {
+                                                if (item.key === data.uris[i].uriParameters[j]) {
+                                                    exists = true;
+                                                    paramValue = item.value;
+                                                    return;
+                                                }
+                                            });
+                                        }
+                                        if (exists) {
+                                            toAppend += "<div class='form-group col-6'> " + paramValue + " \
                                                      </div>";
-                                    }
-                                    else {
-                                        if (data.uris[i].uriParameters[j].startsWith('Profile.')) {
-                                            // Get the value for the current user
-                                            var profileValue = $("#CurrentUserProfile_" + data.uris[i].uriParameters[j].substr(8)).val();
-                                            toAppend += "<div class='form-group col-6'>" + profileValue + " <span class='badge badge-warning' data-toggle='tooltip' data-placement='top' title='This is your value. Each user will automatically get their own based on their profile'>(note)</span></div>";
                                         }
                                         else {
-                                            toAppend += "<div class='form-group col-6'> \
+                                            if (data.uris[i].uriParameters[j].startsWith('Profile.')) {
+                                                // Get the value for the current user
+                                                var profileValue = $("#CurrentUserProfile_" + data.uris[i].uriParameters[j].substr(8)).val();
+                                                toAppend += "<div class='form-group col-6'>" + profileValue + " <span class='badge badge-warning' data-toggle='tooltip' data-placement='top' title='This is your value. Each user will automatically get their own based on their profile'>(note)</span></div>";
+                                            }
+                                            else {
+                                                toAppend += "<div class='form-group col-6'> \
                                                             <input class='form-control' name='QuestionToAdd.Uris[" + i + "].UriParameters[" + j + "].Value' id='QuestionToAdd_Uris_" + i + "__UriParameters_" + j + "__Value' required /> \
                                                          </div>";
-                                            numOfEmptyInputsUri += 1;
+                                                numOfEmptyInputsUri += 1;
+                                            }
                                         }
+
+                                        exists = false;
+                                        paramValue = '';
                                     }
-
-                                    exists = false;
-                                    paramValue = '';
                                 }
-                            }
 
-                            toAppend += "       </div> \
+                                toAppend += "       </div> \
                                                 </div>";
-                            $("#uriTabContent").append(toAppend);
+                                $("#uriTabContent").append(toAppend);
 
-                            // Add a new answer tab (every question will have a answer associated with it)
-                            $("#answerTab").append(
-                                "<li class='nav-item'> \
+                                // Add a new answer tab (every question will have a answer associated with it)
+                                $("#answerTab").append(
+                                    "<li class='nav-item'> \
                                         <a class='nav-link answerNavItem' id='answer-" + i + "-tab' data-toggle='tab' href='#answer-" + i + "-content' role='tab' aria-controls='answer-" + i + "-content' aria-selected='false'>Answer for Uri #" + (i + 1) + "</a> \
                                     </li>"
-                            );
+                                );
 
-                            // Add a new tab content for the answer
-                            $("#answerTabContent").append(
-                                "<div class='tab-pane fade' id='answer-" + i + "-content' role='tabpanel' aria-labelledby='answer-" + i + "-tab'> \
-                                        <input type='hidden' name='QuestionToAdd.Answers[" + i + "].AssociatedUriId' id='QuestionToAdd_Answers_" + i + "__AssociatedUriId' value='" + i + "' /> \
+                                // Add a new tab content for the answer
+                                $("#answerTabContentAPI").append(
+                                    "<div class='tab-pane fade' id='answer-" + i + "-content' role='tabpanel' aria-labelledby='answer-" + i + "-tab'> \
+                                        <input type='hidden' name='QuestionToAdd.Answers[" + i + "].AssociatedQuestionId' id='QuestionToAdd_Answers_" + i + "__AssociatedQuestionId' value='" + i + "' /> \
                                         <div class= 'form-group input-group mb-3'> \
                                             <div class='col-5 pl-0'> \
                                                 <label class='pr-3'>Answer will be checked against:</label> \
@@ -645,13 +726,37 @@ var populateModalAddNew = function (selectedQuestionId, challengeId) {
                                         <div id='Answers_" + i + "__params' class='form-group row'> \
                                         </div > \
                                     </div>"
+                                );
+                            }
+
+                            if (numOfEmptyInputsUri > 0)
+                                $("#requiredInputsUri").text(numOfEmptyInputsUri);
+                            if (numOfEmptyInputsAnswers > 0)
+                                $("#requiredInputsAnswer").text(numOfEmptyInputsAnswers);
+                        }
+                        else if (data.questionType === "MultiChoice") {
+                            // Multi-choice questions don't need the URI tab at all, so hide it
+                            // Same for the inner div, and show the correct one
+                            $("#uriTabModal").addClass('d-none');
+                            $("#answersAPIParamsGroup").addClass('d-none');
+                            $("#answersMCParamsGroup").removeClass('d-none');
+
+
+
+                            // Add a new tab content for the answer
+                            $("#answerTabContentMChoice").append(
+                                "<div id='answer-0-content'> \
+                                    <input type='hidden' name='QuestionToAdd.Answers[0].AssociatedQuestionId' id='QuestionToAdd_Answers_0__AssociatedQuestionId' value='0' /> \
+                                    <div class= 'form-group input-group mb-3'> \
+                                        <div class='col-3 pr-0'> \
+                                            <button type='button' class='btn btn-info addAnswerParameter' data-index='0'>Add choice</button> \
+                                        </div> \
+                                    </div> \
+                                    <div id='Answers_0__params' class='form-group row'> \
+                                    </div > \
+                                </div>"
                             );
                         }
-
-                        if (numOfEmptyInputsUri > 0)
-                            $("#requiredInputsUri").text(numOfEmptyInputsUri);
-                        if (numOfEmptyInputsAnswers > 0)
-                            $("#requiredInputsAnswer").text(numOfEmptyInputsAnswers);
 
                         if (numOfEmptyInputsText + numOfEmptyInputsUri + numOfEmptyInputsAnswers > 0)
                             $("#btnModalSave").addClass('d-none');
@@ -679,7 +784,7 @@ var populatePreview = function () {
         var paramValue = $(this).val();
 
         if (paramValue)
-            text = text.replace(paramKey, paramValue);
+            text = text.replace(new RegExp(paramKey, 'g'), paramValue);
     })
 
     $("#textParamsPreview").text(text);

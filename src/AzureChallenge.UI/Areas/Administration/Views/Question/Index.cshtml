@@ -6,9 +6,16 @@
 <div class="d-flex flex-row">
     <div class="align-content-between w-100">
         <span class="h1">@ViewData["Title"]</span>
-        <a asp-action="AddNew" class="float-right mt-2">
-            <button type="button" class="btn btn-info">Add new</button>
-        </a>
+        <div class="dropdown show float-right mt-2">
+            <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Add new...
+            </a>
+
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                <a class="dropdown-item" asp-action="Add" asp-route-type="API">API-based question</a>
+                <a class="dropdown-item" asp-action="Add" asp-route-type="MultiChoice">Multiple choice question</a>
+            </div>
+        </div>
     </div>
 </div>
 <hr />

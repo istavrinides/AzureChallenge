@@ -16,6 +16,13 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
         public string AzureServiceCategory { get; set; }
         [Display(Name = "Available files")]
         public List<KeyValuePair<string, string>> FilesAvailableForImport { get; set; }
+        
+        [Display(Name = "Welcome message", Prompt = "What they user sees when they start the Challenge")]
+        [Required]
+        public string WelcomeMessage { get; set; }
+        public List<string> PrereqLinks { get; set; }
+        
+        public int Duration { get; set; }
     }
 
     public class ChallengeList
@@ -34,6 +41,9 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
         public string Description { get; set; }
         public bool IsLocked { get; set; }
         public string AzureServiceCategory { get; set; }
+        public string WelcomeMessage { get; set; }
+        public List<string> PrereqLinks { get; set; }
+        public int Duration { get; set; }
     }
 
     public class GitHubFiles

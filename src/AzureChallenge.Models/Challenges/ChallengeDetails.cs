@@ -1,4 +1,5 @@
 ﻿using AzureChallenge.Models.Questions;
+using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -30,5 +31,14 @@ namespace AzureChallenge.Models.Challenges
 
         [JsonProperty(PropertyName = "azureCategory")]
         public string AzureServiceCategory { get; set; }
+
+        [JsonProperty(PropertyName = "welcomeMessage")]
+        public string WelcomeMessage { get; set; }
+
+        [JsonProperty(PropertyName = "prereqLinks")]
+        public List<string> PrereqLinks { get; set; }
+
+        [JsonProperty(PropertyName = "duration")]
+        public int Duration { get; set; }
     }
 }

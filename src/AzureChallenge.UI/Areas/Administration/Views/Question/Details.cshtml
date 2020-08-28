@@ -95,54 +95,56 @@
         </div>
     </div>
 </div>
-<div id="uriParamsGroup" class="form-border form-group">
-    <div class="form-group">
-        <div class="col pl-0 pr-0">
-            <label asp-for="@Model.Uris"></label>
-        </div>
-        <div class="col pl-0 pr-0">
-            <ul class="nav nav-tabs" id="uriTab" role="tablist">
+@if (Model.QuestionType == "API")
+{
+    <div id="uriParamsGroup" class="form-border form-group">
+        <div class="form-group">
+            <div class="col pl-0 pr-0">
+                <label asp-for="@Model.Uris"></label>
+            </div>
+            <div class="col pl-0 pr-0">
+                <ul class="nav nav-tabs" id="uriTab" role="tablist">
+                    @for (int i = 0; i < Model.Uris.Count(); i++)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(i == 0 ? "active" : "") uriNavItem" id="uri-@(i)-tab" data-toggle="tab" href="#uri-@(i)-content" role="tab" aria-controls="uri-@(i)-content" data-index="@i" aria-selected="@(i == 0 ? "true" : "false")">Uri #@(i + 1)</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+            <br />
+            <div class="col pl-0 pr-0 tab-content" id="uriTabContent">
                 @for (int i = 0; i < Model.Uris.Count(); i++)
                 {
-                    <li class="nav-item">
-                        <a class="nav-link @(i == 0 ? "active" : "") uriNavItem" id="uri-@(i)-tab" data-toggle="tab" href="#uri-@(i)-content" role="tab" aria-controls="uri-@(i)-content" data-index="@i" aria-selected="@(i == 0 ? "true" : "false")">Uri #@(i+1)</a>
-                    </li>
+                    <div class='tab-pane fade @(i == 0 ? "show active" : "")' id='uri-@(i)-content' role='tabpanel' aria-labelledby='uri-@(i)-tab'>
+                        <input type='hidden' asp-for='@Model.Uris[i].Id' />
+                        <div class='input-group mb-3'>
+                            <div class='input-group-prepend btn-group-toggle' data-toggle='buttons'>
+                                <span class="input-group-text">@Model.Uris[i].CallType</span>
+                            </div>
+                            <input asp-for='@Model.Uris[i].Uri' data-index="@i" class='form-control uriinput' readonly />
+                        </div>
+                        <br />
+                        <div class="input-group mb-3" style='padding-left: 20px'>
+                            <input asp-for="@Model.Uris[i].RequiresContributorAccess" class="form-check-input" />
+                            <label class="form-check-label" asp-for="@Model.Uris[i].RequiresContributorAccess">Requires elevated (Contributor) access to the resource</label>
+                        </div>
+                        <div class='form-group'>
+                            <div class='col-md-12 pl-0'>
+                                <span>Discovered parameters:</span>
+                            </div>
+                            <div id='Uris_@(i)__Uri_params' class="row col-md-12">
+                                @for (int j = 0; j < Model.Uris[i]?.UriParameters?.Count; j++)
+                                {
+                                    <input type="hidden" asp-for="@Model.Uris[i].UriParameters[j]" />
+                                    <span class='btn btn-info m-1'>@Model.Uris[i].UriParameters[j]</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
                 }
-            </ul>
-        </div>
-        <br />
-        <div class="col pl-0 pr-0 tab-content" id="uriTabContent">
-            @for (int i = 0; i < Model.Uris.Count(); i++)
-            {
-            <div class='tab-pane fade @(i == 0 ? "show active" : "")' id='uri-@(i)-content' role='tabpanel' aria-labelledby='uri-@(i)-tab'>
-                <input type='hidden' asp-for='@Model.Uris[i].Id' />
-                <div class='input-group mb-3'>
-                    <div class='input-group-prepend btn-group-toggle' data-toggle='buttons'>
-                        <span class="input-group-text">@Model.Uris[i].CallType</span>
-                    </div>
-                    <input asp-for='@Model.Uris[i].Uri' data-index="@i" class='form-control uriinput' readonly />
-                </div>
-                <br />
-                <div class="input-group mb-3" style='padding-left: 20px'>
-                    <input asp-for="@Model.Uris[i].RequiresContributorAccess" class="form-check-input" />
-                    <label class="form-check-label" asp-for="@Model.Uris[i].RequiresContributorAccess">Requires elevated (Contributor) access to the resource</label>
-                </div>
-                <div class='form-group'>
-                    <div class='col-md-12 pl-0'>
-                        <span>Discovered parameters:</span>
-                    </div>
-                    <div id='Uris_@(i)__Uri_params' class="row col-md-12">
-                        @for (int j = 0; j < Model.Uris[i]?.UriParameters?.Count; j++)
-                        {
-                            <input type="hidden" asp-for="@Model.Uris[i].UriParameters[j]" />
-                            <span class='btn btn-info m-1'>@Model.Uris[i].UriParameters[j]</span>
-                        }
-                    </div>
-                </div>
             </div>
-            }
         </div>
     </div>
-</div>
-
+}
 

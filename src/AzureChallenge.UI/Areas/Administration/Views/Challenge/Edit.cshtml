@@ -44,6 +44,12 @@
     <input type="hidden" asp-for="Name" />
     <input type="hidden" asp-for="IsLocked" />
     <input type="hidden" asp-for="AzureServiceCategory" />
+    <input type="hidden" asp-for="Duration" />
+    <input type="hidden" asp-for="WelcomeMessage" />
+    @for(int i = 0; i< Model.PrereqLinks?.Count; i++)
+    {
+        <input type="hidden" asp-for="@Model.PrereqLinks[i]" />
+    }
     <div class="form-group row">
         <div class="col-md-12">
             <label class="pr-2" asp-for="IsPublic"></label>
@@ -195,7 +201,7 @@
                                     <span class="badge badge-danger" data-toggle="tooltip" data-placement="top" title="Number of empty required fields" id="requiredInputsText"></span>
                                 </a>
                             </li>
-                            <li role="presentation" class="nav-item">
+                            <li role="presentation" class="nav-item" id="uriTabModal">
                                 <a class="nav-link" href="#modal-uri" aria-controls="modal-uri" role="tab" data-toggle="tab" aria-selected="false">
                                     URI Parameters&nbsp;
                                     <span class="badge badge-danger" data-toggle="tooltip" data-placement="top" title="Number of empty required fields" id="requiredInputsUri"></span>
@@ -221,6 +227,7 @@
                                         <input type="hidden" class="modal-hidden" id="QuestionToAdd_ChallengeId" name="QuestionToAdd.ChallengeId" />
                                         <input type="hidden" class="modal-hidden" id="QuestionToAdd_Id" name="QuestionToAdd.Id" />
                                         <input type="hidden" class="modal-hidden" id="QuestionToAdd_Justification" name="QuestionToAdd.Justification" />
+                                        <input type="hidden" class="modal-hidden" id="QuestionToAdd_QuestionType" name="QuestionToAdd.QuestionType" />
                                     </div>
                                     <div class="text-primary">
                                         <span class="font-italic font-weight-bold">Preview:</span>
@@ -244,14 +251,20 @@
                                 </div>
                             </div>
                             <div class="tab-pane fade tab-pane-upper" id="modal-answer" role="tabpanel" aria-labelledby="modal-answer-tab">
-                                <div id="answersParamsGroup" class="form-border form-group">
+                                <div id="answersAPIParamsGroup" class="form-border form-group">
                                     <div class="form-group">
                                         <div class="col pl-0 pr-0">
                                             <ul class="nav nav-tabs" id="answerTab" role="tablist">
                                             </ul>
                                         </div>
                                         <br />
-                                        <div class="col pl-0 pr-0 tab-content" id="answerTabContent">
+                                        <div class="col pl-0 pr-0 tab-content" id="answerTabContentAPI">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="answersMCParamsGroup" class="form-border form-group">
+                                    <div class="form-group">
+                                        <div class="col pl-0 pr-0 tab-content" id="answerTabContentMChoice">
                                         </div>
                                     </div>
                                 </div>
@@ -310,6 +323,26 @@
                     <div id="checkModalWaiting" class="text-center">
                         <div>
                             Please wait while the question is deleted...
+                        </div>
+                        <div>
+                            <img src="/images/wait.gif">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="reArrangeModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Re-arranging the question sorting</h5>
+                </div>
+                <div class="modal-body">
+                    <div id="checkModalWaiting" class="text-center">
+                        <div>
+                            Please wait while we change the question ordering...
                         </div>
                         <div>
                             <img src="/images/wait.gif">

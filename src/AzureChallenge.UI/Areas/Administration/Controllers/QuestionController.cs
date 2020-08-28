@@ -27,11 +27,12 @@ using AzureChallenge.Interfaces.Providers.Parameters;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SmartFormat.Utilities;
+using AzureChallenge.UI.Models;
 
 namespace AzureChallenge.UI.Areas.Administration.Controllers
 {
     [Area("Administration")]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator, ContentEditor")]
     public class QuestionController : Controller
     {
         private IQuestionProvider<ACM.AzureChallengeResult, ACMQ.Question> questionProvider;
@@ -88,7 +89,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Name = q.Name,
                     Description = q.Description,
                     Id = q.Id,
-                    TargettedAzureService = q.TargettedAzureService
+                    TargettedAzureService = q.TargettedAzureService,
+                    QuestionType = q.QuestionType
                 });
             }
 
@@ -111,16 +113,19 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
                 var uriParams = new List<ViewQuestionModel.UriList>();
 
-                foreach (var u in question.Uris)
+                if (question.QuestionType == "API")
                 {
-                    uriParams.Add(new ViewQuestionModel.UriList()
+                    foreach (var u in question.Uris)
                     {
-                        UriParameters = u.UriParameters,
-                        CallType = u.CallType,
-                        Id = u.Id,
-                        Uri = u.Uri,
-                        RequiresContributorAccess = u.RequiresContributorAccess
-                    });
+                        uriParams.Add(new ViewQuestionModel.UriList()
+                        {
+                            UriParameters = u.UriParameters,
+                            CallType = u.CallType,
+                            Id = u.Id,
+                            Uri = u.Uri,
+                            RequiresContributorAccess = u.RequiresContributorAccess
+                        });
+                    }
                 }
 
                 var model = new ViewQuestionModel()
@@ -134,7 +139,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     TextParameters = question.TextParameters,
                     Uris = uriParams,
                     Justification = question.Justification,
-                    UsefulLinks = question.UsefulLinks ?? new List<string>()
+                    UsefulLinks = question.UsefulLinks ?? new List<string>(),
+                    QuestionType = question.QuestionType
                 };
 
 
@@ -175,6 +181,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                         {
                             azureServiceList.Add(service.name);
                         }
+
+                        azureServiceList.AddRange(AzureServicesCategoryMapping.TargettedServiceAdditions);
                     }
                 }
 
@@ -182,16 +190,19 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
                 var uriParams = new List<EditQuestionViewModel.UriList>();
 
-                foreach (var u in question.Uris)
+                if (question.QuestionType == "API")
                 {
-                    uriParams.Add(new EditQuestionViewModel.UriList()
+                    foreach (var u in question.Uris)
                     {
-                        UriParameters = u.UriParameters,
-                        CallType = u.CallType,
-                        Id = u.Id,
-                        Uri = u.Uri,
-                        RequiresContributorAccess = u.RequiresContributorAccess
-                    });
+                        uriParams.Add(new EditQuestionViewModel.UriList()
+                        {
+                            UriParameters = u.UriParameters,
+                            CallType = u.CallType,
+                            Id = u.Id,
+                            Uri = u.Uri,
+                            RequiresContributorAccess = u.RequiresContributorAccess
+                        });
+                    }
                 }
 
                 var model = new EditQuestionViewModel()
@@ -204,11 +215,12 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     Text = question.Text,
                     TextParameters = question.TextParameters ?? new List<string>(),
                     Uris = uriParams,
-                    AzureServicesList = azureServiceList,
+                    AzureServicesList = azureServiceList.OrderBy(p => p).ToList(),
                     AvailableParameters = new List<string>(),
                     Justification = question.Justification,
                     UsefulLinks = question.UsefulLinks ?? new List<string>(),
-
+                    Owner = question.Owner,
+                    QuestionType = question.QuestionType
                 };
 
                 // Get the list of global parameters (if exist)
@@ -251,9 +263,11 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     {
                         azureServiceList.Add(service.name);
                     }
+
+                    azureServiceList.AddRange(AzureServicesCategoryMapping.TargettedServiceAdditions);
                 }
             }
-            model.AzureServicesList = azureServiceList;
+            model.AzureServicesList = azureServiceList.OrderBy(p => p).ToList();
             model.AvailableParameters = new List<string>();
 
             // Get the list of global parameters (if exist)
@@ -281,8 +295,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
         }
 
         [HttpGet]
-        [Route("Administration/Questions/AddNew")]
-        public async Task<IActionResult> AddNew()
+        [Route("Administration/Questions/Add")]
+        public async Task<IActionResult> Add(string type)
         {
             var client = new HttpClient();
             var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
@@ -300,13 +314,16 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     {
                         azureServiceList.Add(service.name);
                     }
+
+                    azureServiceList.AddRange(AzureServicesCategoryMapping.TargettedServiceAdditions);
                 }
             }
 
             var model = new AddNewQuestionViewModel()
             {
                 Id = Guid.NewGuid().ToString(),
-                AzureServicesList = azureServiceList,
+                QuestionType = type,
+                AzureServicesList = azureServiceList.OrderBy(p => p).ToList(),
                 Difficulty = 1,
                 TextParameters = new List<string>(),
                 Uris = new List<AddNewQuestionViewModel.UriList>(),
@@ -331,8 +348,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Route("Administration/Questions/AddNew")]
-        public async Task<IActionResult> AddNew(AddNewQuestionViewModel model)
+        [Route("Administration/Questions/Add")]
+        public async Task<IActionResult> Add(AddNewQuestionViewModel model)
         {
             var client = new HttpClient();
             var response = await client.GetAsync(configuration["Endpoints:AzureServicesEnpoint"]);
@@ -350,9 +367,11 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     {
                         azureServiceList.Add(service.name);
                     }
+
+                    azureServiceList.AddRange(AzureServicesCategoryMapping.TargettedServiceAdditions);
                 }
             }
-            model.AzureServicesList = azureServiceList;
+            model.AzureServicesList = azureServiceList.OrderBy(p => p).ToList();
             model.AvailableParameters = new List<string>();
             model.Owner = User.Identity.Name;
 
@@ -424,26 +443,32 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     {
                         azureServiceList.Add(service.name);
                     }
+
+                    azureServiceList.AddRange(AzureServicesCategoryMapping.TargettedServiceAdditions);
                 }
             }
-            model.AzureServicesList = azureServiceList;
+            model.AzureServicesList = azureServiceList.OrderBy(p => p).ToList();
 
             var uriList = new List<ACMQ.Question.UriList>();
             var paramList = new List<string>();
 
-            foreach (var u in model.Uris)
+            if (model.QuestionType == "API")
             {
-                uriList.Add(new ACMQ.Question.UriList
-                {
-                    CallType = u.CallType,
-                    Id = u.Id,
-                    Uri = u.Uri,
-                    UriParameters = u.UriParameters,
-                    RequiresContributorAccess = u.RequiresContributorAccess
-                });
 
-                if (u.UriParameters != null)
-                    paramList.AddRange(u.UriParameters);
+                foreach (var u in model.Uris)
+                {
+                    uriList.Add(new ACMQ.Question.UriList
+                    {
+                        CallType = u.CallType,
+                        Id = u.Id,
+                        Uri = u.Uri,
+                        UriParameters = u.UriParameters,
+                        RequiresContributorAccess = u.RequiresContributorAccess
+                    });
+
+                    if (u.UriParameters != null)
+                        paramList.AddRange(u.UriParameters);
+                }
             }
 
             var mapped = new ACMQ.Question()
@@ -458,7 +483,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 Uris = uriList,
                 Justification = model.Justification,
                 UsefulLinks = model.UsefulLinks,
-                Owner = model.Owner,
+                Owner = User.Identity.Name,
+                QuestionType = model.QuestionType
             };
 
             if (model.TextParameters != null)

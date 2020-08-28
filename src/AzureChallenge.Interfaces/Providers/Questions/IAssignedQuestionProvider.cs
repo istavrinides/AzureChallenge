@@ -20,6 +20,6 @@ namespace AzureChallenge.Interfaces.Providers.Questions
 
         public Task<T> DeleteAllItemsOfChallenge(string id);
 
-        public Task<List<KeyValuePair<string, bool>>> ValidateQuestion(string id, UserProfile profile);
+        public Task<List<KeyValuePair<string, bool>>> ValidateQuestion(string id, UserProfile profile, List<string> UserChoices);
     }
 }

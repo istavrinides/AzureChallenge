@@ -16,7 +16,7 @@ namespace AzureChallenge.UI.Models
                     "AI + Machine Learning",
                     "Analytics",
                     "Blockchain",
-                    "Compute", 
+                    "Compute",
                     "Containers",
                     "Databases",
                     "Developer Tools",
@@ -34,10 +34,22 @@ namespace AzureChallenge.UI.Models
                     "Security",
                     "Storage",
                     "Web",
-                    "Windows Virtual Desktop"
+                    "Windows Virtual Desktop",
+                    "Other/Multi-Service"
                 };
             }
         }
 
+        public static List<string> TargettedServiceAdditions
+        {
+            get
+            {
+                return new List<string>
+                {
+                    "Generic/No Specific Service"
+                };
+            }
+
+        }
     }
 }
