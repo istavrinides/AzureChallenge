@@ -15,6 +15,8 @@ The architecture of the application consists of:
 - An Azure SQL Database hosting the authentication database.
 - An Azure Cosmos Db Core API Database that hosts all the web application data.
 - Azure SignalR Service. Used in Challenge analytics to get a live view of how many users have completed each question (aggregated)
+
+## Deployment
 To deploy the web application in your own Azure Subscription, please see the instructions [here](https://github.com/istavrinides/AzureChallenge/tree/master/Deploy)
 
 ## How to use it
