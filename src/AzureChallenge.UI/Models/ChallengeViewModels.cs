@@ -57,6 +57,7 @@ namespace AzureChallenge.UI.Models.ChallengeViewModels
         public List<(string Text, bool Value, bool Selected)> Choices { get; set; }
         public string SelectedRBChoice { get; set; }
         public int TimeLeftInSeconds { get; set; }
+        public int TotalNumOfQuestions { get; set; }
     }
 
     public class ValidateQuestionViewModel

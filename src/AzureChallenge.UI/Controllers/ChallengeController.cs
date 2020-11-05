@@ -408,6 +408,7 @@ namespace AzureChallenge.UI.Controllers
                 model.QuestionType = question.QuestionType;
                 model.Difficulty = question.Difficulty;
                 model.QuestionIndex = challengeQuestion.Index;
+                model.TotalNumOfQuestions = challengeResponse.Item2.Questions.Count();
                 model.ThisQuestionDone = userChallenge.CurrentIndex > challengeQuestion.Index;
                 model.HelpfulLinks = question.UsefulLinks;
                 model.Justification = question.Justification;
