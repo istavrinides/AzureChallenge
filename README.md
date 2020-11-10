@@ -138,7 +138,7 @@ The following values need to be set in your local development environment:
     "AzureAD": {
       "Enabled": false,
       "ClientId": "",
-      "ClientSecret": "".
+      "ClientSecret": "",
       "AllowedDomains": ""
     },
     "Facebook": {
