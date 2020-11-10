@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Localization.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace AzureChallenge.UI.Areas.Identity.Pages.Account
@@ -25,19 +27,22 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IEmailSender _emailSender;
         private readonly ILogger<ExternalLoginModel> _logger;
+        private readonly IConfiguration _configuration;
 
         public ExternalLoginModel(
             SignInManager<AzureChallengeUIUser> signInManager,
             UserManager<AzureChallengeUIUser> userManager,
             RoleManager<IdentityRole> roleManager,
             ILogger<ExternalLoginModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            IConfiguration configuration)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _roleManager = roleManager;
             _logger = logger;
             _emailSender = emailSender;
+            _configuration = configuration;
         }
 
         [BindProperty]
@@ -85,8 +90,15 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
 
+            if (!ValidateAllowedDomain(info))
+            {
+                ErrorMessage = "Domain not allowed for login.";
+                return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+            }
+
             // Sign in the user with this external login provider if the user already has a login.
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+
             if (result.Succeeded)
             {
                 _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
@@ -184,6 +196,33 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account
             LoginProvider = info.LoginProvider;
             ReturnUrl = returnUrl;
             return Page();
+        }
+
+        private bool ValidateAllowedDomain(ExternalLoginInfo info)
+        {
+            // Only filter Microsoft login provider for Azure AD Multitenancy
+            if (info.LoginProvider != "Microsoft")
+                return true;
+
+            var allowedDomainList = _configuration["Authentication:AzureAD:AllowedDomains"];
+
+            // If we haven't set the value or it is empty, assume all domains allowed
+            if (string.IsNullOrWhiteSpace(allowedDomainList))
+                return true;
+
+            var allowedDomains = allowedDomainList.Split(',');
+
+            // Needs to have email to proceed anyway
+            if (info.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
+            {
+                var emailDomain = info.Principal.FindFirstValue(ClaimTypes.Email).Split('@')[1].ToLower();
+
+                return allowedDomains.Contains(emailDomain);
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

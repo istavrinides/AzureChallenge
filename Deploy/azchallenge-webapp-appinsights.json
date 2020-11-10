@@ -245,117 +245,133 @@
                 "isXenon": false,
                 "hyperV": false,
                 "siteConfig": {
-                    "appSettings": [
-                        {
-                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                            "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName'))).InstrumentationKey]",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "PROJECT",
-                            "value": "src/AzureChallenge.UI/AzureChallenge.UI.csproj",
-                            "slotSetting": false
-                        },{
-                            "name": "APPINSIGHTS_PROFILERFEATURE_VERSION",
-                            "value": "1.0.0",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
-                            "value": "~2",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "ASPNETCORE_HOSTINGSTARTUP__KEYVAULT__CONFIGURATIONENABLED",
-                            "value": "true",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "ASPNETCORE_HOSTINGSTARTUP__KEYVAULT__CONFIGURATIONVAULT",
-                            "value": "[concat('https://', parameters('keyvaultName'), '.vault.azure.net/')]",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "Authentication:Facebook:Enabled",
-                            "value": false,
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "Authentication:Facebook:AppId",
-                            "value": "Invalid - Please Change",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "Authentication:Facebook:AppSecret",
-                            "value": "Invalid - Please Change",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "Authentication:Google:Enabled",
-                            "value": false,
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "Authentication:Google:ClientId",
-                            "value": "Invalid - Please Change",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "Authentication:Google:ClientSecret",
-                            "value": "Invalid - Please Change",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "Authentication:Microsoft:ClientId",
-                            "value": "Invalid - Please Change",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "Authentication:Microsoft:ClientSecret",
-                            "value": "Invalid - Please Change",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "SendGrid_Api_Key",
-                            "value": "Invalid - Please Change",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "CosmosDb:Account",
-                            "value": "[concat('https://', parameters('CosmosDbDatabaseAccountName') ,'.documents.azure.com:443/')]",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "CosmosDb:ContainerName",
-                            "value": "resources",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "CosmosDb:DatabaseName",
-                            "value": "azurechallenge",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "CosmosDb:Key",
-                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('cosmosDbKey_secret_name'))).secretUriWithVersion, ')')]",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "Azure:SignalR:ConnectionString",
-                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('signalR_secret_name'))).secretUriWithVersion, ')')]",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "DiagnosticServices_EXTENSION_VERSION",
-                            "value": "~3",
-                            "slotSetting": false
-                        },
-                        {
-                            "name": "Endpoints:AzureServicesEnpoint",
-                            "value": "https://docs.microsoft.com/en-us/rest/api/rest-products.json",
-                            "slotSetting": false
-                        }
-                    ],
+                  "appSettings": [
+                    {
+                      "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                      "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName'))).InstrumentationKey]",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "PROJECT",
+                      "value": "src/AzureChallenge.UI/AzureChallenge.UI.csproj",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "APPINSIGHTS_PROFILERFEATURE_VERSION",
+                      "value": "1.0.0",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
+                      "value": "~2",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "ASPNETCORE_HOSTINGSTARTUP__KEYVAULT__CONFIGURATIONENABLED",
+                      "value": "true",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "ASPNETCORE_HOSTINGSTARTUP__KEYVAULT__CONFIGURATIONVAULT",
+                      "value": "[concat('https://', parameters('keyvaultName'), '.vault.azure.net/')]",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "Authentication:Facebook:Enabled",
+                      "value": false,
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "Authentication:Facebook:AppId",
+                      "value": "Invalid - Please Change",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "Authentication:Facebook:AppSecret",
+                      "value": "Invalid - Please Change",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "Authentication:Google:Enabled",
+                      "value": false,
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "Authentication:Google:ClientId",
+                      "value": "Invalid - Please Change",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "Authentication:Google:ClientSecret",
+                      "value": "Invalid - Please Change",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "Authentication:AzureAD:ClientId",
+                      "value": "Invalid - Please Change",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "Authentication:AzureAD:Enabled",
+                      "value": false,
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "Authentication:AzureAD:ClientSecret",
+                      "value": "Invalid - Please Change",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "Authentication:AzureAD:AllowedDomains",
+                      "value": "Invalid - Please Change",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "Authentication:LoginMessage",
+                      "value": "",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "SendGrid_Api_Key",
+                      "value": "Invalid - Please Change",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "CosmosDb:Account",
+                      "value": "[concat('https://', parameters('CosmosDbDatabaseAccountName') ,'.documents.azure.com:443/')]",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "CosmosDb:ContainerName",
+                      "value": "resources",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "CosmosDb:DatabaseName",
+                      "value": "azurechallenge",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "CosmosDb:Key",
+                      "value": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('cosmosDbKey_secret_name'))).secretUriWithVersion, ')')]",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "Azure:SignalR:ConnectionString",
+                      "value": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('signalR_secret_name'))).secretUriWithVersion, ')')]",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "DiagnosticServices_EXTENSION_VERSION",
+                      "value": "~3",
+                      "slotSetting": false
+                    },
+                    {
+                      "name": "Endpoints:AzureServicesEnpoint",
+                      "value": "https://docs.microsoft.com/en-us/rest/api/rest-products.json",
+                      "slotSetting": false
+                    }
+                  ],
                     "connectionStrings": [
                         {
                             "name": "DefaultConnection",

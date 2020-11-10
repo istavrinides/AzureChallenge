@@ -37,6 +37,11 @@ using AzureChallenge.Models.Users;
 using AzureChallenge.Interfaces.Providers.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Identity.Web;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.AzureAD.UI;
+using Microsoft.AspNetCore.Authentication;
 
 namespace AzureChallenge.UI
 {
@@ -71,12 +76,16 @@ namespace AzureChallenge.UI
             services.AddAuthorization();
             services.AddRazorPages();
 
-            services.AddAuthentication().AddMicrosoftAccount(microsoftoptions =>
+            // Currently Azure AD mixed with ASP.NET Identity Core is not supported.
+            // I am using here Azure AD Multi-Tenant and resticting domains during the login process
+            if (bool.Parse(Configuration["Authentication:AzureAD:Enabled"]))
             {
-                microsoftoptions.ClientId = Configuration["Authentication:Microsoft:ClientId"];
-                microsoftoptions.ClientSecret = Configuration["Authentication:Microsoft:ClientSecret"];
-            });
-
+                services.AddAuthentication().AddMicrosoftAccount(microsoftoptions =>
+                {
+                    microsoftoptions.ClientId = Configuration["Authentication:AzureAD:ClientId"];
+                    microsoftoptions.ClientSecret = Configuration["Authentication:AzureAD:ClientSecret"];
+                });
+            }
             if (bool.Parse(Configuration["Authentication:Facebook:Enabled"]))
             {
                 services.AddAuthentication().AddFacebook(facebookOptions =>

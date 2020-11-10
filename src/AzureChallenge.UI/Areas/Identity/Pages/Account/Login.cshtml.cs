@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using AzureChallenge.UI.Areas.Identity.Data;
+using Microsoft.AspNetCore.Routing.Matching;
+using AutoMapper.Configuration;
 
 namespace AzureChallenge.UI.Areas.Identity.Pages.Account
 {
@@ -21,14 +23,17 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account
         private readonly UserManager<AzureChallengeUIUser> _userManager;
         private readonly SignInManager<AzureChallengeUIUser> _signInManager;
         private readonly ILogger<LoginModel> _logger;
+        private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
 
-        public LoginModel(SignInManager<AzureChallengeUIUser> signInManager, 
+        public LoginModel(SignInManager<AzureChallengeUIUser> signInManager,
             ILogger<LoginModel> logger,
-            UserManager<AzureChallengeUIUser> userManager)
+            UserManager<AzureChallengeUIUser> userManager,
+            Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
+            _configuration = configuration;
         }
 
         [BindProperty]
@@ -60,6 +65,18 @@ namespace AzureChallenge.UI.Areas.Identity.Pages.Account
             if (!string.IsNullOrEmpty(ErrorMessage))
             {
                 ModelState.AddModelError(string.Empty, ErrorMessage);
+            }
+            else if (TempData["ErrorMessage"] != null && !string.IsNullOrWhiteSpace(TempData["ErrorMessage"].ToString()))
+            {
+                ModelState.AddModelError(string.Empty, TempData["ErrorMessage"].ToString());
+            }
+
+            // Check if we should add a login message
+            var loginMessage = _configuration["Authentication:LoginMessage"];
+
+            if (!string.IsNullOrWhiteSpace(loginMessage))
+            {
+                ModelState.AddModelError(string.Empty, loginMessage);
             }
 
             returnUrl = returnUrl ?? Url.Content("~/");
