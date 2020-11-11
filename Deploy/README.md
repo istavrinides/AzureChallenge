@@ -1,4 +1,12 @@
-# Deployment
+# Local Deployment
+To locally deploy the web application (either for local development or local hosting):
+1. Clone the repo
+2. Copy the configuration from the repo README to your secret.json or appsettings.json. You will need to define the following:
+    1. SQL Database connection string: local or remote database
+    2. Cosmos DB connection information: Azure Cosmos Db deployment or local emulator
+    3. Enable one of the available authentication mechanisms and create a SendGrid account (see Post Deployment below)
+
+# Azure Deployment
 To deploy the Azure Services required for the web application, please click the below button
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fistavrinides%2FAzureChallenge%2Fmaster%2FDeploy%2Fazchallenge.json)
@@ -11,6 +19,7 @@ This will deploy the following resources:
 - Azure Cosmos Db that serves as the web application database
 - Azure SignalR Service. Used in Challenge analytics to get a live view of how many users have completed each question (aggregated)
 
+# Post Deployment
 After successfully deploying the template, you will need to manually configure the following services and follow the below steps:
 1. [Deploy a SendGrid Account](https://docs.microsoft.com/en-us/azure/sendgrid-dotnet-how-to-send-email)
 2. Once deployed (following the documentation), please retrieve your API Key. You will use the API Key value to set the Azure Web App appSetting called `SendGrid_Api_Key`. It is recommended to use the deployed Azure Key Vault to store the secret and [reference the value from Azure Key Vault](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references). The Azure Web App already has delegated access to the Azure Key Vault secrets. You will need though to create an Azure Key Vault policy that includes your account as the Principal, with the correct Secret permission.

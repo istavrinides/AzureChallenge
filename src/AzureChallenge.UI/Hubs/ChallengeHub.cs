@@ -37,7 +37,7 @@ namespace AzureChallenge.UI.Hubs
                 {
                     List<string> newProgress = new List<string>();
 
-                    if (agg.ChallengeUsers.ChallengeProgress.Count > 0)
+                    if (agg.ChallengeUsers.ChallengeProgress != null && agg.ChallengeUsers.ChallengeProgress.Count > 0)
                     {
                         var added = false;
 
