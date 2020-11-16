@@ -3,8 +3,9 @@ To locally deploy the web application (either for local development or local hos
 1. Clone the repo
 2. Copy the configuration from the repo README to your secrets.json or appsettings.json. You will need to define the following:
     1. SQL Database connection string: local or remote database
-    2. Cosmos DB connection information: Azure Cosmos Db deployment or local emulator
-    3. Enable one of the available authentication mechanisms and create a SendGrid account (see Post Deployment below). Please note that Azure Key Vault integration is built in to Azure App Service. For local purposes, please add the values to either secrets.json or appsettings.json.
+    2. Cosmos DB connection information: Azure Cosmos Db deployment or [local emulator](https://docs.microsoft.com/en-us/azure/cosmos-db/local-emulator)
+        1. __If you are using the local emulator, when creating the container, please set the partition key to /type__
+    3. Enable one of the available authentication mechanisms and create a SendGrid account (see [Post Deployment](#post-deployment) below). Please note that Azure Key Vault integration is built in to Azure App Service. For local purposes, please add the values to either secrets.json or appsettings.json.
 
 # Azure Deployment
 To deploy the Azure Services required for the web application, please click the below button
