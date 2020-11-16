@@ -331,6 +331,7 @@
 
     $("form").submit(function () {
         if ($(this).valid()) {
+            window.onbeforeunload = null;
             $("#waitModal").modal('show');
         }
     });
