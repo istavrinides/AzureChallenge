@@ -85,7 +85,8 @@
             url: '/Administration/Challenge/ImportChallenge?uri=' + $("#fileSelector").val(),
             statusCode: {
                 200: function () {
-                    location.delay().reload(true);
+                    // Delay a bit before refreshing
+                    setTimeout(location.reload(true), 500);
                 },
                 409: function () {
                     alert("Challenge could not be imported - already exists.");
