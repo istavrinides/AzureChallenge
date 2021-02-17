@@ -402,7 +402,7 @@
                     "properties": {
                         "repoUrl": "https://github.com/istavrinides/AzureChallenge.git",
                         "branch": "master",
-                        "isManualIntegration": false
+                        "isManualIntegration": true
                     }
                 }
             ]
