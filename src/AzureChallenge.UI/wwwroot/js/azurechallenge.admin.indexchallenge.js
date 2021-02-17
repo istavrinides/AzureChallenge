@@ -126,7 +126,8 @@
             AzureServiceCategory: AzureServiceCategory,
             WelcomeMessage: $("#WelcomeMessage").val(),
             Duration: $("#Duration").val(),
-            PrereqLinks: $(".prereqLinksDiv a").map(function () { return this.href }).get()
+            PrereqLinks: $(".prereqLinksDiv a").map(function () { return this.href }).get(),
+            TrackAndDeductPoints: $("#TrackAndDeductPoints").val() === "on"
         };
 
         $.post("/Administration/Challenge/AddNewChallenge", model)

@@ -149,7 +149,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 AzureServiceCategory = challenge.Item2.AzureServiceCategory,
                 Duration = challenge.Item2.Duration,
                 PrereqLinks = challenge.Item2.PrereqLinks,
-                WelcomeMessage = challenge.Item2.WelcomeMessage
+                WelcomeMessage = challenge.Item2.WelcomeMessage,
+                TrackAndDeductPoints = challenge.Item2.TrackAndDeductPoints
             };
 
             foreach (var q in questions.Item2)
@@ -236,7 +237,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     AzureServiceCategory = inputModel.AzureServiceCategory,
                     WelcomeMessage = inputModel.WelcomeMessage,
                     Duration = inputModel.Duration,
-                    PrereqLinks = inputModel.PrereqLinks
+                    PrereqLinks = inputModel.PrereqLinks,
+                    TrackAndDeductPoints = inputModel.TrackAndDeductPoints
                 };
 
                 // Check if this is an update to an existing challenge question
@@ -389,7 +391,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     AzureServiceCategory = challengeResponse.Item2.AzureServiceCategory,
                     WelcomeMessage = challengeResponse.Item2.WelcomeMessage,
                     Duration = challengeResponse.Item2.Duration,
-                    PrereqLinks = challengeResponse.Item2.PrereqLinks
+                    PrereqLinks = challengeResponse.Item2.PrereqLinks,
+                    TrackAndDeductPoints = challengeResponse.Item2.TrackAndDeductPoints
                 };
 
                 var challengeQuestions = challenge.Questions;
@@ -446,7 +449,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                     AzureServiceCategory = challengeResponse.Item2.AzureServiceCategory,
                     WelcomeMessage = challengeResponse.Item2.WelcomeMessage,
                     Duration = challengeResponse.Item2.Duration,
-                    PrereqLinks = challengeResponse.Item2.PrereqLinks
+                    PrereqLinks = challengeResponse.Item2.PrereqLinks,
+                    TrackAndDeductPoints = challengeResponse.Item2.TrackAndDeductPoints
                 };
 
                 var challengeQuestions = challenge.Questions;
@@ -563,7 +567,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 AzureServiceCategory = inputModel.AzureServiceCategory,
                 WelcomeMessage = inputModel.WelcomeMessage,
                 Duration = inputModel.Duration,
-                PrereqLinks = inputModel.PrereqLinks
+                PrereqLinks = inputModel.PrereqLinks,
+                TrackAndDeductPoints = inputModel.TrackAndDeductPoints
             };
 
             var updateResult = await challengeProvider.AddItemAsync(challenge);
@@ -619,7 +624,8 @@ namespace AzureChallenge.UI.Areas.Administration.Controllers
                 AzureServiceCategory = inputModel.AzureServiceCategory,
                 Duration = inputModel.Duration,
                 WelcomeMessage = inputModel.WelcomeMessage,
-                PrereqLinks = inputModel.PrereqLinks
+                PrereqLinks = inputModel.PrereqLinks,
+                TrackAndDeductPoints = inputModel.TrackAndDeductPoints
             };
 
             var response = await challengeProvider.AddItemAsync(challenge);

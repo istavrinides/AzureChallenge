@@ -62,6 +62,10 @@ Creating a Challenge requires the following information:
 - **Name**
 - **Description**
 - **Azure Service Category**: Used for grouping/filtering.
+- **Duration**: Maximum amount of time (in minutes) each user can spend on the Challenge
+- **Track and Deduct Points**: If checked, each time a user incorrectly responds to a question, 25% will be deducted from the question points. After 4 incorrect answers and above (100% total deduction), they will receive 0 (zero) points.
+- **Welcome Message**: The message to show the user when starting the Challenge
+- **Pre-requisites**: Links to material that are considered useful/required to be able to complete the Challenge
 
 In the challenge screen, you have the following capabilities:
 - Description of the challenge

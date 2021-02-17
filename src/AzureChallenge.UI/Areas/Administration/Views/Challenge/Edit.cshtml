@@ -32,10 +32,7 @@
     {
         <div class="alert alert-danger" role="alert">The Challenge is locked and cannot be edited!</div>
     }
-    else
-    {
-        <div class="alert alert-secondary" role="alert">The Private Challenge Code for this challenge is @Model.Id</div>
-    }
+    <div class="alert alert-secondary" role="alert">The Private Challenge Code for this challenge is @Model.Id</div>
     <input type="hidden" asp-for="Id" />
     <input type='hidden' asp-for="Description" />
     <input type="hidden" asp-for="CurrentUserProfile.SubscriptionId" />
@@ -46,7 +43,8 @@
     <input type="hidden" asp-for="AzureServiceCategory" />
     <input type="hidden" asp-for="Duration" />
     <input type="hidden" asp-for="WelcomeMessage" />
-    @for(int i = 0; i< Model.PrereqLinks?.Count; i++)
+    <input type="hidden" asp-for="TrackAndDeductPoints" />
+    @for (int i = 0; i < Model.PrereqLinks?.Count; i++)
     {
         <input type="hidden" asp-for="@Model.PrereqLinks[i]" />
     }

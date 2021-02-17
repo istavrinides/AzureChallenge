@@ -25,6 +25,7 @@ namespace AzureChallenge.UI.Models.ChallengeViewModels
         public string WelcomeMessage { get; set; }
         public List<string> PrereqLinks { get; set; }
         public int Duration { get; set; }
+        public bool TrackAndDeductPoints { get; set; }
     }
 
     public class IntroductionViewModel

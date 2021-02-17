@@ -1,4 +1,4 @@
-﻿    using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -83,7 +83,8 @@ namespace AzureChallenge.UI.Controllers
                                         IsUnderway = false,
                                         AzureCategory = c.AzureServiceCategory,
                                         WelcomeMessage = c.WelcomeMessage,
-                                        PrereqLinks = c.PrereqLinks
+                                        PrereqLinks = c.PrereqLinks,
+                                        TrackAndDeductPoints = c.TrackAndDeductPoints
                                     })
                                     .ToList();
             }
@@ -224,7 +225,8 @@ namespace AzureChallenge.UI.Controllers
                             CurrentQuestion = questionId,
                             StartTimeUTC = DateTime.Now.ToUniversalTime(),
                             CurrentIndex = 0,
-                            NumOfQuestions = challengeResponse.Item2.Questions.Count()
+                            NumOfQuestions = challengeResponse.Item2.Questions.Count(),
+                            NumOfEfforts = 0
                         });
 
                     await userChallengesProvider.AddItemAsync(userChallenge);
@@ -272,7 +274,8 @@ namespace AzureChallenge.UI.Controllers
                                CurrentQuestion = questionId,
                                StartTimeUTC = DateTime.Now.ToUniversalTime(),
                                CurrentIndex = 0,
-                               NumOfQuestions = challengeResponse.Item2.Questions.Count()
+                               NumOfQuestions = challengeResponse.Item2.Questions.Count(),
+                               NumOfEfforts = 0
                            });
                         await userChallengesProvider.AddItemAsync(userChallengeResponse.Item2);
 
@@ -387,7 +390,7 @@ namespace AzureChallenge.UI.Controllers
             var profileParameters = mapper.Map<AzureChallenge.Models.Profile.UserProfile>(user).GetKeyValuePairs().ToDictionary(p => p.Key, p => p.Value);
 
             var parameters = new Dictionary<string, string>();
-            foreach (var gp in globalChallengeParametersResponse.Item2.Parameters)
+            foreach (var gp in globalChallengeParametersResponse.Item2.Parameters ?? Enumerable.Empty<GlobalChallengeParameters.ParameterDefinition>())
             {
                 parameters.Add($"Global_{gp.Key}", gp.Value);
             }
@@ -478,12 +481,29 @@ namespace AzureChallenge.UI.Controllers
 
                 // Get the current challenge
                 var challenge = userChallengeResponse.Item2.Challenges.Where(p => p.ChallengeId == inputModel.ChallengeId).FirstOrDefault();
+                // Get the current challenge definition
+                var challengeDefinition = await challengesProvider.GetItemAsync(inputModel.ChallengeId);
 
                 if (inputModel.QuestionIndex == challenge.CurrentIndex)
                 {
-                    user.AccumulatedPoint += inputModel.Difficulty;
-                    challenge.AccumulatedXP += inputModel.Difficulty;
+                    // If the challenge has penalties
+                    if (challengeDefinition.Item2.TrackAndDeductPoints)
+                    {
+                        // User can only get (1 - NumOfEfforts * 0.25) * Difficult points
+                        var pointsToAdd = (int)((1 - challenge.NumOfEfforts * 0.25) * inputModel.Difficulty);
+                        user.AccumulatedPoint += pointsToAdd;
+                        challenge.AccumulatedXP += pointsToAdd;
+                    }
+                    else
+                    {
+                        user.AccumulatedPoint += inputModel.Difficulty;
+                        challenge.AccumulatedXP += inputModel.Difficulty;
+                    }
+
                     challenge.CurrentIndex += 1;
+                    
+                    // Reset number of efforts
+                    challenge.NumOfEfforts = 0;
 
                     // End of challenge
                     if (inputModel.NextQuestionId == null)
@@ -505,6 +525,31 @@ namespace AzureChallenge.UI.Controllers
                     await userChallengesProvider.AddItemAsync(userChallengeResponse.Item2);
                     await _userManager.UpdateAsync(user);
                 }
+            }
+            else
+            {
+                // User hasn't responded correctly
+                // Check to see if the challenge penalizes incorrect answers
+                var challengeDefinition = await challengesProvider.GetItemAsync(inputModel.ChallengeId);
+
+                if (!challengeDefinition.Item1.IsError && challengeDefinition.Item2.TrackAndDeductPoints)
+                {
+                    // Challenge penalizes, so we need to update the user record
+                    var userChallengeResponse = await userChallengesProvider.GetItemAsync(user.Id);
+                    // Get the current challenge
+                    var challenge = userChallengeResponse.Item2.Challenges.Where(p => p.ChallengeId == inputModel.ChallengeId).FirstOrDefault();
+
+                    // Check if the number of efforts is less than 5
+                    if (challenge.NumOfEfforts < 5)
+                    {
+                        // Increase the number of efforts
+                        challenge.NumOfEfforts += 1;
+
+                        // Update the record
+                        await userChallengesProvider.AddItemAsync(userChallengeResponse.Item2);
+                    }
+                }
+
             }
 
             return Ok(results);

@@ -139,6 +139,13 @@
                                 <small>Maximum duration of the Challenge in minutes once started. Leave blank or enter 0 if there should be no time limit.</small>
                             </div>
                             <div class="col-md-12 pt-3">
+                                <label>Track and deduct points?</label>
+                                <div class="form-inline">
+                                    <input type="checkbox" class="form-check-input" name="TrackAndDeductPoints" id="TrackAndDeductPoints" />
+                                    <label class="form-check-label" for="TrackAndDeductPoints">Deduct 25% for questions' points if incorrect answer given.</label>
+                                </div>
+                            </div>
+                            <div class="col-md-12 pt-3">
                                 <label asp-for="@Model.WelcomeMessage"></label>
                                 <textarea asp-for="@Model.WelcomeMessage" class="form-control"></textarea>
                             </div>

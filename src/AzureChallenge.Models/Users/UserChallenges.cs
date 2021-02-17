@@ -35,5 +35,7 @@ namespace AzureChallenge.Models.Users
         public DateTime endTimeUTC { get; set; }
         [JsonProperty(PropertyName = "completed")]
         public bool Completed { get; set; }
+        [JsonProperty(PropertyName = "numOfEfforts")]
+        public int NumOfEfforts { get; set; }
     }
 }

@@ -45,6 +45,8 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
         public List<string> PrereqLinks { get; set; }
 
         public int Duration { get; set; }
+
+        public bool TrackAndDeductPoints { get; set; }
     }
 
     public class ChallengeQuestion

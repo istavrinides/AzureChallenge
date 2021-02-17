@@ -40,5 +40,8 @@ namespace AzureChallenge.Models.Challenges
 
         [JsonProperty(PropertyName = "duration")]
         public int Duration { get; set; }
+
+        [JsonProperty(PropertyName = "trackAndDeductPoints")]
+        public bool TrackAndDeductPoints { get; set; }
     }
 }

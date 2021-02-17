@@ -23,6 +23,13 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
         public List<string> PrereqLinks { get; set; }
         
         public int Duration { get; set; }
+
+        /// <summary>
+        /// If false, users have unlimited tries on questions
+        /// If true, each incorrect answer will deduct 25% (so 4 tries to get it right). After that, user will get 0 points
+        /// </summary>
+        [Display(Name = "Track and deduct points?")]
+        public bool TrackAndDeductPoints { get; set; }
     }
 
     public class ChallengeList
@@ -44,6 +51,13 @@ namespace AzureChallenge.UI.Areas.Administration.Models.Challenges
         public string WelcomeMessage { get; set; }
         public List<string> PrereqLinks { get; set; }
         public int Duration { get; set; }
+
+        /// <summary>
+        /// If false, users have unlimited tries on questions
+        /// If true, each incorrect answer will deduct 25% (so 4 tries to get it right). After that, user will get 0 points
+        /// </summary>
+        [Display(Name = "Track and deduct points?")]
+        public bool TrackAndDeductPoints { get; set; }
     }
 
     public class GitHubFiles
