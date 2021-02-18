@@ -238,3 +238,4 @@ _Pvt_Extensions
 # App Settings json
 appsettings.*.json
 appsettings.json
+/src/AzureChallenge.UI/Properties/ServiceDependencies/itprodevchallenge - Web Deploy/profile.arm.json
